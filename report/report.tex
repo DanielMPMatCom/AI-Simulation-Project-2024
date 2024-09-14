@@ -1,0 +1,128 @@
+\documentclass[twocolumn, fontsize=10pt]{article}
+\usepackage[margin=0.70in]{geometry}
+\usepackage{lipsum,mwe,abstract}
+\usepackage[english]{babel} 
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} 
+\fancyfoot[C]{\thepage} % Page numbering for right footer
+\setlength\parindent{0pt} 
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{comment}
+\usepackage{enumitem}
+\usepackage{makeidx}
+\makeindex
+\usepackage{cuted}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{xcolor} % For colored text
+\usepackage{hyperref} % Package for links
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    }
+\allsectionsfont{\normalfont \normalsize \scshape} % Section names in small caps and normal fonts
+
+\addto\captionsenglish{\renewcommand{\contentsname}{Índice}}
+
+\renewenvironment{abstract} % Change how the abstract look to remove margins
+ {\small
+  \begin{center}
+  \bfseries Resumen \vspace{-.5em}\vspace{0pt}
+  \end{center}
+  \list{}{%
+    \setlength{\leftmargin}{0mm}
+    \setlength{\rightmargin}{\leftmargin}%
+  }
+  \item\relax}
+ {\endlist}
+
+ \newenvironment{englishabstract} % Abstract en inglés
+ {\small
+  \begin{center}
+  \bfseries Abstract \vspace{-.5em}\vspace{0pt}
+  \end{center}
+  \list{}{%
+    \setlength{\leftmargin}{0mm}
+    \setlength{\rightmargin}{\leftmargin}%
+  }
+  \item\relax}
+ {\endlist}
+ 
+\makeatletter
+\renewcommand{\maketitle}{\bgroup\setlength{\parindent}{0pt} % Change how the title looks like
+\begin{flushleft}
+  \begin{center}
+    {\color{black} \Large Facultad de Matemática y Computación. Universidad de La Habana. \\
+    \color{black} Inteligencia Artificial y Simulación. \\ \vspace{10pt}}
+    \href{https://github.com/DanielMPMatCom/AI-Simulation-Project-2024.git}{Repositorio del Proyecto en GitHub} % Add GitHub link here
+    \vspace{10pt}
+  \end{center}
+  \textbf{\@title}
+  \@author \\ 
+  \@date
+\end{flushleft}\egroup
+}
+\makeatother
+
+%% ------------------------------------------------------------------- 
+
+\title{
+
+\Large Title.  \\
+[10pt] 
+}
+\date{\today}
+\author{Daniel Machado Pérez - daniel.machado.0206@gmail.com \\
+Daniel Toledo Martínez - daniel020126@gmail.com \\
+Osvaldo R. Moreno Prieto - osvaldo020213@gmail.com}
+
+\begin{document}
+
+\twocolumn[ \maketitle ]
+
+
+
+% --------------- ABSTRACT
+\begin{abstract}
+    Resumen.
+\end{abstract}
+
+\begin{englishabstract}
+    Resumen en inglés.
+\end{englishabstract}
+
+\rule{\linewidth}{0.5pt}
+
+% --------------- KEYWORDS
+\noindent \textbf{Palabras Clave}: palabras clave
+
+
+
+% --------------- MAIN CONTENT
+
+\tableofcontents
+
+\section{Introducción}
+
+
+
+
+\section{Conclusiones}
+
+
+\renewcommand\refname{Referencias}
+
+\begin{thebibliography}{}
+
+      
+\end{thebibliography}
+    
+    
+
+\end{document}
