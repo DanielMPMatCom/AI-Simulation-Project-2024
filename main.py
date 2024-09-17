@@ -1,4 +1,4 @@
-from src.llm.generative_ai import GenAIModel
+from generative_ai import GenAIModel
 
 model = GenAIModel()
 
