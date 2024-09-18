@@ -5,17 +5,15 @@ class Part:
     def __init__(self, lognormal : LogNormal, weibull : Weibull) -> None:
         self.lognormal = lognormal
         self.weibull = weibull
-
 class Boiler(Part):
     def __init__(self, lognormal : LogNormal, weibull : Weibull) -> None:
         Part.__init__(self, lognormal=lognormal, weibull=weibull)
-    
-class Part2(Part):
+class Coils(Part):
+    def __init__(self, lognormal : LogNormal, weibull : Weibull) -> None:
+        Part.__init__(self, lognormal=lognormal, weibull=weibull) 
+class SteamTurbine(Part):
     def __init__(self, lognormal : LogNormal, weibull : Weibull) -> None:
         Part.__init__(self, lognormal=lognormal, weibull=weibull)
-        
-    
-class Part3(Part):
+class Generator(Part):
     def __init__(self, lognormal : LogNormal, weibull : Weibull) -> None:
         Part.__init__(self, lognormal=lognormal, weibull=weibull)
-        
