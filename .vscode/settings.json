@@ -1,5 +1,12 @@
 {
     "cSpell.words": [
-        "kmeans"
+        "cmap",
+        "facecolor",
+        "kmeans",
+        "lightgreen",
+        "linalg",
+        "splev",
+        "splprep",
+        "viridis"
     ]
 }
