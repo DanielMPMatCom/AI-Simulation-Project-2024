@@ -5,6 +5,7 @@
         "kmeans",
         "lightgreen",
         "linalg",
+        "ndarray",
         "splev",
         "splprep",
         "thermoelectrics",

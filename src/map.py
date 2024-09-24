@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from scipy.interpolate import splprep, splev
-from typing import Tuple
+from typing import Tuple, Literal
 
 
 def distance(point_a, point_b):
@@ -269,10 +269,12 @@ class ElectricObject(MapObject):
         MapObject.__init__(self, id, position)
         self.wireConnection = None
         self.connection_point = None
+        self.distance = float("inf")
 
-    def connect_to_wire(self, wireConnection, connection_point):
+    def connect_to_wire(self, wireConnection, connection_point, distance):
         self.wireConnection = wireConnection
         self.connection_point = connection_point
+        self.distance = distance
 
 
 class TowerObject(MapObject):
@@ -283,17 +285,35 @@ class TowerObject(MapObject):
     def connect_to_wire(self, wireConnection):
         self.wireConnection.append(wireConnection)
 
+    def wires(self, remove_any=None):
+        return [w for w in self.wireConnection if w != remove_any]
+
 
 class WireConnection:
     def __init__(self, head: TowerObject, tail: TowerObject) -> None:
         self.id = head.id + "&" + tail.id
         self.towers = [head, tail]
-        self.connections: list[Tuple[MapObject, Tuple[int, int]]] = []
+        self.circuits_connections: list[Tuple[MapObject, Tuple[int, int], float]] = []
+        self.thermoelectrics_connections: list[
+            Tuple[MapObject, Tuple[int, int], float]
+        ] = []
 
     def connect_map_object(
-        self, mapObject: MapObject, interception_point: Tuple[int, int]
+        self,
+        mapObject: MapObject,
+        interception_point: Tuple[int, int],
+        distance: float,
+        type: Literal["Thermoelectric", "Circuit"],
     ):
-        self.connections.append((mapObject, interception_point))
+        if type == "Thermoelectric":
+            self.connections.append((mapObject, interception_point, distance))
+        elif type == "Circuit":
+            self.circuits_connections.append((mapObject, interception_point, distance))
+        else:
+            raise Exception(f"{type} is not defined for connect to a wireConnection")
+
+    def get_all_circuits_connected(self):
+        return self.circuits_connections
 
 
 def find_nearest_line_to_a_point(
@@ -303,7 +323,7 @@ def find_nearest_line_to_a_point(
     min_distance = float("inf")
     interception = (-1, -1)
 
-    for i, start, end in enumerate(lines):
+    for i, (start, end) in enumerate(lines):
         x1, y1 = start
         x2, y2 = end
 
@@ -320,7 +340,7 @@ def find_nearest_line_to_a_point(
             best_line_index = i
             interception = (ix, iy)
 
-    return best_line_index, interception
+    return best_line_index, interception, min_distance
 
 
 class GraphMap:
@@ -362,7 +382,7 @@ class GraphMap:
 
         # find nearest point of circuits to any wireConnection
         for circuit in self.circuits_nodes:
-            nearest_wire_index, interception = find_nearest_line_to_a_point(
+            nearest_wire_index, interception, distance = find_nearest_line_to_a_point(
                 circuit.position,
                 [
                     (wire.towers[0].position, wire.towers[1].position)
@@ -371,13 +391,87 @@ class GraphMap:
             )
 
             circuit.connect_to_wire(
-                self.wireConnections[nearest_wire_index], interception
+                self.wireConnections[nearest_wire_index], interception, distance
             )
 
-            self.wireConnections
+            self.wireConnections[nearest_wire_index].connect_map_object(
+                circuit, interception, distance=distance
+            )
+
+        # find nearest point of thermoelectrics to any wireConnection
+        for thermoelectric in self.thermoelectrics_nodes:
+            nearest_wire_index, interception, distance = find_nearest_line_to_a_point(
+                thermoelectric.position,
+                [
+                    (wire.towers[0].position, wire.towers[1].position)
+                    for wire in self.wireConnections
+                ],
+            )
+
+            thermoelectric.connect_to_wire(
+                self.wireConnections[nearest_wire_index], interception, distance
+            )
+
+            self.wireConnections[nearest_wire_index].connect_map_object(
+                thermoelectric, interception, distance=distance
+            )
+
+        # for all thermoelectric make the distance cost and dependence towers
+
+        self.thermoelectric_generation_cost = []
+
+        for thermoelectric in self.thermoelectrics_nodes:
+            self.dfs(
+                last_point=None,
+                wire=thermoelectric.wireConnection,
+                accumulative_cost=thermoelectric.distance,
+                thermoelectric=thermoelectric,
+                mk={},
+                last_tower_id=None,
+            )
+
+    def dfs(
+        self,
+        last_point: Tuple[int, int],
+        wire: WireConnection,
+        accumulative_cost: float,
+        thermoelectric: ElectricObject,
+        mk: dict,
+        last_tower_id: str,
+    ):
+
+        connected_circuits = wire.get_all_circuits_connected()
+
+        for circuit, interception, dist in connected_circuits:
+
+            cost = accumulative_cost + distance(last_point, interception) + dist
+
+            self.thermoelectric_generation_cost.append(
+                (thermoelectric, circuit, cost, last_tower_id)
+            )
+
+        towers = wire.towers
+        for t in towers:
+            if t.id not in mk:
+                mk[t.id] = True
+                for w in t.wires(wire):
+                    self.dfs(
+                        t.position,
+                        w,
+                        (
+                            accumulative_cost + distance(last_point, t.position)
+                            if last_point != None
+                            else 0
+                        ),
+                        thermoelectric,
+                        mk,
+                        t.id,
+                    )
+
+        return
 
     def visualize(self):
-        plt.figure(figsize=(10, 10))
+        plt.figure()
 
         # Plot thermoelectrics
         for node in self.thermoelectrics_nodes:
@@ -420,6 +514,29 @@ class GraphMap:
                 label="Wire Connection" if wire == self.wireConnections[0] else "",
             )
 
+        # plot circuit wireConnection
+        for c in self.circuits_nodes:
+            start_pos = c.position
+            end_pos = c.connection_point
+            plt.plot(
+                [start_pos[0], end_pos[0]],
+                [start_pos[1], end_pos[1]],
+                "k--",
+                label="Circuit Connection" if c == self.circuits_nodes[0] else "",
+            )
+
+        # plot thermoelectric wireConnection
+        for t in self.thermoelectrics_nodes:
+            start_pos = t.position
+            end_pos = t.connection_point
+            plt.plot(
+                [start_pos[0], end_pos[0]],
+                [start_pos[1], end_pos[1]],
+                "k--",
+                label=(
+                    "Thermoelectrics Connection" if c == self.circuits_nodes[0] else ""
+                ),
+            )
         plt.legend()
         plt.gca().set_facecolor("lightgreen")
         plt.show()
@@ -433,7 +550,7 @@ map_2d = Map2D(
     no_thermoelectrics=no_thermoelectrics,
 )
 
-map_2d.visualize()
+# map_2d.visualize()
 
 
 graphMap = GraphMap(
