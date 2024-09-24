@@ -2,11 +2,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from scipy.interpolate import splprep, splev
-import networkx as nx
 from typing import Tuple
 
 
-# REFACTOR MAP
 def distance(point_a, point_b):
     """
     Calculate the Euclidean distance between two points.
@@ -37,91 +35,6 @@ def is_isolate_point(point, point_references, max_distance):
         if distance(pr, point) <= max_distance:
             return False
     return True
-
-
-class MapObject:
-    """
-    A class to represent an object on a map.
-
-    Attributes:
-    -----------
-    id : int
-        The unique identifier of the map object.
-    position : tuple
-        The (x, y) coordinates of the map object on the map.
-    connections : list
-        A list of other MapObject instances that this object is connected to.
-
-    Methods:
-    --------
-    add_connection(map_object):
-        Adds a connection to another MapObject.
-
-    __str__():
-        Returns a string representation of the MapObject.
-    """
-
-    def __init__(self, id: str, position: Tuple[int, int]) -> None:
-        """
-        Initializes a new instance of the class.
-
-        Args:
-            id (str): The unique identifier for the instance.
-            position (Tuple[int, int]): The position of the instance as a tuple of (x, y) coordinates.
-
-        Attributes:
-            id (str): The unique identifier for the instance.
-            position (Tuple[int, int]): The position of the instance.
-            connections (list): A list to store connections related to the instance.
-        """
-        self.id = id
-        self.position = position
-        self.connections = []
-
-    def add_connection(self, map_object):
-        """
-        Adds a connection to the current map object.
-
-        Parameters:
-        map_object (MapObject): The map object to be added as a connection.
-
-        Returns:
-        None
-        """
-        self.connections.append(map_object)
-
-    def __str__(self):
-        """
-        Returns a string representation of the Node object.
-
-        The string includes the node's ID, position, and its connections.
-
-        Returns:
-            str: A string describing the node.
-        """
-        return f"Node {self.id} at {self.position} with connections {self.connections}"
-
-
-def create_connection(map_object_1: MapObject, map_object_2: MapObject):
-    """
-    Establishes a bidirectional connection between two MapObject instances.
-
-    This function ensures that both map_object_1 and map_object_2 are connected
-    to each other. If a connection does not already exist, it adds the connection
-    to both objects.
-
-    Args:
-        map_object_1 (MapObject): The first map object to connect.
-        map_object_2 (MapObject): The second map object to connect.
-
-    Returns:
-        None
-    """
-    if map_object_1 not in map_object_2.connections:
-        map_object_1.add_connection(map_object_2)
-
-    if map_object_2 not in map_object_1.connections:
-        map_object_2.add_connection(map_object_1)
 
 
 class Map2D:
@@ -211,10 +124,6 @@ class Map2D:
                 break
 
         self.towers_positions = sorted(self.towers_positions, key=lambda x: x[0])
-        self.connections = [
-            (self.towers_positions[i], self.towers_positions[i + 1])
-            for i in range(len(self.towers_positions) - 1)
-        ]
 
     def generate_circuits_positions(self, no_circuits: int, scale: int) -> np.ndarray:
         """
@@ -273,6 +182,11 @@ class Map2D:
         Returns:
             None
         """
+        self.connections = [
+            (self.towers_positions[i], self.towers_positions[i + 1])
+            for i in range(len(self.towers_positions) - 1)
+        ]
+
         y_means = self.kmeans.predict(self.circuits_positions)
 
         plt.scatter(
@@ -311,25 +225,224 @@ class Map2D:
         plt.show()
 
 
+class MapObject:
+    """
+    A class to represent an object on a map.
+
+    Attributes:
+    -----------
+    id : int
+        The unique identifier of the map object.
+    position : tuple
+        The (x, y) coordinates of the map object on the map.
+    connections : list
+        A list of other MapObject instances that this object is connected to.
+
+    Methods:
+    --------
+    add_connection(map_object):
+        Adds a connection to another MapObject.
+
+    __str__():
+        Returns a string representation of the MapObject.
+    """
+
+    def __init__(self, id: str, position: Tuple[int, int]) -> None:
+        """
+        Initializes a new instance of the class.
+
+        Args:
+            id (str): The unique identifier for the instance.
+            position (Tuple[int, int]): The position of the instance as a tuple of (x, y) coordinates.
+
+        Attributes:
+            id (str): The unique identifier for the instance.
+            position (Tuple[int, int]): The position of the instance.
+            connections (list): A list to store connections related to the instance.
+        """
+        self.id = id
+        self.position = position
+
+
+class ElectricObject(MapObject):
+    def __init__(self, id: str, position: Tuple) -> None:
+        MapObject.__init__(self, id, position)
+        self.wireConnection = None
+        self.connection_point = None
+
+    def connect_to_wire(self, wireConnection, connection_point):
+        self.wireConnection = wireConnection
+        self.connection_point = connection_point
+
+
+class TowerObject(MapObject):
+    def __init__(self, id: str, position: Tuple) -> None:
+        MapObject.__init__(self, id, position)
+        self.wireConnection = []
+
+    def connect_to_wire(self, wireConnection):
+        self.wireConnection.append(wireConnection)
+
+
+class WireConnection:
+    def __init__(self, head: TowerObject, tail: TowerObject) -> None:
+        self.id = head.id + "&" + tail.id
+        self.towers = [head, tail]
+        self.connections: list[Tuple[MapObject, Tuple[int, int]]] = []
+
+    def connect_map_object(
+        self, mapObject: MapObject, interception_point: Tuple[int, int]
+    ):
+        self.connections.append((mapObject, interception_point))
+
+
+def find_nearest_line_to_a_point(
+    point: Tuple[int, int], lines: list[Tuple[Tuple[int, int], Tuple[int, int]]]
+):
+    best_line_index = -1
+    min_distance = float("inf")
+    interception = (-1, -1)
+
+    for i, start, end in enumerate(lines):
+        x1, y1 = start
+        x2, y2 = end
+
+        px, py = point
+        norm = np.linalg.norm([x2 - x1, y2 - y1])
+        u = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / (norm**2)
+        u = max(min(u, 1), 0)
+        ix = x1 + u * (x2 - x1)
+        iy = y1 + u * (y2 - y1)
+        dist = np.linalg.norm([px - ix, py - iy])
+
+        if dist < min_distance:
+            min_distance = dist
+            best_line_index = i
+            interception = (ix, iy)
+
+    return best_line_index, interception
+
+
 class GraphMap:
     def __init__(
         self,
         thermoelectric_labels: list[str],
         circuits_labels: list[str],
+        towers_labels: list[str],
         thermoelectrics_positions: list[Tuple[int, int]],
         circuits_positions: list[Tuple[int, int]],
         towers_positions: list[Tuple[int, int]],
     ) -> None:
-        # objetivo un grafo bidireccional con peso de aristas
 
-        self.towers_nodes = [MapObject() for i in range(len(thermoelectric_labels))]
-        self.thermoelectrics_nodes = []
-        self.circuits_nodes = []
+        self.towers_nodes = [
+            TowerObject(towers_labels[i], towers_positions[i])
+            for i in range(len(towers_labels))
+        ]
 
+        self.thermoelectrics_nodes = [
+            ElectricObject(thermoelectric_labels[i], thermoelectrics_positions[i])
+            for i in range(len(thermoelectric_labels))
+        ]
+        self.circuits_nodes = [
+            ElectricObject(circuits_labels[i], circuits_positions[i])
+            for i in range(len(circuits_labels))
+        ]
+
+        # create wireConnections
+        self.wireConnections: list[WireConnection] = []
+
+        for i in range(len(self.towers_nodes) - 1):
+            wireConnection = WireConnection(
+                self.towers_nodes[i], self.towers_nodes[i + 1]
+            )
+            self.towers_nodes[i].connect_to_wire(wireConnection)
+            self.towers_nodes[i + 1].connect_to_wire(wireConnection)
+
+            self.wireConnections.append(wireConnection)
+
+        # find nearest point of circuits to any wireConnection
+        for circuit in self.circuits_nodes:
+            nearest_wire_index, interception = find_nearest_line_to_a_point(
+                circuit.position,
+                [
+                    (wire.towers[0].position, wire.towers[1].position)
+                    for wire in self.wireConnections
+                ],
+            )
+
+            circuit.connect_to_wire(
+                self.wireConnections[nearest_wire_index], interception
+            )
+
+            self.wireConnections
+
+    def visualize(self):
+        plt.figure(figsize=(10, 10))
+
+        # Plot thermoelectrics
+        for node in self.thermoelectrics_nodes:
+            plt.scatter(
+                *node.position,
+                c="red",
+                label="Thermoelectric" if node == self.thermoelectrics_nodes[0] else "",
+                s=200,
+                alpha=0.75,
+                marker="X",
+            )
+
+        # Plot circuits
+        for node in self.circuits_nodes:
+            plt.scatter(
+                *node.position,
+                c="blue",
+                label="Circuit" if node == self.circuits_nodes[0] else "",
+                marker="o",
+            )
+
+        # Plot towers
+        for node in self.towers_nodes:
+            plt.scatter(
+                *node.position,
+                c="green",
+                label="Tower" if node == self.towers_nodes[0] else "",
+                marker="^",
+                s=100,
+            )
+
+        # Plot wire connections
+        for wire in self.wireConnections:
+            start_pos = wire.towers[0].position
+            end_pos = wire.towers[1].position
+            plt.plot(
+                [start_pos[0], end_pos[0]],
+                [start_pos[1], end_pos[1]],
+                "k-",
+                label="Wire Connection" if wire == self.wireConnections[0] else "",
+            )
+
+        plt.legend()
+        plt.gca().set_facecolor("lightgreen")
+        plt.show()
+
+
+no_circuits = 50
+no_thermoelectrics = 8
 
 map_2d = Map2D(
-    no_circuits=50,
-    no_thermoelectrics=8,
+    no_circuits=no_circuits,
+    no_thermoelectrics=no_thermoelectrics,
 )
 
 map_2d.visualize()
+
+
+graphMap = GraphMap(
+    thermoelectric_labels=[f"Th{i}" for i in range(no_thermoelectrics)],
+    circuits_labels=[f"C{i}" for i in range(no_circuits)],
+    towers_labels=[f"Tw{i}" for i in range(len(map_2d.towers_positions))],
+    thermoelectrics_positions=map_2d.thermoelectrics_positions,
+    circuits_positions=map_2d.circuits_positions,
+    towers_positions=map_2d.towers_positions,
+)
+
+graphMap.visualize()
