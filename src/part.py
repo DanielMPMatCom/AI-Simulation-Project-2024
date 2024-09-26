@@ -1,11 +1,12 @@
-from utils.lognormal import LogNormal
-from utils.weibull import Weibull
+from src.utils.lognormal import LogNormal
+from src.utils.weibull import Weibull
 
 
 class Part:
     """
     Represents a general part of a thermoelectric plant. Each part has a life expectancy and can be repaired.
     """
+
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
         self.lognormal = lognormal
         self.weibull = weibull
@@ -64,6 +65,7 @@ class Boiler(Part):
     """
     Represents a Boiler part in the thermoelectric plant.
     """
+
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
         super().__init__(lognormal=lognormal, weibull=weibull)
 
@@ -72,6 +74,7 @@ class Coils(Part):
     """
     Represents a Coils part in the thermoelectric plant.
     """
+
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
         super().__init__(lognormal=lognormal, weibull=weibull)
 
@@ -80,6 +83,7 @@ class SteamTurbine(Part):
     """
     Represents a SteamTurbine part in the thermoelectric plant.
     """
+
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
         super().__init__(lognormal=lognormal, weibull=weibull)
 
@@ -88,5 +92,6 @@ class Generator(Part):
     """
     Represents a Generator part in the thermoelectric plant.
     """
+
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
         super().__init__(lognormal=lognormal, weibull=weibull)
