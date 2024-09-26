@@ -546,9 +546,9 @@ class GraphMap:
                 thermoelectric, interception, distance=distance, type="Thermoelectric"
             )
 
-        self.thermoelectric_generation_cost: list[
-            Tuple[ElectricObject, ElectricObject, float, list[str]]
-        ] = []
+        self.thermoelectric_generation_cost: list[Tuple[str, str, float, list[str]]] = (
+            []
+        )  # thermoelectric id , circuit id, cost, dependence towers
 
         for thermoelectric in self.thermoelectrics_nodes:
             self.dfs(
@@ -559,9 +559,6 @@ class GraphMap:
                 mk={},
                 towers_dependence=[],
             )
-        self.visualize_thermoelectric_generation_cost(
-            filter_thermoelectrics=[self.thermoelectrics_nodes[0].id]
-        )
 
     def dfs(
         self,
@@ -597,7 +594,7 @@ class GraphMap:
             cost = accumulative_cost + distance(last_point, interception) + dist
 
             self.thermoelectric_generation_cost.append(
-                (thermoelectric, circuit, cost, towers_dependence)
+                (thermoelectric.id, circuit.id, cost, towers_dependence)
             )
 
         towers = wire.towers
@@ -648,16 +645,16 @@ class GraphMap:
         filtered = [
             x
             for x in self.thermoelectric_generation_cost
-            if x[0].id in filter_thermoelectrics
+            if x[0] in filter_thermoelectrics
         ]
 
         for (
             thermoelectric,
             circuit,
             cost,
-            towers_dependence,
+            _,
         ) in filtered:
-            G.add_edge(thermoelectric.id, circuit.id, weight=cost)
+            G.add_edge(thermoelectric, circuit, weight=cost)
 
         pos = {
             node.id: node.position
@@ -796,24 +793,26 @@ class GraphMap:
         plt.show()
 
 
-no_circuits = 50
-no_thermoelectrics = 8
+# # Example
 
-map_2d = Map2D(
-    no_circuits=no_circuits,
-    no_thermoelectrics=no_thermoelectrics,
-)
+# no_circuits = 50
+# no_thermoelectrics = 8
 
-# map_2d.visualize()
+# map_2d = Map2D(
+#     no_circuits=no_circuits,
+#     no_thermoelectrics=no_thermoelectrics,
+# )
+
+# # map_2d.visualize()
 
 
-graphMap = GraphMap(
-    thermoelectric_labels=[f"Th{i}" for i in range(no_thermoelectrics)],
-    circuits_labels=[f"C{i}" for i in range(no_circuits)],
-    towers_labels=[f"Tw{i}" for i in range(len(map_2d.towers_positions))],
-    thermoelectrics_positions=map_2d.thermoelectrics_positions,
-    circuits_positions=map_2d.circuits_positions,
-    towers_positions=map_2d.towers_positions,
-)
+# graphMap = GraphMap(
+#     thermoelectric_labels=[f"Th{i}" for i in range(no_thermoelectrics)],
+#     circuits_labels=[f"C{i}" for i in range(no_circuits)],
+#     towers_labels=[f"Tw{i}" for i in range(len(map_2d.towers_positions))],
+#     thermoelectrics_positions=map_2d.thermoelectrics_positions,
+#     circuits_positions=map_2d.circuits_positions,
+#     towers_positions=map_2d.towers_positions,
+# )
 
-graphMap.visualize()
+# graphMap.visualize()

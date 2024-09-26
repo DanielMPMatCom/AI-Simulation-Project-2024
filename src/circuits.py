@@ -1,11 +1,14 @@
-from people import Citizen
+from src.people import Citizen
 
 
 class Circuit:
     """
     Represents an electricity circuit consisting of multiple blocks.
     """
-    def __init__(self) -> None:
+
+    def __init__(self, id, mock_electric_consume) -> None:
+        self.id = id
+        self.mock_electric_consume = mock_electric_consume
         self.blocks: list[Block] = []
 
     def update(self):
@@ -17,6 +20,7 @@ class Block:
     """
     Represents a block within a circuit that consumes energy.
     """
+
     def __init__(self) -> None:
         self.citizens: list[Citizen] = []
         self.history_report: list[str] = []
@@ -31,4 +35,6 @@ class Block:
             citizen.generate_report(self.off_hours)
 
     def get_consumed_energy_today(self) -> float:
-        return sum(self.demand_per_hour[:self.off_hours[0]]) + sum(self.demand_per_hour[self.off_hours[1]:])
+        return sum(self.demand_per_hour[: self.off_hours[0]]) + sum(
+            self.demand_per_hour[self.off_hours[1] :]
+        )
