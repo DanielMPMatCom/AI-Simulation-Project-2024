@@ -18,7 +18,7 @@ class Block:
     Represents a block within a circuit that consumes energy.
     """
     def __init__(self) -> None:
-        self.citizens: list['Citizen'] = []
+        self.citizens: list[Citizen] = []
         self.history_report: list[str] = []
         self.off_hours: tuple[int, int] = (0, 0)
         self.demand_per_hour: list[float] = []

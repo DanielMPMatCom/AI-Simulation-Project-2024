@@ -10,7 +10,6 @@ class Thermoelectric:
     """
     def __init__(self, parts: list[Part], total_capacity: int) -> None:
         self.parts = parts
-        # self.circuits = circuits
         self.total_capacity = total_capacity
         self.update_capacity()
 

@@ -26,7 +26,6 @@ class Part:
                 self.finish_repair()
 
         if self.remained_life <= 0 and not self.is_repairing():
-            # REVISARRRRRRRRRRRRRRRRRRRRRRRRRRRR
             self.repair()
 
     def repair(self):
@@ -55,7 +54,7 @@ class Part:
 
     def finish_repair(self):
         """
-        Finishes the repair process and reinitializes the part's lifespan.
+        Finishes the repair process and reinitialize the part's lifespan.
         """
         self.remained_repairs_days = None
         self.planificate_break_date()
