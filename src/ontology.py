@@ -140,3 +140,13 @@ industrial_circuits = list(onto.IndustrialCircuit.instances())
 for circuit in industrial_circuits:
     if circuit.hasEconomicImpact > 900:
         print(f"Circuit {circuit.name} has a high economic impact!")
+        
+        
+# Consultar todas las instancias de Circuit
+for circuit in onto.Circuit.instances():
+    print(f"Circuit: {circuit.name}, Impacto Económico: {circuit.hasEconomicImpact}, Historial de Cortes: {circuit.hasAffectationHistory}")
+    
+# # Consultar la irritación de los ciudadanos
+# for citizen in onto.Citizen.instances():
+#     print(f"Ciudadano: {citizen.name}, Nivel de Irritación: {citizen.hasIrritationLevel}")
+
