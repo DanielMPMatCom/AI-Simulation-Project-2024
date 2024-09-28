@@ -36,13 +36,24 @@ class Person:
 
 
 class ThermoElectricAgentPerception:
-    def __init__(self, thermoelectric: Thermoelectric, general_deficit: float) -> None:
-        self.broken_parts = [
-            part for part in thermoelectric.parts if not part.is_working()
-        ]
+    def __init__(
+        self,
+        thermoelectric: Thermoelectric,
+        general_deficit: float,
+        general_demand: float,
+    ) -> None:
+        self.thermoelectric = thermoelectric
+        self.plant_status = self.thermoelectric.is_working()
+        self.parts_status = self.thermoelectric.get_parts_status()
+        self.broken_parts = self.thermoelectric.get_broken_parts()
         self.max_capacity = thermoelectric.total_capacity
         self.current_capacity = thermoelectric.current_capacity
+        self.power_output_reduction_on_part_failure = [
+            (part, self.thermoelectric.get_output_reduction_on_part_failure(part))
+            for part in self.thermoelectric.parts
+        ]
         self.general_deficit = general_deficit
+        self.general_demand = general_demand
 
 
 class ThermoElectricAgentAction:
@@ -62,9 +73,17 @@ class ThermoelectricAgent(Person):
     Inherits from the Person class.
     """
 
-    def __init__(self, name: str, id: int, thermoelectric: Thermoelectric) -> None:
+    def __init__(
+        self,
+        name: str,
+        id: int,
+        thermoelectric: Thermoelectric,
+        perception: ThermoElectricAgentPerception = None,
+    ) -> None:
+
         Person.__init__(self, name=name, id=id)
         self.thermoelectric = thermoelectric
+        self.perception = perception
 
         self.beliefs = {
             "plant_is_working": Belief(
@@ -77,6 +96,9 @@ class ThermoelectricAgent(Person):
                     and the right side indicates the estimated remaining life time",
             ),
             "broken_parts": Belief([], "A List of Parts that are currently broken"),
+            "max_capacity": Belief(
+                0, "The maximum capacity of the Thermoelectric Plant"
+            ),
             "current_capacity": Belief(
                 0, "The current capacity of the Thermoelectric Plant"
             ),
@@ -98,7 +120,7 @@ class ThermoelectricAgent(Person):
             #     if not isinstance(part, Boiler)
             # ],
         }
-        self.update_beliefs()
+        # self.update_beliefs()
 
         self.desires = {
             "maintain_maximum_power_output": Desire(
@@ -107,7 +129,7 @@ class ThermoelectricAgent(Person):
             "prevent_unexpected_breakdowns": Desire(
                 False, "Desire to prevent unexpected breakdowns"
             ),
-            "Minimize_downtime": Desire(False, "Desire to minimize downtime"),
+            "minimize_downtime": Desire(False, "Desire to minimize downtime"),
             "meet_energy_demand": Desire(False, "Desire to meet energy demand"),
             "prioritize_critical_part_repair": Desire(
                 False, "Desire to prioritize critical part repair"
@@ -147,42 +169,112 @@ class ThermoelectricAgent(Person):
             "Prioritize_repair_of_critical_parts": Intention(
                 False, "Intention to prioritize repair of critical parts"
             ),
-            "repair_parts": Intention([(part, False) for part in self.thermoelectric.parts]),
+            "repair_parts": Intention(
+                [(part, False) for part in self.thermoelectric.parts]
+            ),
         }
 
-    def get_parts_status(self):
-        return [
-            (part.is_working(), part.estimated_remaining_life)
-            for part in self.thermoelectric.parts
+    # def get_general_deficit(self):
+    #     raise NotImplementedError()
+
+    # def get_general_demand(self):
+    #     raise NotImplementedError()
+
+    # def update_beliefs(self):
+    #     """Updates the beliefs of the agent based on the current state of system."""
+    #     self.beliefs["plant_is_working"] = self.thermoelectric.is_working()
+    #     self.beliefs["parts_status"] = self.get_parts_status()
+    #     self.beliefs["broken_parts"] = self.thermoelectric.get_broken_parts()
+    #     self.beliefs["current_capacity"] = self.thermoelectric.current_capacity
+    #     self.beliefs["power_output_reduction_on_part_failure"] = [
+    #         (part, self.get_output_reduction_on_part_failure(part))
+    #         for part in self.thermoelectric.parts
+    #     ]
+    #     self.beliefs["general_deficit"] = self.get_general_deficit()
+    #     self.beliefs["general_demand"] = self.get_general_demand()
+
+    def brf(self) -> None:
+        """
+        Belief Revision Function: Updates the agent's beliefs based on new perceptions.
+        """
+
+        # Update beliefs based on the new perception
+
+        # 1. Update belief about whether the plant is working
+        self.beliefs["plant_is_working"].value = self.perception.plant_status
+
+        # 2. Update beliefs about the status of the parts
+        # The belief stores a list of tuples with part status (is_working, estimated_remaining_life)
+        self.beliefs["parts_status"].value = self.perception.parts_status
+
+        # 3. Update the broken parts list
+        self.beliefs["broken_parts"].value = self.perception.broken_parts
+
+        # 4. Update the current and maximum capacity of the thermoelectric plant
+        self.beliefs["max_capacity"].value = self.perception.max_capacity
+        self.beliefs["current_capacity"].value = self.perception.current_capacity
+
+        # 5. Update beliefs about power output reduction due to part failures
+        self.beliefs["power_output_reduction_on_part_failure"].value = self.perception.power_output_reduction_on_part_failure
+
+        # 6. Update the belief about the general energy deficit and demand
+        self.beliefs["general_deficit"].value = self.perception.general_deficit
+        self.beliefs["general_demand"].value = self.perception.general_demand
+
+        # Optionally: Add logging or debugging information for the updated beliefs
+        print(f"Updated beliefs: {self.beliefs}")
+        
+        
+    def generate_desires(self) -> None:
+        """
+        Generates desires based on the current beliefs of the agent.
+        """
+
+        # 1. Desire to maintain maximum power output if the current capacity is less than the max capacity
+        if self.beliefs["current_capacity"].value < self.beliefs["max_capacity"].value:
+            self.desires["maintain_maximum_power_output"].value = True
+        else:
+            self.desires["maintain_maximum_power_output"].value = False
+
+        # 2. Desire to prevent unexpected breakdowns if any parts are close to failing
+        if any(life < 0.1 for is_working, life in self.beliefs["parts_status"].value):
+            self.desires["prevent_unexpected_breakdowns"].value = True
+        else:
+            self.desires["prevent_unexpected_breakdowns"].value = False
+
+        # 3. Desire to minimize downtime if critical parts are broken
+        if len(self.beliefs["broken_parts"].value) > 0:
+            self.desires["minimize_downtime"].value = True
+        else:
+            self.desires["minimize_downtime"].value = False
+
+        # 4. Desire to meet energy demand if there's a general energy deficit
+        if self.beliefs["general_deficit"].value > 0:
+            self.desires["meet_energy_demand"].value = True
+        else:
+            self.desires["meet_energy_demand"].value = False
+
+        # 5. Desire to prioritize the repair of critical parts (e.g., turbines, generators)
+        critical_parts = ["SteamTurbine", "Generator"]  # List of critical part types
+        if any(part.__class__.__name__ in critical_parts and not part.is_working()
+            for part in self.beliefs["broken_parts"].value):
+            self.desires["prioritize_critical_part_repair"].value = True
+        else:
+            self.desires["prioritize_critical_part_repair"].value = False
+
+        # 6. Desire to schedule repairs during low demand if there are parts that need maintenance
+        if self.beliefs["general_demand"].value < 0.5 and len(self.beliefs["broken_parts"].value) > 0:
+            self.desires["schedule_repairs_during_low_demand"].value = True
+        else:
+            self.desires["schedule_repairs_during_low_demand"].value = False
+
+        # 7. Update desire to repair parts (if they are broken or need maintenance)
+        self.desires["repair_parts"].value = [
+            (part, not part.is_working()) for part in self.thermoelectric.parts
         ]
 
-    def get_output_reduction_on_part_failure(self, part: Part):
-
-        return (
-            self.thermoelectric.current_capacity
-            if not isinstance(part, Boiler)
-            else self.thermoelectric.total_capacity
-            / self.thermoelectric.get_total_boilers()
-        )
-
-    def get_general_deficit(self):
-        raise NotImplementedError()
-
-    def get_general_demand(self):
-        raise NotImplementedError()
-
-    def update_beliefs(self):
-        """Updates the beliefs of the agent based on the current state of system."""
-        self.beliefs["plant_is_working"] = self.thermoelectric.is_working()
-        self.beliefs["parts_status"] = self.get_parts_status()
-        self.beliefs["broken_parts"] = self.thermoelectric.get_broken_parts()
-        self.beliefs["current_capacity"] = self.thermoelectric.current_capacity
-        self.beliefs["power_output_reduction_on_part_failure"] = [
-            (part, self.get_output_reduction_on_part_failure(part))
-            for part in self.thermoelectric.parts
-        ]
-        self.beliefs["general_deficit"] = self.get_general_deficit()
-        self.beliefs["general_demand"] = self.get_general_demand()
+        # Optionally: Log the new desires for debugging purposes
+        print(f"Generated desires: {self.desires}")
 
     # def update_desires(self):
     #     """Sets the desires of the agent, such as maintaining full capacity and repairing broken parts."""

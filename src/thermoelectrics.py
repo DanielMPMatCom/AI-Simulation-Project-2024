@@ -95,3 +95,35 @@ class Thermoelectric:
         Returns a list of broken parts in the thermoelectric.
         """
         return [part for part in self.parts if not part.is_working()]
+
+    def get_parts_status(self):
+        """
+        Retrieves the status of all parts.
+
+        Returns:
+            list of tuple: A list of tuples where each tuple contains:
+                - bool: The working status of the part.
+                - float: The estimated remaining life of the part.
+        """
+        return [
+            (part.is_working(), part.estimated_remaining_life)
+            for part in self.parts
+        ]
+        
+    def get_output_reduction_on_part_failure(self, part: Part):
+        """
+        Calculate the reduction in output capacity when a specific part fails.
+        Parameters:
+        part (Part): The part that has failed. This can be an instance of any part, 
+                     but if it is an instance of Boiler, a different calculation is applied.
+        Returns:
+        float: The reduced output capacity. If the failed part is not a Boiler, 
+               the current capacity is returned. If the failed part is a Boiler, 
+               the total capacity divided by the number of total boilers is returned.
+        """
+
+        return (
+            self.current_capacity
+            if not isinstance(part, Boiler)
+            else self.total_capacity / self.get_total_boilers()
+        )
