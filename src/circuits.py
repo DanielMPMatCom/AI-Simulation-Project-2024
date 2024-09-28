@@ -7,9 +7,9 @@ class Circuit:
     Represents an electricity circuit consisting of multiple blocks.
     """
 
-    def __init__(self, id, mock_electric_consume) -> None:
+    def __init__(self, id) -> None:
         self.id = id
-        self.mock_electric_consume = mock_electric_consume
+        self.mock_electric_consume = 200 # Modify this value is important
         self.blocks: list[Block] = []
 
     def update(self):

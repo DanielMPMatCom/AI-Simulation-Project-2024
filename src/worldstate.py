@@ -1,9 +1,5 @@
-from circuits import *
-from part import *
-from people import *
-from thermoelectrics import *
-from map import *
-
+from src.circuits import Circuit
+from src.thermoelectrics import Thermoelectric
 
 class WorldState:
     def __init__(self, circuits:list[Circuit], thermoelectrics:list[Thermoelectric]) -> None:
