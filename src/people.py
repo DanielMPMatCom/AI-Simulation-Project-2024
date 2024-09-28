@@ -1,4 +1,4 @@
-from src.thermoelectrics import *
+from src.thermoelectrics import Thermoelectric
 from typing import List
 import random
 from worldstate import *
@@ -15,8 +15,8 @@ class Person:
         self.name = name
         self.id = id
         self.beliefs = {}
-        self.desires = []
-        self.intentions = []
+        self.desires = {}
+        self.intentions = {}
 
     def update_beliefs(self):
         """Method to update beliefs of the person."""
@@ -76,9 +76,17 @@ class ThermoelectricAgent(Person):
                 "A List of Tuples where the left side is True if the Part is working and False otherwise, \
                     and the right side indicates the estimated remaining life time",
             ),
-            "broken_parts": [],
-            "current_capacity": 0,
-            "power_output_reduction_on_part_failure": [],
+            "broken_parts": Belief([], "A List of Parts that are currently broken"),
+            "current_capacity": Belief(
+                0, "The current capacity of the Thermoelectric Plant"
+            ),
+            "power_output_reduction_on_part_failure": Belief(
+                [],
+                "A List of Tuples where the left side is the Part and the right side is the power output \
+                    reduction on its failure",
+            ),
+            "general_deficit": Belief(0, "The general deficit of the Electric System"),
+            "general_demand": Belief(0, "The general demand of the Electric System"),
             # "boilers_status": [
             #     (boiler.is_working(), boiler.estimated_remaining_life)
             #     for boiler in thermoelectric.parts
@@ -91,6 +99,56 @@ class ThermoelectricAgent(Person):
             # ],
         }
         self.update_beliefs()
+
+        self.desires = {
+            "maintain_maximum_power_output": Desire(
+                False, "Desire to maintain maximum power output"
+            ),
+            "prevent_unexpected_breakdowns": Desire(
+                False, "Desire to prevent unexpected breakdowns"
+            ),
+            "Minimize_downtime": Desire(False, "Desire to minimize downtime"),
+            "meet_energy_demand": Desire(False, "Desire to meet energy demand"),
+            "prioritize_critical_part_repair": Desire(
+                False, "Desire to prioritize critical part repair"
+            ),
+            "schedule_repairs_during_low_demand": Desire(
+                False, "Desire of schedule repairs during low demand"
+            ),  # REVISAR
+            "repair_parts": Desire(
+                [(part, False) for part in self.thermoelectric.parts],
+                "A List of Tuples where the left side is the Part and the right side is True if the Part needs repair",
+            ),
+        }
+
+        self.intentions = {
+            "increase_power_output": Intention(
+                False, "Intention to increase power output"
+            ),
+            "operate_at_full_capacity": Intention(
+                False, "Intention to operate at full capacity"
+            ),
+            "inspect_critical_parts": Intention(
+                False, "Intention to inspect critical parts"
+            ),  # REVISAR
+            # "schedule_maintenance": Intention(
+            #     [(part, False) for part in self.thermoelectric.parts],
+            #     "A List of Tuples where the left side is the Part and the right side is True if the Part needs maintenance",
+            # ),
+            "perform_maintenance_on_parts": Intention(
+                [(part, False) for part in self.thermoelectric.parts],
+                "A List of Tuples where the left side is the Part and the right side is True if the Part needs maintenance",
+            ),
+            "repair_during_low_demand": Intention(
+                False, "Intention to repair during low demand"
+            ),  # REVISAR
+            "reduce_downtime": Intention(False, "Intention to reduce downtime"),
+            "meet_demand": Intention(False, "Intention to meet demand"),
+            "Prioritize_repair_of_critical_parts": Intention(
+                False, "Intention to prioritize repair of critical parts"
+            ),
+            "repair_parts": Intention([(part, False) for part in self.thermoelectric.parts]),
+        }
 
     def get_parts_status(self):
         return [
@@ -107,6 +165,12 @@ class ThermoelectricAgent(Person):
             / self.thermoelectric.get_total_boilers()
         )
 
+    def get_general_deficit(self):
+        raise NotImplementedError()
+
+    def get_general_demand(self):
+        raise NotImplementedError()
+
     def update_beliefs(self):
         """Updates the beliefs of the agent based on the current state of system."""
         self.beliefs["plant_is_working"] = self.thermoelectric.is_working()
@@ -117,54 +181,56 @@ class ThermoelectricAgent(Person):
             (part, self.get_output_reduction_on_part_failure(part))
             for part in self.thermoelectric.parts
         ]
+        self.beliefs["general_deficit"] = self.get_general_deficit()
+        self.beliefs["general_demand"] = self.get_general_demand()
 
-    def update_desires(self):
-        """Sets the desires of the agent, such as maintaining full capacity and repairing broken parts."""
-        self.desires.clear()
-        if not self.beliefs["plant_is_operational"]:
-            self.desires.append("repair_parts")
-        else:
-            self.desires.append("maintain_capacity")
+    # def update_desires(self):
+    #     """Sets the desires of the agent, such as maintaining full capacity and repairing broken parts."""
+    #     self.desires.clear()
+    #     if not self.beliefs["plant_is_operational"]:
+    #         self.desires.append("repair_parts")
+    #     else:
+    #         self.desires.append("maintain_capacity")
 
-    def select_intentions(self):
-        """Based on the desires, the agent commits to specific actions (intentions)."""
-        self.intentions.clear()
-        if "repair_parts" in self.desires:
-            self.intentions.append(self.repair_broken_parts)
-        if "maintain_capacity" in self.desires:
-            self.intentions.append(self.schedule_maintenance)
+    # def select_intentions(self):
+    #     """Based on the desires, the agent commits to specific actions (intentions)."""
+    #     self.intentions.clear()
+    #     if "repair_parts" in self.desires:
+    #         self.intentions.append(self.repair_broken_parts)
+    #     if "maintain_capacity" in self.desires:
+    #         self.intentions.append(self.schedule_maintenance)
 
-    def calculate_current_capacity(self) -> float:
-        """Calculates the current capacity of the plant based on operational boilers."""
-        working_boilers = [
-            part
-            for part in self.parts
-            if isinstance(part, Boiler) and part.is_working()
-        ]
-        capacity = (
-            len(working_boilers) / len([p for p in self.parts if isinstance(p, Boiler)])
-        ) * self.max_capacity
-        return capacity
+    # def calculate_current_capacity(self) -> float:
+    #     """Calculates the current capacity of the plant based on operational boilers."""
+    #     working_boilers = [
+    #         part
+    #         for part in self.parts
+    #         if isinstance(part, Boiler) and part.is_working()
+    #     ]
+    #     capacity = (
+    #         len(working_boilers) / len([p for p in self.parts if isinstance(p, Boiler)])
+    #     ) * self.max_capacity
+    #     return capacity
 
-    def repair_broken_parts(self):
-        """Repairs broken parts in the plant."""
-        for part in self.beliefs["broken_parts"]:
-            part.repair()
-        self.update_beliefs()
+    # def repair_broken_parts(self):
+    #     """Repairs broken parts in the plant."""
+    #     for part in self.beliefs["broken_parts"]:
+    #         part.repair()
+    #     self.update_beliefs()
 
-    def schedule_maintenance(self):
-        """Schedule maintenance of parts to prevent breakdowns."""
-        for part in self.parts:
-            if random() > 0.5:  # Randomly decide to maintain parts for now
-                part.planificate_break_date()
+    # def schedule_maintenance(self):
+    #     """Schedule maintenance of parts to prevent breakdowns."""
+    #     for part in self.parts:
+    #         if random() > 0.5:  # Randomly decide to maintain parts for now
+    #             part.planificate_break_date()
 
-    def step(self):
-        """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
-        self.update_beliefs()
-        self.update_desires()
-        self.select_intentions()
-        for intention in self.intentions:
-            intention()
+    # def step(self):
+    #     """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
+    #     self.update_beliefs()
+    #     self.update_desires()
+    #     self.select_intentions()
+    #     for intention in self.intentions:
+    #         intention()
 
 
 class ChiefElectricCompanyAgent(Person):

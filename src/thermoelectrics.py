@@ -14,6 +14,7 @@ class Thermoelectric:
         self.parts = parts
         self.total_capacity = total_capacity
         self.current_capacity = 0
+        self.stored_energy = 0
         self.update_capacity()
 
     def update(self):
