@@ -9,10 +9,11 @@ class Thermoelectric:
     and provides the electricity generation functionality.
     """
 
-    def __init__(self,id, parts: list[Part], total_capacity: int) -> None:
+    def __init__(self, id, parts: list[Part], total_capacity: int) -> None:
         self.id = id
         self.parts = parts
         self.total_capacity = total_capacity
+        self.current_capacity = 0
         self.update_capacity()
 
     def update(self):
@@ -57,6 +58,8 @@ class Thermoelectric:
             ) * self.total_capacity
         else:
             self.current_capacity = 0
+            
+        return self.current_capacity
 
     def get_current_offer(self) -> int:
         """
@@ -79,3 +82,15 @@ class Thermoelectric:
         return sum(
             1 for part in self.parts if isinstance(part, Boiler) and part.is_working()
         )
+        
+    def get_working_parts(self) -> list[Part]:
+        """
+        Returns a list of working parts in the thermoelectric.
+        """
+        return [part for part in self.parts if part.is_working()]
+    
+    def get_broken_parts(self) -> list[Part]:
+        """
+        Returns a list of broken parts in the thermoelectric.
+        """
+        return [part for part in self.parts if not part.is_working()]

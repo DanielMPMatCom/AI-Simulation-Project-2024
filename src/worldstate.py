@@ -2,6 +2,7 @@ from circuits import *
 from part import *
 from people import *
 from thermoelectrics import *
+from map import *
 
 
 class WorldState:

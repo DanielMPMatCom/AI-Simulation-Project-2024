@@ -10,8 +10,10 @@ class Part:
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
         self.lognormal = lognormal
         self.weibull = weibull
-        self.remained_repairs_days = None
-        self.remained_life = None
+        self.remaining_repair_days = None
+        self.remaining_life = None
+        self.estimated_remaining_life = None
+        self.estimated_repair_days = None
         self.planificate_break_date()  # Initialize the part's lifespan
 
     def update(self):
@@ -19,46 +21,61 @@ class Part:
         Update the part's status, decrementing life or repair days.
         """
         if self.is_working():
-            self.remained_life -= 1
+            self.remaining_life -= 1
 
         if self.is_repairing():
-            self.remained_repairs_days -= 1
-            if self.remained_repairs_days <= 0:
+            self.remaining_repair_days -= 1
+            if self.remaining_repair_days <= 0:
                 self.finish_repair()
 
-        if self.remained_life <= 0 and not self.is_repairing():
+        if self.remaining_life <= 0 and not self.is_repairing():
             self.repair()
 
     def repair(self):
         """
         Start the repair process by setting the repair days.
         """
-        self.remained_repairs_days = self.lognormal.generate()
+        self.remaining_repair_days = self.lognormal.generate()
 
     def planificate_break_date(self):
         """
         Plan the date when the part will break based on its life expectancy.
         """
-        self.remained_life = self.weibull.generate()
+        self.remaining_life = self.weibull.generate()
 
     def is_repairing(self) -> bool:
         """
         Check if the part is currently under repair.
         """
-        return self.remained_repairs_days is not None and self.remained_repairs_days > 0
+        return self.remaining_repair_days is not None and self.remaining_repair_days > 0
 
     def is_working(self) -> bool:
         """
         Check if the part is currently functioning.
         """
-        return self.remained_life is not None and self.remained_life > 0
+        return self.remaining_life is not None and self.remaining_life > 0
 
     def finish_repair(self):
         """
         Finishes the repair process and reinitialize the part's lifespan.
         """
-        self.remained_repairs_days = None
+        self.remaining_repair_days = None
         self.planificate_break_date()
+        
+    def get_estimate_remaining_life(self):
+        """
+        Estimates the remaining life of the part based on the current state.
+        """
+        self.estimated_remaining_life = self.lognormal.generate() if self.is_working() else 0
+        return self.estimated_remaining_life
+    
+    def get_estimated_repair_days(self):
+        """
+        Estimates the repair days of the part based on the current state.
+        """
+        self.estimated_repair_days = self.weibull.generate()
+        return self.estimated_repair_days
+        
 
 
 class Boiler(Part):
@@ -67,7 +84,7 @@ class Boiler(Part):
     """
 
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
-        super().__init__(lognormal=lognormal, weibull=weibull)
+        Part.__init__(self, lognormal=lognormal, weibull=weibull)
 
 
 class Coils(Part):
@@ -76,7 +93,7 @@ class Coils(Part):
     """
 
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
-        super().__init__(lognormal=lognormal, weibull=weibull)
+        Part.__init__(self, lognormal=lognormal, weibull=weibull)
 
 
 class SteamTurbine(Part):
@@ -85,7 +102,7 @@ class SteamTurbine(Part):
     """
 
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
-        super().__init__(lognormal=lognormal, weibull=weibull)
+        Part.__init__(self, lognormal=lognormal, weibull=weibull)
 
 
 class Generator(Part):
@@ -94,4 +111,4 @@ class Generator(Part):
     """
 
     def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
-        super().__init__(lognormal=lognormal, weibull=weibull)
+        Part.__init__(self, lognormal=lognormal, weibull=weibull)

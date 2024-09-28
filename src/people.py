@@ -1,6 +1,8 @@
 from src.thermoelectrics import *
 from typing import List
 import random
+from worldstate import *
+from bdi import *
 
 
 class Person:
@@ -9,8 +11,9 @@ class Person:
     It serves as a parent class for ThermoelectricAgent, ChiefElectricCompanyAgent, and Citizen.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, id: int):
         self.name = name
+        self.id = id
         self.beliefs = {}
         self.desires = []
         self.intentions = []
@@ -32,6 +35,26 @@ class Person:
         raise NotImplementedError("This method should be implemented by subclasses")
 
 
+class ThermoElectricAgentPerception:
+    def __init__(self, thermoelectric: Thermoelectric, general_deficit: float) -> None:
+        self.broken_parts = [
+            part for part in thermoelectric.parts if not part.is_working()
+        ]
+        self.max_capacity = thermoelectric.total_capacity
+        self.current_capacity = thermoelectric.current_capacity
+        self.general_deficit = general_deficit
+
+
+class ThermoElectricAgentAction:
+    def __init__(
+        self,
+        maintain_parts: list[(Part, int)] = [],  # [(part, time)]
+        repair_parts: list = [],  # [(part, time)]
+    ) -> None:
+        self.maintain_parts = maintain_parts
+        self.repair_parts = repair_parts
+
+
 class ThermoelectricAgent(Person):
     """
     BDI Agent representing a thermoelectric power plant.
@@ -39,20 +62,61 @@ class ThermoelectricAgent(Person):
     Inherits from the Person class.
     """
 
-    def __init__(self, name: str, parts: List[Part], max_capacity: float):
-        Person.__init__(name)
-        self.parts = parts  # Boiler, Coils, SteamTurbine, Generator
-        self.max_capacity = max_capacity
-        self.current_capacity = max_capacity
+    def __init__(self, name: str, id: int, thermoelectric: Thermoelectric) -> None:
+        Person.__init__(self, name=name, id=id)
+        self.thermoelectric = thermoelectric
+
+        self.beliefs = {
+            "plant_is_working": Belief(
+                False,
+                "True if the Agent's Thermoelectric Plant is working, False otherwise",
+            ),
+            "parts_status": Belief(
+                [],
+                "A List of Tuples where the left side is True if the Part is working and False otherwise, \
+                    and the right side indicates the estimated remaining life time",
+            ),
+            "broken_parts": [],
+            "current_capacity": 0,
+            "power_output_reduction_on_part_failure": [],
+            # "boilers_status": [
+            #     (boiler.is_working(), boiler.estimated_remaining_life)
+            #     for boiler in thermoelectric.parts
+            #     if isinstance(boiler, Boiler)
+            # ],
+            # "unique_parts_status": [
+            #     (part.is_working(), part.estimated_remaining_life)
+            #     for part in thermoelectric.parts
+            #     if not isinstance(part, Boiler)
+            # ],
+        }
+        self.update_beliefs()
+
+    def get_parts_status(self):
+        return [
+            (part.is_working(), part.estimated_remaining_life)
+            for part in self.thermoelectric.parts
+        ]
+
+    def get_output_reduction_on_part_failure(self, part: Part):
+
+        return (
+            self.thermoelectric.current_capacity
+            if not isinstance(part, Boiler)
+            else self.thermoelectric.total_capacity
+            / self.thermoelectric.get_total_boilers()
+        )
 
     def update_beliefs(self):
-        """Updates the beliefs of the agent based on the current state of the plant's parts."""
-        working_parts = [part.is_working() for part in self.parts]
-        self.beliefs["plant_is_operational"] = all(working_parts)
-        self.beliefs["broken_parts"] = [
-            part for part in self.parts if not part.is_working()
+        """Updates the beliefs of the agent based on the current state of system."""
+        self.beliefs["plant_is_working"] = self.thermoelectric.is_working()
+        self.beliefs["parts_status"] = self.get_parts_status()
+        self.beliefs["broken_parts"] = self.thermoelectric.get_broken_parts()
+        self.beliefs["current_capacity"] = self.thermoelectric.current_capacity
+        self.beliefs["power_output_reduction_on_part_failure"] = [
+            (part, self.get_output_reduction_on_part_failure(part))
+            for part in self.thermoelectric.parts
         ]
-        self.beliefs["current_capacity"] = self.calculate_current_capacity()
 
     def update_desires(self):
         """Sets the desires of the agent, such as maintaining full capacity and repairing broken parts."""
@@ -113,10 +177,11 @@ class ChiefElectricCompanyAgent(Person):
     def __init__(
         self,
         name: str,
+        id: int,
         thermoelectrics: List[ThermoelectricAgent],
-        circuits: List['Circuit'],
+        circuits: List["Circuit"],
     ):
-        Person.__init__(name)
+        Person.__init__(self, name=name, id=id)
         self.thermoelectrics = thermoelectrics
         self.circuits = circuits
 
@@ -169,9 +234,10 @@ class Citizen(Person):
     Inherits from the Person class.
     """
 
-    def __init__(self, name: str, block: 'Block'):
-        super().__init__(name)
+    def __init__(self, name: str, block: "Block", motivation: str):
+        Person.__init__(self, name)
         self.block = block
+        self.motivation = motivation
 
     def update_beliefs(self):
         """Citizens update their beliefs based on the status of electricity in their block."""
