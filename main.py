@@ -12,6 +12,8 @@
 from src.map import Map2D, GraphMap
 from src.circuits import Circuit
 from src.thermoelectrics import Thermoelectric
+from src.worldstate import WorldState
+from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from numpy.random import randint
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -36,15 +38,15 @@ graphMap = GraphMap(
 
 distance_cost_template = graphMap.thermoelectric_generation_cost
 
-
-def generate_random_circuits(id):
-    return Circuit(id=id, mock_electric_consume=randint(1, 200))
-
+bimodal_consumption = DailyElectricityConsumptionBimodal(
+    base_consumption=100, base_variability=5, mean_morning=7, std_morning=1, 
+    mean_evening=19, std_evening=1, weight_morning=20, weight_evening=40
+)
 
 # Generate a circuits for map
 ci: list[Circuit] = []
 for i in range(no_circuits):
-    ci.append(generate_random_circuits(id=graphMap.circuits_nodes[i].id))
+    ci.append(Circuit(graphMap.circuits_nodes[i].id, bimodal_consumption))
 
 # Generate Thermoelectric generation based in the nearest circuits
 mapper_circuit_with_thermoelectric = {}
@@ -70,7 +72,7 @@ plt.show()
 
 
 # Generate thermoelectrics
-ti = []
+ti: list[Thermoelectric] = []
 
 for t in graphMap.thermoelectrics_nodes:
     circuits_filtered = [
@@ -96,5 +98,6 @@ for t in graphMap.thermoelectrics_nodes:
     )
 
 for t in ti:
-    t: Thermoelectric
     print(t.id, t.total_capacity)
+
+worldstate = WorldState(ci, ti)
