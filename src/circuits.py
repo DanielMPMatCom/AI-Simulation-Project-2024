@@ -1,4 +1,5 @@
 from src.people import Citizen
+from utils.gaussianmixture import *
 
 
 class Circuit:
@@ -21,11 +22,12 @@ class Block:
     Represents a block within a circuit that consumes energy.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, gaussianmixture : DailyElectricityConsumptionBimodal) -> None:
         self.citizens: list[Citizen] = []
         self.history_report: list[str] = []
         self.off_hours: tuple[int, int] = (0, 0)
         self.demand_per_hour: list[float] = []
+        self.gaussianmixture = gaussianmixture
 
     def update(self):
         pass
