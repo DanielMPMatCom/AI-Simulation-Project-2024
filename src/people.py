@@ -416,8 +416,10 @@ class ChiefElectricCompanyAgent(Person):
 class Citizen:
     def __init__(self, block:Block) -> None:
         self.block = block
+        self.opinion
 
-    def get_opinion(
+    def set_opinion(
+            self,
             input_last_day_off:int,
             input_industrialization:float,
             input_days_off_relation:float,
@@ -488,7 +490,7 @@ class Citizen:
         satisfaction_simulation.compute()
 
         # Return personal satisfaction
-        return satisfaction_simulation.output['personal_satisfaction']
+        self.opinion = satisfaction_simulation.output['personal_satisfaction']
     
     def complain():
         pass
