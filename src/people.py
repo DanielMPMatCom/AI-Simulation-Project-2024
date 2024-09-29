@@ -453,7 +453,7 @@ class Citizen:
         # Membership functions for last_day_off
         last_day_off["recent"] = fuzz.trapmf(last_day_off.universe, [0, 0, 5, 10])
         last_day_off["moderate"] = fuzz.trimf(last_day_off.universe, [7, 12, 15])
-        last_day_off["distant"] = fuzz.trapmf(last_day_off.universe, [13, 18, 20, 20])
+        last_day_off["distant"] = fuzz.trapmf(last_day_off.universe, [14, 18, 20, 20])
 
         # Membership functions for industrialization
         industrialization["low"] = fuzz.trapmf(industrialization.universe, [0, 0, 0.5, 0.6])
@@ -461,9 +461,9 @@ class Citizen:
         industrialization["high"] = fuzz.trapmf(industrialization.universe, [0.7, 0.8, 1.0, 1.0])
 
         # Membership functions for days_off_relation
-        days_off_relation["low"] = fuzz.trapmf(days_off_relation.universe, [0, 0, 0.2, 0.3])
-        days_off_relation["medium"] = fuzz.trimf(days_off_relation.universe, [0.3, 0,4, 0,5])
-        days_off_relation["high"] = fuzz.trapmf(days_off_relation.universe, [0.4, 0.5, 1.0, 1.0])
+        days_off_relation["low"] = fuzz.trapmf(days_off_relation.universe, [0, 0, 0.1, 0.2])
+        days_off_relation["medium"] = fuzz.trimf(days_off_relation.universe, [0.1, 0,3, 0,4])
+        days_off_relation["high"] = fuzz.trapmf(days_off_relation.universe, [0.3, 0.5, 1.0, 1.0])
         
         # Membership functions for general_satisfaction
         general_satisfaction["lowest"] = fuzz.trapmf(general_satisfaction.universe, [0, 0, 0.3, 0.4])
@@ -481,7 +481,17 @@ class Citizen:
 
         # Fuzzy rules
         rules = [
-
+            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["medium"] & general_satisfaction["high"], personal_satisfaction["high"]),
+            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["high"] & general_satisfaction["high"], personal_satisfaction["medium"]),
+            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["high"] & general_satisfaction["medium"], personal_satisfaction["high"]),
+            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["high"] & general_satisfaction["low"], personal_satisfaction["medium"]),
+            ctrl.Rule(last_day_off["recent"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["medium"], personal_satisfaction["lower"]),
+            ctrl.Rule(last_day_off["recent"] & days_off_relation["medium"] & industrialization["low"] & general_satisfaction["medium"], personal_satisfaction["medium"]),
+            ctrl.Rule(last_day_off["recent"] & days_off_relation["high"] & industrialization["low"] & general_satisfaction["lower"], personal_satisfaction["lowest"]),
+            ctrl.Rule(last_day_off["recent"] & days_off_relation["high"] & industrialization["low"] & general_satisfaction["lowest"], personal_satisfaction["lower"]),
+            ctrl.Rule(last_day_off["moderate"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["medium"], personal_satisfaction["medium"]),
+            ctrl.Rule(last_day_off["moderate"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["high"], personal_satisfaction["low"]),
+            ctrl.Rule(last_day_off["moderate"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["low"], personal_satisfaction["medium"]),
         ]
 
         # Create control system
