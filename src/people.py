@@ -3,6 +3,8 @@ from typing import List
 import random
 from worldstate import *
 from bdi import *
+from part import *
+from circuits import *
 
 
 class Person:
