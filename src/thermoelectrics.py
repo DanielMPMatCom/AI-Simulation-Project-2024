@@ -106,7 +106,7 @@ class Thermoelectric:
                 - float: The estimated remaining life of the part.
         """
         return [
-            (part.is_working(), part.estimated_remaining_life)
+            (part, part.is_working(), part.estimated_remaining_life)
             for part in self.parts
         ]
         

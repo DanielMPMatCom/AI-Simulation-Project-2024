@@ -100,7 +100,7 @@ class ThermoelectricAgent(Person):
             ),
             "parts_status": Belief(
                 [],
-                "A List of Tuples where the left side is True if the Part is working and False otherwise, \
+                "A List of Tuples with 3 elements, where the left side is the part instance, the middle side is True if the part is working and False otherwise, \
                     and the right side indicates the estimated remaining life time",
             ),
             "broken_parts": Belief([], "A List of Parts that are currently broken"),
@@ -118,6 +118,28 @@ class ThermoelectricAgent(Person):
             "general_deficit": Belief(0, "The general deficit of the Electric System"),
             "general_demand": Belief(0, "The general demand of the Electric System"),
             "general_offer": Belief(0, "The general offer of the Electric System"),
+            "all_desires": Belief(
+                {
+                    "max_power_output": TAMaxPowerOutputDesire(),
+                    "prevent_unexpected_breakdowns": TAPreventUnexpectedBreakdownDesire(),
+                    "minimize_downtime": TAMinimizeDowntimeDesire(),
+                    "meet_energy_demand": TAMeetEnergyDemandDesire(),
+                    "prioritize_critical_parts_repair": TAPriorizeCriticalPartsRepairDesire(),
+                    "repair_parts": TARepairPartsDesire(),
+                },
+                "All possible desires of the Agent",
+            ),
+            "current_desires": Belief(
+                [
+                    "max_power_output",
+                    "prevent_unexpected_breakdowns",
+                    "minimize_downtime",
+                    "meet_energy_demand",
+                    "prioritize_critical_parts_repair",
+                    "repair_parts",
+                ],
+                "The current desires of the Agent",
+            ),
             # "boilers_status": [
             #     (boiler.is_working(), boiler.estimated_remaining_life)
             #     for boiler in thermoelectric.parts
@@ -140,8 +162,7 @@ class ThermoelectricAgent(Person):
             # "schedule_repairs_during_low_demand": Desire(
             #     False, "Desire of schedule repairs during low demand"
             # ),  # REVISAR
-            "repair_parts": 
-                [(part, False) for part in self.thermoelectric.parts],
+            "repair_parts": [(part, False) for part in self.thermoelectric.parts],
         }
 
         self.intentions = {
@@ -233,53 +254,12 @@ class ThermoelectricAgent(Person):
         Generates desires based on the current beliefs of the agent.
         """
 
-        # 1. Desire to maintain maximum power output if the current capacity is less than the max capacity
-        if self.beliefs["current_capacity"].value < self.beliefs["max_capacity"].value:
-            self.desires["maintain_maximum_power_output"].value = True
-        else:
-            self.desires["maintain_maximum_power_output"].value = False
-
-        # 2. Desire to prevent unexpected breakdowns if any parts are close to failing
-        if any(life < 0.1 for is_working, life in self.beliefs["parts_status"].value):
-            self.desires["prevent_unexpected_breakdowns"].value = True
-        else:
-            self.desires["prevent_unexpected_breakdowns"].value = False
-
-        # 3. Desire to minimize downtime if critical parts are broken
-        if len(self.beliefs["broken_parts"].value) > 0:
-            self.desires["minimize_downtime"].value = True
-        else:
-            self.desires["minimize_downtime"].value = False
-
-        # 4. Desire to meet energy demand if there's a general energy deficit
-        if self.beliefs["general_deficit"].value > 0:
-            self.desires["meet_energy_demand"].value = True
-        else:
-            self.desires["meet_energy_demand"].value = False
-
-        # 5. Desire to prioritize the repair of critical parts (e.g., turbines, generators)
-        critical_parts = ["SteamTurbine", "Generator"]  # List of critical part types
-        if any(
-            part.__class__.__name__ in critical_parts and not part.is_working()
-            for part in self.beliefs["broken_parts"].value
-        ):
-            self.desires["prioritize_critical_part_repair"].value = True
-        else:
-            self.desires["prioritize_critical_part_repair"].value = False
-
-        # 6. Desire to schedule repairs during low demand if there are parts that need maintenance
-        if (
-            self.beliefs["general_demand"].value < 0.5
-            and len(self.beliefs["broken_parts"].value) > 0
-        ):
-            self.desires["schedule_repairs_during_low_demand"].value = True
-        else:
-            self.desires["schedule_repairs_during_low_demand"].value = False
-
-        # 7. Update desire to repair parts (if they are broken or need maintenance)
-        self.desires["repair_parts"].value = [
-            (part, not part.is_working()) for part in self.thermoelectric.parts
-        ]
+        self.beliefs["current_desires"].value.sort(
+            key=lambda x: self.beliefs["all_desires"].value[x].weight
+        )
+        
+        for desire in self.beliefs["current_desires"].value:
+            self.beliefs["all_desires"].value[desire].evaluate(self)
 
         # Optionally: Log the new desires for debugging purposes
         print(f"Generated desires: {self.desires}")
