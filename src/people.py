@@ -671,8 +671,10 @@ class ChiefElectricCompanyAgent(Person):
 
 
 class Citizen:
-    def __init__(self, block: Block) -> None:
+    def __init__(self, block:Block, amount:int) -> None:
+        self.amount = amount
         self.block = block
+        
         self.opinion
 
     def set_opinion(
