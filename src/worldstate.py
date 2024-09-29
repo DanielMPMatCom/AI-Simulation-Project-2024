@@ -14,3 +14,7 @@ class WorldState:
         self.total_offer = sum([thermoelectric.current_capacity for thermoelectric in self.thermoelectrics])
         self.total_demand = sum([(block.get_consumed_energy_today for block in circuit.blocks) for circuit in self.circuits])
         self.total_deficit = min(self.total_demand - self.total_offer)
+        self.general_satisfaction = self.get_general_satisfaction()
+
+    def get_general_satisfaction(self):
+        return 0.8

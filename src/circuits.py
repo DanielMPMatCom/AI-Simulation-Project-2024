@@ -1,4 +1,5 @@
 from src.people import Citizen
+from src.worldstate import WorldState
 from utils.gaussianmixture import *
 import random
 
@@ -33,8 +34,21 @@ class Circuit:
             mock_value += block.mock_electric_consume
 
         return mock_value
+    
+    def get_circuit_opinion(self):
+        pass
+            
 
-
+class BlockReport():
+    def __init__(
+            self,
+            time_off:int,
+            total_demand:float,
+            citizens_opinion_state:float,
+    ):
+        self.time_off = time_off
+        self.total_demand = total_demand
+        self.citizens_opinion = citizens_opinion_state
 
 class Block:
     """
@@ -42,19 +56,48 @@ class Block:
     """
 
     def __init__(self, gaussian_mixture : DailyElectricityConsumptionBimodal, citizens_range) -> None:
-        self.citizens: list[Citizen] = []
-        self.history_report: list[str] = []
+        self.citizens: Citizen
+        self.history_report: list[BlockReport] = []
         self.off_hours: tuple[int, int] = (0, 0)
         self.demand_per_hour: list[float] = []
         self.gaussian_mixture = gaussian_mixture
         self.mock_electric_consume = self.get_mock_electric_consume()
+        self.industrialization = 0.8 # Change later
 
-    def update(self):
-        pass
+    def update(self, off_hours, world_state:WorldState):
+        
+        self.off_hours = off_hours
+        self.demand_per_hour = self.gaussian_mixture.generate()
+        
+        time_off = off_hours[1] - off_hours[0]
+        total_demand = self.get_consumed_energy_today()
 
-    def get_block_report(self):
-        for citizen in self.citizens:
-            citizen.generate_report(self.off_hours)
+        history_report = self.history_report[:19:-1]
+
+        days_off:float = sum(1 for report in history_report if report.time_off > 0) + (1 if time_off > 0 else 0)
+        days_amount:float = len(history_report) + 1
+
+        near_days_off = [i for i, report in enumerate(history_report, 1) if report.time_off > 0]
+        last_day_off = 0 if time_off > 0 else 20 if not near_days_off else min(near_days_off)
+
+        self.citizens.set_opinion(
+            input_general_satisfaction=world_state.general_satisfaction,
+            input_industrialization=self.industrialization,
+            input_days_off_relation=days_off/days_amount,
+            input_last_day_off=last_day_off
+            )
+
+        daily_report = BlockReport(
+            time_off=time_off,
+            total_demand=total_demand,
+            citizens_opinion_state=self.citizens.opinion,
+        )
+        self.history_report.append(daily_report)
+
+        
+    
+    def get_block_opinion(self) -> float:
+        return self.citizens.opinion
 
     def get_consumed_energy_today(self) -> float:
         return sum(self.demand_per_hour[: self.off_hours[0]]) + sum(
@@ -66,3 +109,5 @@ class Block:
         for i in range(300):
             day_consume = sum(self.gaussian_mixture.generate())
             mock_value = max(mock_value, day_consume)
+        
+        return mock_value
