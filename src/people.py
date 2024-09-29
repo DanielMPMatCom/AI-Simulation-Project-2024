@@ -188,7 +188,7 @@ class ThermoelectricAgent(Person):
             ),  # REVISAR
             "reduce_downtime": Intention(False, "Intention to reduce downtime"),
             "meet_demand": Intention(False, "Intention to meet demand"),
-            "Prioritize_repair_of_critical_parts": Intention(
+            "prioritize_repair_of_critical_parts": Intention(
                 False, "Intention to prioritize repair of critical parts"
             ),
             "repair_parts": Intention(
@@ -261,9 +261,105 @@ class ThermoelectricAgent(Person):
         for desire in self.beliefs["current_desires"].value:
             self.beliefs["all_desires"].value[desire].evaluate(self)
 
-        # Optionally: Log the new desires for debugging purposes
-        print(f"Generated desires: {self.desires}")
-
+        # print(f"Generated desires: {self.desires}")
+        
+    def generate_intentions(self):
+        """
+        Generates intentions based on the current beliefs and desires of the agent.
+        """
+        # If the agent desires to maintain maximum power output, he will intend to increase power output and operate at full capacity
+        if self.desires["max_power_output"]:
+            self.intentions["increase_power_output"].value = True
+            self.intentions["operate_at_full_capacity"].value = True
+        else:
+            self.intentions["increase_power_output"].value = False
+            self.intentions["operate_at_full_capacity"].value = False
+            
+        # If the agent desires to prevent unexpected breakdowns, he will intend to inspect critical parts and perform maintenance on parts
+        if self.desires["prevent_unexpected_breakdowns"]:
+            self.intentions["inspect_critical_parts"].value = True
+            self.intentions["perform_maintenance_on_parts"].value = [
+                (part, time <= 1) for part, _, time in self.beliefs["parts_status"].value
+            ]
+        else: 
+            self.intentions["inspect_critical_parts"].value = False
+            self.intentions["perform_maintenance_on_parts"].value = [
+                (part, False) for part, _, _ in self.beliefs["parts_status"].value
+            ]
+            
+        # If the agent desires to minimize downtime, he will intend to repair during low demand and reduce downtime
+        if self.desires["minimize_downtime"]:
+            self.intentions["repair_during_low_demand"].value = True
+            self.intentions["reduce_downtime"].value = True
+        else:
+            self.intentions["repair_during_low_demand"].value = False
+            self.intentions["reduce_downtime"].value = False
+        
+        # If the agent desires to meet energy demand, he will intend to meet demand
+        if self.desires["meet_energy_demand"]:
+            self.intentions["meet_demand"].value = True
+        else:
+            self.intentions["meet_demand"].value = False
+        
+        # If the agent desires to prioritize repair of critical parts, he will intend to prioritize repair of critical parts
+        if self.desires["prioritize_critical_part_repair"]:
+            self.intentions["prioritize_repair_of_critical_parts"].value = True
+        else:
+            self.intentions["prioritize_repair_of_critical_parts"].value = False
+        
+        # The agent will intend to repair parts that need repair
+        self.intentions["repair_parts"].value = [
+            (part, need_repair) for part, need_repair in self.desires["repair_parts"]
+        ]
+            
+        
+        # print(f"Generated intentions: {self.intentions}")
+        
+        
+    def execute(self):
+        """
+        Executes the intentions of the agent.
+        """
+        
+        if self.intentions["increase_power_output"].value:
+            # Placeholder for increasing power output
+            print(f"{self.name} is increasing power output.")
+        
+        if self.intentions["operate_at_full_capacity"].value:
+            # Placeholder for operating at full capacity
+            print(f"{self.name} is operating at full capacity.")
+            
+        if self.intentions["inspect_critical_parts"].value:
+            # Placeholder for inspecting critical parts
+            print(f"{self.name} is inspecting critical parts.")
+            
+        if self.intentions["perform_maintenance_on_parts"].value:
+            # Placeholder for performing maintenance on parts
+            print(f"{self.name} is performing maintenance on parts.")
+            
+        if self.intentions["repair_during_low_demand"].value:
+            # Placeholder for repairing during low demand
+            print(f"{self.name} is repairing during low demand.")
+            
+        if self.intentions["reduce_downtime"].value:
+            # Placeholder for reducing downtime
+            print(f"{self.name} is reducing downtime.")
+            
+        if self.intentions["meet_demand"].value:
+            # Placeholder for meeting demand
+            print(f"{self.name} is meeting demand.")
+            
+        if self.intentions["prioritize_repair_of_critical_parts"].value:
+            # Placeholder for prioritizing repair of critical parts
+            print(f"{self.name} is prioritizing repair of critical parts.")
+            
+        if self.intentions["repair_parts"].value:
+            # Placeholder for repairing parts
+            print(f"{self.name} is repairing parts.")
+        
+        # print(f"{self.name} is executing intentions.")
+        
+        
     # def update_desires(self):
     #     """Sets the desires of the agent, such as maintaining full capacity and repairing broken parts."""
     #     self.desires.clear()
