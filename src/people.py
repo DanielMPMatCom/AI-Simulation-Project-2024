@@ -5,6 +5,10 @@ from worldstate import *
 from bdi import *
 from part import *
 from circuits import *
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
 
 
 class Person:
@@ -389,42 +393,112 @@ class ChiefElectricCompanyAgent(Person):
             intention()
 
 
-class Citizen(Person):
-    """
-    Class representing a citizen in a block of a circuit.
-    Citizens react to changes in electricity supply, like blackouts or power restoration.
-    Inherits from the Person class.
-    """
+# class Citizen(Person):
+#     """
+#     Class representing a citizen in a block of a circuit.
+#     Citizens react to changes in electricity supply, like blackouts or power restoration.
+#     Inherits from the Person class.
+#     """
 
-    def __init__(self, name: str, block: "Block", motivation: str):
-        Person.__init__(self, name)
+#     def __init__(self, name: str, block: "Block", motivation: str):
+#         Person.__init__(self, name)
+#         self.block = block
+#         self.motivation = motivation
+
+#     def update_beliefs(self):
+#         """Citizens update their beliefs based on the status of electricity in their block."""
+#         self.beliefs["has_power"] = self.block.has_power()
+
+#     def update_desires(self):
+#         """Citizens desire uninterrupted power supply."""
+#         self.desires.clear()
+#         if not self.beliefs["has_power"]:
+#             self.desires.append("restore_power")
+
+#     def select_intentions(self):
+#         """Citizens' intentions reflect their need for power restoration."""
+#         self.intentions.clear()
+#         if "restore_power" in self.desires:
+#             self.intentions.append(self.complain_to_authorities)
+
+#     def complain_to_authorities(self):
+#         """Action taken when power is out for too long: complain."""
+#         print(f"{self.name} is complaining about power outage in {self.block.name}")
+
+#     def step(self):
+#         """Executes a simulation step for the citizen: updates beliefs, desires, and intentions."""
+#         self.update_beliefs()
+#         self.update_desires()
+#         self.select_intentions()
+#         for intention in self.intentions:
+#             intention()
+
+class Citizen:
+    def __init__(self, block:Block) -> None:
         self.block = block
-        self.motivation = motivation
 
-    def update_beliefs(self):
-        """Citizens update their beliefs based on the status of electricity in their block."""
-        self.beliefs["has_power"] = self.block.has_power()
+    def get_opinion(
+            input_last_day_off:int,
+            input_industrialization:float,
+            input_days_off_relation:float,
+            input_general_satisfaction:float,
+    ):
+        
+        last_day_off = ctrl.Antecedent(np.arange(0, 22, 1), 'last_day_off')
+        industrialization = ctrl.Atecedent(np.arange(0, 1,1, 0.1), 'industrialization')
+        days_off_relation = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'days_off_relation')
+        general_satisfaction = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'general_satisfaction')
+        personal_satisfaction = ctrl.Consequent(np.arange(0, 1,1, 0.1), 'personal_satisfaction')
 
-    def update_desires(self):
-        """Citizens desire uninterrupted power supply."""
-        self.desires.clear()
-        if not self.beliefs["has_power"]:
-            self.desires.append("restore_power")
+        # Membership functions for last_day_off
+        last_day_off["recent"] = fuzz.trapmf(last_day_off.universe, [0, 0, 5, 10])
+        last_day_off["moderate"] = fuzz.trimf(last_day_off.universe, [7, 12, 15])
+        last_day_off["distant"] = fuzz.trapmf(last_day_off.universe, [13, 18, 20, 20])
 
-    def select_intentions(self):
-        """Citizens' intentions reflect their need for power restoration."""
-        self.intentions.clear()
-        if "restore_power" in self.desires:
-            self.intentions.append(self.complain_to_authorities)
+        # Membership functions for industrialization
+        industrialization["low"] = fuzz.trapmf(industrialization.universe, [0, 0, 0.5, 0.6])
+        industrialization["medium"] = fuzz.trimf(industrialization.universe, [0.5, 0.7, 0.8])
+        industrialization["high"] = fuzz.trapmf(industrialization.universe, [0.7, 0.8, 1.0, 1.0])
 
-    def complain_to_authorities(self):
-        """Action taken when power is out for too long: complain."""
-        print(f"{self.name} is complaining about power outage in {self.block.name}")
+        # Membership functions for days_off_relation
+        days_off_relation["low"] = fuzz.trapmf(days_off_relation.universe, [0, 0, 0.2, 0.3])
+        days_off_relation["medium"] = fuzz.trimf(days_off_relation.universe, [0.3, 0,4, 0,5])
+        days_off_relation["high"] = fuzz.trapmf(days_off_relation.universe, [0.4, 0.5, 1.0, 1.0])
+        
+        # Membership functions for general_satisfaction
+        general_satisfaction["lowest"] = fuzz.trapmf(general_satisfaction.universe, [0, 0, 0.3, 0.4])
+        general_satisfaction["lower"] = fuzz.trimf(general_satisfaction.universe, [0.3, 0.4, 0.6])
+        general_satisfaction["low"] = fuzz.trimf(general_satisfaction.universe, [0.5, 0.6, 0.7])
+        general_satisfaction["medium"] = fuzz.trimf(general_satisfaction.universe, [0.7, 0.8, 0.9])
+        general_satisfaction["high"] = fuzz.trapmf(general_satisfaction.universe, [0.8, 0.9, 1.0, 1.0])
 
-    def step(self):
-        """Executes a simulation step for the citizen: updates beliefs, desires, and intentions."""
-        self.update_beliefs()
-        self.update_desires()
-        self.select_intentions()
-        for intention in self.intentions:
-            intention()
+        # Membership functions for personal_satisfaction
+        personal_satisfaction["lowest"] = fuzz.trapmf(personal_satisfaction.universe, [0, 0, 0.3, 0.4])
+        personal_satisfaction["lower"] = fuzz.trimf(personal_satisfaction.universe, [0.3, 0.4, 0.6])
+        personal_satisfaction["low"] = fuzz.trimf(personal_satisfaction.universe, [0.5, 0.6, 0.7])
+        personal_satisfaction["medium"] = fuzz.trimf(personal_satisfaction.universe, [0.7, 0.8, 0.9])
+        personal_satisfaction["high"] = fuzz.trapmf(personal_satisfaction.universe, [0.8, 0.9, 1.0, 1.0])
+
+        # Fuzzy rules
+        rules = [
+
+        ]
+
+        # Create control system
+        satisfaction_control = ctrl.ControlSystem(rules)
+        satisfaction_simulation = ctrl.ControlSystemSimulation(satisfaction_control)
+
+        # Provide input values to the simulation
+        satisfaction_simulation.input['last_day_off'] = input_last_day_off
+        satisfaction_simulation.input['industrialization'] = input_industrialization
+        satisfaction_simulation.input['days_off_relation'] = input_days_off_relation
+        satisfaction_simulation.input['general_satisfaction'] = input_general_satisfaction
+
+        # Compute result
+        satisfaction_simulation.compute()
+
+        # Return personal satisfaction
+        return satisfaction_simulation.output['personal_satisfaction']
+    
+    def complain():
+        pass

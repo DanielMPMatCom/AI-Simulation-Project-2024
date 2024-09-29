@@ -1,2 +1,4 @@
 google-generativeai
 telethon
+scikit-fuzzy
+numpy
