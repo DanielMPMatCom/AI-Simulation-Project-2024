@@ -10,7 +10,6 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
 
-
 class Person:
     """
     Base class representing a person with a name.
@@ -24,19 +23,31 @@ class Person:
         self.desires = {}
         self.intentions = {}
 
-    def update_beliefs(self):
-        """Method to update beliefs of the person."""
+    def brf(self):
+        """
+        Belief Revision Function: Updates the agent's beliefs based on new perceptions.
+        """
         raise NotImplementedError("This method should be implemented by subclasses")
 
-    def update_desires(self):
-        """Method to update desires of the person."""
+    def generate_desires(self):
+        """
+        Generates desires based on the current beliefs of the agent.
+        """
         raise NotImplementedError("This method should be implemented by subclasses")
 
-    def select_intentions(self):
-        """Method to update intentions based on desires."""
+    def filter_intentions(self):
+        """
+        Filter intentions based on the current beliefs and desires of the agent.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses")
+    
+    def execute(self):
+        """
+        Executes the intentions of the agent.
+        """
         raise NotImplementedError("This method should be implemented by subclasses")
 
-    def step(self):
+    def action(self):
         """A simulation step where the agent updates beliefs, desires, and intentions."""
         raise NotImplementedError("This method should be implemented by subclasses")
 
@@ -67,10 +78,24 @@ class ThermoElectricAgentPerception:
 class ThermoElectricAgentAction:
     def __init__(
         self,
-        maintain_parts: list[(Part, int)] = [],  # [(part, time)]
-        repair_parts: list = [],  # [(part, time)]
+        increase_power_output,
+        operate_at_full_capacity,
+        inspect_critical_parts,
+        perform_maintenance_on_parts,
+        repair_during_low_demand,
+        reduce_downtime,
+        meet_demand,
+        prioritize_repair_of_critical_parts,
+        repair_parts,
     ) -> None:
-        self.maintain_parts = maintain_parts
+        self.increase_power_output = increase_power_output
+        self.operate_at_full_capacity = operate_at_full_capacity
+        self.inspect_critical_parts = inspect_critical_parts
+        self.perform_maintenance_on_parts = perform_maintenance_on_parts
+        self.repair_during_low_demand = repair_during_low_demand
+        self.reduce_downtime = reduce_downtime
+        self.meet_demand = meet_demand
+        self.prioritize_repair_of_critical_parts = prioritize_repair_of_critical_parts
         self.repair_parts = repair_parts
 
 
@@ -257,15 +282,15 @@ class ThermoelectricAgent(Person):
         self.beliefs["current_desires"].value.sort(
             key=lambda x: self.beliefs["all_desires"].value[x].weight
         )
-        
+
         for desire in self.beliefs["current_desires"].value:
             self.beliefs["all_desires"].value[desire].evaluate(self)
 
         # print(f"Generated desires: {self.desires}")
-        
-    def generate_intentions(self):
+
+    def filter_intentions(self):
         """
-        Generates intentions based on the current beliefs and desires of the agent.
+        Filter intentions based on the current beliefs and desires of the agent.
         """
         # If the agent desires to maintain maximum power output, he will intend to increase power output and operate at full capacity
         if self.desires["max_power_output"]:
@@ -274,19 +299,20 @@ class ThermoelectricAgent(Person):
         else:
             self.intentions["increase_power_output"].value = False
             self.intentions["operate_at_full_capacity"].value = False
-            
+
         # If the agent desires to prevent unexpected breakdowns, he will intend to inspect critical parts and perform maintenance on parts
         if self.desires["prevent_unexpected_breakdowns"]:
             self.intentions["inspect_critical_parts"].value = True
             self.intentions["perform_maintenance_on_parts"].value = [
-                (part, time <= 1) for part, _, time in self.beliefs["parts_status"].value
+                (part, time <= 1)
+                for part, _, time in self.beliefs["parts_status"].value
             ]
-        else: 
+        else:
             self.intentions["inspect_critical_parts"].value = False
             self.intentions["perform_maintenance_on_parts"].value = [
                 (part, False) for part, _, _ in self.beliefs["parts_status"].value
             ]
-            
+
         # If the agent desires to minimize downtime, he will intend to repair during low demand and reduce downtime
         if self.desires["minimize_downtime"]:
             self.intentions["repair_during_low_demand"].value = True
@@ -294,72 +320,213 @@ class ThermoelectricAgent(Person):
         else:
             self.intentions["repair_during_low_demand"].value = False
             self.intentions["reduce_downtime"].value = False
-        
+
         # If the agent desires to meet energy demand, he will intend to meet demand
         if self.desires["meet_energy_demand"]:
             self.intentions["meet_demand"].value = True
         else:
             self.intentions["meet_demand"].value = False
-        
+
         # If the agent desires to prioritize repair of critical parts, he will intend to prioritize repair of critical parts
         if self.desires["prioritize_critical_part_repair"]:
             self.intentions["prioritize_repair_of_critical_parts"].value = True
         else:
             self.intentions["prioritize_repair_of_critical_parts"].value = False
-        
+
         # The agent will intend to repair parts that need repair
         self.intentions["repair_parts"].value = [
             (part, need_repair) for part, need_repair in self.desires["repair_parts"]
         ]
-            
-        
+
         # print(f"Generated intentions: {self.intentions}")
-        
-        
+
     def execute(self):
         """
         Executes the intentions of the agent.
         """
-        
+
+        increase_power_output = False
+        operate_at_full_capacity = False
+        inspect_critical_parts = False
+        perform_maintenance_on_parts = [
+            (part, False) for part in self.thermoelectric.parts
+        ]
+        repair_during_low_demand = False
+        reduce_downtime = False
+        meet_demand = False
+        prioritize_repair_of_critical_parts = False
+        repair_parts = [(part, False) for part in self.thermoelectric.parts]
+
+        # 
         if self.intentions["increase_power_output"].value:
+            increase_power_output = True
+            self.intentions["increase_power_output"].value = False
             # Placeholder for increasing power output
-            print(f"{self.name} is increasing power output.")
-        
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["operate_at_full_capacity"].value:
+            operate_at_full_capacity = True
+            self.intentions["operate_at_full_capacity"].value = False
             # Placeholder for operating at full capacity
-            print(f"{self.name} is operating at full capacity.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["inspect_critical_parts"].value:
+            inspect_critical_parts = True
+            self.intentions["inspect_critical_parts"].value = False
             # Placeholder for inspecting critical parts
-            print(f"{self.name} is inspecting critical parts.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["perform_maintenance_on_parts"].value:
+            perform_maintenance_on_parts = self.intentions[
+                "perform_maintenance_on_parts"
+            ].value
+            self.intentions["perform_maintenance_on_parts"].value = [
+                (part, False) for part in self.thermoelectric.parts
+            ]
             # Placeholder for performing maintenance on parts
-            print(f"{self.name} is performing maintenance on parts.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["repair_during_low_demand"].value:
+            repair_during_low_demand = True
+            self.intentions["repair_during_low_demand"].value = False
             # Placeholder for repairing during low demand
-            print(f"{self.name} is repairing during low demand.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["reduce_downtime"].value:
+            reduce_downtime = True
+            self.intentions["reduce_downtime"].value = False
             # Placeholder for reducing downtime
-            print(f"{self.name} is reducing downtime.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["meet_demand"].value:
+            meet_demand = True
+            self.intentions["meet_demand"].value = False
             # Placeholder for meeting demand
-            print(f"{self.name} is meeting demand.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["prioritize_repair_of_critical_parts"].value:
+            prioritize_repair_of_critical_parts = True
+            self.intentions["prioritize_repair_of_critical_parts"].value = False
             # Placeholder for prioritizing repair of critical parts
-            print(f"{self.name} is prioritizing repair of critical parts.")
-            
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         if self.intentions["repair_parts"].value:
+            repair_parts = self.intentions["repair_parts"].value
+            self.intentions["repair_parts"].value = [
+                (part, False) for part in self.thermoelectric.parts
+            ]
             # Placeholder for repairing parts
-            print(f"{self.name} is repairing parts.")
-        
+
+            return ThermoElectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                inspect_critical_parts=inspect_critical_parts,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                repair_during_low_demand=repair_during_low_demand,
+                reduce_downtime=reduce_downtime,
+                meet_demand=meet_demand,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
         # print(f"{self.name} is executing intentions.")
         
-        
+    def action(self, perception: ThermoElectricAgentPerception) -> ThermoElectricAgentAction:
+        """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
+        self.perception = perception
+        self.brf()
+        self.generate_desires()
+        self.filter_intentions()
+        return self.execute()
+
     # def update_desires(self):
     #     """Sets the desires of the agent, such as maintaining full capacity and repairing broken parts."""
     #     self.desires.clear()
@@ -400,13 +567,6 @@ class ThermoelectricAgent(Person):
     #         if random() > 0.5:  # Randomly decide to maintain parts for now
     #             part.planificate_break_date()
 
-    # def step(self):
-    #     """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
-    #     self.update_beliefs()
-    #     self.update_desires()
-    #     self.select_intentions()
-    #     for intention in self.intentions:
-    #         intention()
 
 
 class ChiefElectricCompanyAgent(Person):
@@ -509,24 +669,29 @@ class ChiefElectricCompanyAgent(Person):
 #         for intention in self.intentions:
 #             intention()
 
+
 class Citizen:
-    def __init__(self, block:Block) -> None:
+    def __init__(self, block: Block) -> None:
         self.block = block
         self.opinion
 
     def set_opinion(
-            self,
-            input_last_day_off:int,
-            input_industrialization:float,
-            input_days_off_relation:float,
-            input_general_satisfaction:float,
+        self,
+        input_last_day_off: int,
+        input_industrialization: float,
+        input_days_off_relation: float,
+        input_general_satisfaction: float,
     ):
-        
-        last_day_off = ctrl.Antecedent(np.arange(0, 22, 1), 'last_day_off')
-        industrialization = ctrl.Atecedent(np.arange(0, 1,1, 0.1), 'industrialization')
-        days_off_relation = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'days_off_relation')
-        general_satisfaction = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'general_satisfaction')
-        personal_satisfaction = ctrl.Consequent(np.arange(0, 1,1, 0.1), 'personal_satisfaction')
+
+        last_day_off = ctrl.Antecedent(np.arange(0, 22, 1), "last_day_off")
+        industrialization = ctrl.Atecedent(np.arange(0, 1, 1, 0.1), "industrialization")
+        days_off_relation = ctrl.Antecedent(np.arange(0, 1.1, 0.1), "days_off_relation")
+        general_satisfaction = ctrl.Antecedent(
+            np.arange(0, 1.1, 0.1), "general_satisfaction"
+        )
+        personal_satisfaction = ctrl.Consequent(
+            np.arange(0, 1, 1, 0.1), "personal_satisfaction"
+        )
 
         # Membership functions for last_day_off
         last_day_off["recent"] = fuzz.trapmf(last_day_off.universe, [0, 0, 5, 10])
@@ -534,42 +699,140 @@ class Citizen:
         last_day_off["distant"] = fuzz.trapmf(last_day_off.universe, [14, 18, 20, 20])
 
         # Membership functions for industrialization
-        industrialization["low"] = fuzz.trapmf(industrialization.universe, [0, 0, 0.5, 0.6])
-        industrialization["medium"] = fuzz.trimf(industrialization.universe, [0.5, 0.7, 0.8])
-        industrialization["high"] = fuzz.trapmf(industrialization.universe, [0.7, 0.8, 1.0, 1.0])
+        industrialization["low"] = fuzz.trapmf(
+            industrialization.universe, [0, 0, 0.5, 0.6]
+        )
+        industrialization["medium"] = fuzz.trimf(
+            industrialization.universe, [0.5, 0.7, 0.8]
+        )
+        industrialization["high"] = fuzz.trapmf(
+            industrialization.universe, [0.7, 0.8, 1.0, 1.0]
+        )
 
         # Membership functions for days_off_relation
-        days_off_relation["low"] = fuzz.trapmf(days_off_relation.universe, [0, 0, 0.1, 0.2])
-        days_off_relation["medium"] = fuzz.trimf(days_off_relation.universe, [0.1, 0,3, 0,4])
-        days_off_relation["high"] = fuzz.trapmf(days_off_relation.universe, [0.3, 0.5, 1.0, 1.0])
-        
+        days_off_relation["low"] = fuzz.trapmf(
+            days_off_relation.universe, [0, 0, 0.1, 0.2]
+        )
+        days_off_relation["medium"] = fuzz.trimf(
+            days_off_relation.universe, [0.1, 0, 3, 0, 4]
+        )
+        days_off_relation["high"] = fuzz.trapmf(
+            days_off_relation.universe, [0.3, 0.5, 1.0, 1.0]
+        )
+
         # Membership functions for general_satisfaction
-        general_satisfaction["lowest"] = fuzz.trapmf(general_satisfaction.universe, [0, 0, 0.3, 0.4])
-        general_satisfaction["lower"] = fuzz.trimf(general_satisfaction.universe, [0.3, 0.4, 0.6])
-        general_satisfaction["low"] = fuzz.trimf(general_satisfaction.universe, [0.5, 0.6, 0.7])
-        general_satisfaction["medium"] = fuzz.trimf(general_satisfaction.universe, [0.7, 0.8, 0.9])
-        general_satisfaction["high"] = fuzz.trapmf(general_satisfaction.universe, [0.8, 0.9, 1.0, 1.0])
+        general_satisfaction["lowest"] = fuzz.trapmf(
+            general_satisfaction.universe, [0, 0, 0.3, 0.4]
+        )
+        general_satisfaction["lower"] = fuzz.trimf(
+            general_satisfaction.universe, [0.3, 0.4, 0.6]
+        )
+        general_satisfaction["low"] = fuzz.trimf(
+            general_satisfaction.universe, [0.5, 0.6, 0.7]
+        )
+        general_satisfaction["medium"] = fuzz.trimf(
+            general_satisfaction.universe, [0.7, 0.8, 0.9]
+        )
+        general_satisfaction["high"] = fuzz.trapmf(
+            general_satisfaction.universe, [0.8, 0.9, 1.0, 1.0]
+        )
 
         # Membership functions for personal_satisfaction
-        personal_satisfaction["lowest"] = fuzz.trapmf(personal_satisfaction.universe, [0, 0, 0.3, 0.4])
-        personal_satisfaction["lower"] = fuzz.trimf(personal_satisfaction.universe, [0.3, 0.4, 0.6])
-        personal_satisfaction["low"] = fuzz.trimf(personal_satisfaction.universe, [0.5, 0.6, 0.7])
-        personal_satisfaction["medium"] = fuzz.trimf(personal_satisfaction.universe, [0.7, 0.8, 0.9])
-        personal_satisfaction["high"] = fuzz.trapmf(personal_satisfaction.universe, [0.8, 0.9, 1.0, 1.0])
+        personal_satisfaction["lowest"] = fuzz.trapmf(
+            personal_satisfaction.universe, [0, 0, 0.3, 0.4]
+        )
+        personal_satisfaction["lower"] = fuzz.trimf(
+            personal_satisfaction.universe, [0.3, 0.4, 0.6]
+        )
+        personal_satisfaction["low"] = fuzz.trimf(
+            personal_satisfaction.universe, [0.5, 0.6, 0.7]
+        )
+        personal_satisfaction["medium"] = fuzz.trimf(
+            personal_satisfaction.universe, [0.7, 0.8, 0.9]
+        )
+        personal_satisfaction["high"] = fuzz.trapmf(
+            personal_satisfaction.universe, [0.8, 0.9, 1.0, 1.0]
+        )
 
         # Fuzzy rules
         rules = [
-            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["medium"] & general_satisfaction["high"], personal_satisfaction["high"]),
-            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["high"] & general_satisfaction["high"], personal_satisfaction["medium"]),
-            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["high"] & general_satisfaction["medium"], personal_satisfaction["high"]),
-            ctrl.Rule(last_day_off["distant"] & days_off_relation["low"] & industrialization["high"] & general_satisfaction["low"], personal_satisfaction["medium"]),
-            ctrl.Rule(last_day_off["recent"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["medium"], personal_satisfaction["lower"]),
-            ctrl.Rule(last_day_off["recent"] & days_off_relation["medium"] & industrialization["low"] & general_satisfaction["medium"], personal_satisfaction["medium"]),
-            ctrl.Rule(last_day_off["recent"] & days_off_relation["high"] & industrialization["low"] & general_satisfaction["lower"], personal_satisfaction["lowest"]),
-            ctrl.Rule(last_day_off["recent"] & days_off_relation["high"] & industrialization["low"] & general_satisfaction["lowest"], personal_satisfaction["lower"]),
-            ctrl.Rule(last_day_off["moderate"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["medium"], personal_satisfaction["medium"]),
-            ctrl.Rule(last_day_off["moderate"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["high"], personal_satisfaction["low"]),
-            ctrl.Rule(last_day_off["moderate"] & days_off_relation["medium"] & industrialization["medium"] & general_satisfaction["low"], personal_satisfaction["medium"]),
+            ctrl.Rule(
+                last_day_off["distant"]
+                & days_off_relation["low"]
+                & industrialization["medium"]
+                & general_satisfaction["high"],
+                personal_satisfaction["high"],
+            ),
+            ctrl.Rule(
+                last_day_off["distant"]
+                & days_off_relation["low"]
+                & industrialization["high"]
+                & general_satisfaction["high"],
+                personal_satisfaction["medium"],
+            ),
+            ctrl.Rule(
+                last_day_off["distant"]
+                & days_off_relation["low"]
+                & industrialization["high"]
+                & general_satisfaction["medium"],
+                personal_satisfaction["high"],
+            ),
+            ctrl.Rule(
+                last_day_off["distant"]
+                & days_off_relation["low"]
+                & industrialization["high"]
+                & general_satisfaction["low"],
+                personal_satisfaction["medium"],
+            ),
+            ctrl.Rule(
+                last_day_off["recent"]
+                & days_off_relation["medium"]
+                & industrialization["medium"]
+                & general_satisfaction["medium"],
+                personal_satisfaction["lower"],
+            ),
+            ctrl.Rule(
+                last_day_off["recent"]
+                & days_off_relation["medium"]
+                & industrialization["low"]
+                & general_satisfaction["medium"],
+                personal_satisfaction["medium"],
+            ),
+            ctrl.Rule(
+                last_day_off["recent"]
+                & days_off_relation["high"]
+                & industrialization["low"]
+                & general_satisfaction["lower"],
+                personal_satisfaction["lowest"],
+            ),
+            ctrl.Rule(
+                last_day_off["recent"]
+                & days_off_relation["high"]
+                & industrialization["low"]
+                & general_satisfaction["lowest"],
+                personal_satisfaction["lower"],
+            ),
+            ctrl.Rule(
+                last_day_off["moderate"]
+                & days_off_relation["medium"]
+                & industrialization["medium"]
+                & general_satisfaction["medium"],
+                personal_satisfaction["medium"],
+            ),
+            ctrl.Rule(
+                last_day_off["moderate"]
+                & days_off_relation["medium"]
+                & industrialization["medium"]
+                & general_satisfaction["high"],
+                personal_satisfaction["low"],
+            ),
+            ctrl.Rule(
+                last_day_off["moderate"]
+                & days_off_relation["medium"]
+                & industrialization["medium"]
+                & general_satisfaction["low"],
+                personal_satisfaction["medium"],
+            ),
         ]
 
         # Create control system
@@ -577,16 +840,18 @@ class Citizen:
         satisfaction_simulation = ctrl.ControlSystemSimulation(satisfaction_control)
 
         # Provide input values to the simulation
-        satisfaction_simulation.input['last_day_off'] = input_last_day_off
-        satisfaction_simulation.input['industrialization'] = input_industrialization
-        satisfaction_simulation.input['days_off_relation'] = input_days_off_relation
-        satisfaction_simulation.input['general_satisfaction'] = input_general_satisfaction
+        satisfaction_simulation.input["last_day_off"] = input_last_day_off
+        satisfaction_simulation.input["industrialization"] = input_industrialization
+        satisfaction_simulation.input["days_off_relation"] = input_days_off_relation
+        satisfaction_simulation.input["general_satisfaction"] = (
+            input_general_satisfaction
+        )
 
         # Compute result
         satisfaction_simulation.compute()
 
         # Return personal satisfaction
-        self.opinion = satisfaction_simulation.output['personal_satisfaction']
-    
+        self.opinion = satisfaction_simulation.output["personal_satisfaction"]
+
     def complain():
         pass
