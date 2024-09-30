@@ -40,7 +40,7 @@ class Person:
         Filter intentions based on the current beliefs and desires of the agent.
         """
         raise NotImplementedError("This method should be implemented by subclasses")
-    
+
     def execute(self):
         """
         Executes the intentions of the agent.
@@ -357,7 +357,7 @@ class ThermoelectricAgent(Person):
         prioritize_repair_of_critical_parts = False
         repair_parts = [(part, False) for part in self.thermoelectric.parts]
 
-        # 
+        #
         if self.intentions["increase_power_output"].value:
             increase_power_output = True
             self.intentions["increase_power_output"].value = False
@@ -518,8 +518,10 @@ class ThermoelectricAgent(Person):
             )
 
         # print(f"{self.name} is executing intentions.")
-        
-    def action(self, perception: ThermoElectricAgentPerception) -> ThermoElectricAgentAction:
+
+    def action(
+        self, perception: ThermoElectricAgentPerception
+    ) -> ThermoElectricAgentAction:
         """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
         self.perception = perception
         self.brf()
@@ -566,7 +568,6 @@ class ThermoelectricAgent(Person):
     #     for part in self.parts:
     #         if random() > 0.5:  # Randomly decide to maintain parts for now
     #             part.planificate_break_date()
-
 
 
 class ChiefElectricCompanyAgent(Person):
@@ -671,8 +672,10 @@ class ChiefElectricCompanyAgent(Person):
 
 
 class Citizen:
-    def __init__(self, block: Block) -> None:
+    def __init__(self, block: Block, amount: int) -> None:
+        self.amount = amount
         self.block = block
+
         self.opinion
 
     def set_opinion(
