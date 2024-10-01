@@ -6,6 +6,7 @@
         "lightgreen",
         "linalg",
         "ndarray",
+        "skfuzzy",
         "splev",
         "splprep",
         "thermoelectrics",
