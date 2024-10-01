@@ -570,6 +570,57 @@ class ThermoelectricAgent(Person):
     #             part.planificate_break_date()
 
 
+class ChiefElectricCompanyAgentPerception:
+    def __init__(
+        self,
+        thermoelectrics_agents: List[ThermoelectricAgent],
+        distance_template: List[tuple[str, str, float, list[str]]],
+        circuits: list[Circuit],
+    ) -> None:
+        self.generation_for_thermoelectric = [
+            agent.thermoelectric.current_capacity for agent in thermoelectrics_agents
+        ]
+
+        self.distance_template = [
+            (t_id, c_id, cost) for (t_id, c_id, cost, _) in distance_template
+        ]
+
+        self.demand_for_block_in_circuits = [
+            (circuit.id, block_id, block.demand_per_hour)
+            for circuit in circuits
+            for block_id, block in enumerate(circuit.blocks)
+        ]
+
+        self.total_demand_for_circuits = [
+            sum([block.demand_per_hour for block in circuit.blocks])
+            for circuit in circuits
+        ]
+
+        ############################################################################################################\
+
+        # IMPORTANCE FOR BLOCK IN CIRCUITS  #
+
+        ############################################################################################################
+
+        self.importance_for_block_in_circuits = [
+            (block_id, block.importance)
+            for circuit in circuits
+            for block_id, block in enumerate(circuit.blocks)
+        ]
+
+        self.opinion_for_block_in_circuits = [
+            (block_id, block.opinion)
+            for circuit in circuits
+            for block_id, block in enumerate(circuit.blocks)
+        ]
+
+        self.last_power_cut_for_block_in_circuits = [
+            (block_id, block.last_power_cut[:40])  # las 40 days
+            for circuit in circuits
+            for block_id, block in enumerate(circuit.blocks)
+        ]
+
+
 class ChiefElectricCompanyAgent(Person):
     """
     BDI Agent representing the chief of the electric company.
@@ -581,53 +632,125 @@ class ChiefElectricCompanyAgent(Person):
         self,
         name: str,
         id: int,
-        thermoelectrics: List[ThermoelectricAgent],
+        thermoelectrics_agents: List[ThermoelectricAgent],
         circuits: List["Circuit"],
+        perception: ChiefElectricCompanyAgentPerception,  # ?
     ):
         Person.__init__(self, name=name, id=id)
-        self.thermoelectrics = thermoelectrics
+        self.thermoelectrics_agents = thermoelectrics_agents
         self.circuits = circuits
 
-    def update_beliefs(self):
-        """Updates the beliefs about the system state (e.g., available generation, circuit demands)."""
-        self.beliefs["total_generation"] = sum(
-            plant.calculate_current_capacity() for plant in self.thermoelectrics
+        self.perception = perception
+
+        self.beliefs = {
+            "generation_for_thermoelectric": Belief(
+                [],
+                description="Electricity generation for each thermoelectric. The first element is the thermoelectric id and the second is the generation capacity.",
+            ),
+            "distance_template": Belief(
+                [],
+                description="Cost of sending energy from a thermoelectric to a circuit. The first element is the thermoelectric id, the second is the circuit id, and the third is the cost.",
+            ),
+            "demand_for_block_in_circuits": Belief(
+                [],
+                description="Demand per hour for each block in the circuits. The first element is the circuit id, the second is the block id, and the third is the demand.",
+            ),
+            "total_demand_for_circuits": Belief(
+                [],
+                description="Total demand per hour for each circuit.",
+            ),
+            "importance_for_block_in_circuits": Belief(
+                [],
+                description="Importance of each block in the circuits. The first element is the block id and the second is the importance.",
+            ),
+            "opinion_for_block_in_circuits": Belief(
+                [],
+                description="Opinion of each block in the circuits. The first element is the block id and the second is the opinion.",
+            ),
+            "last_power_cut_for_block_in_circuits": Belief(
+                [],
+                description="Last power cut information for each block in the circuits for the last 40 days. The first element is the block id and the second is the list of power cut dates.",
+            ),
+            ######### Faltan los desires
+            "all_desires": Belief(
+                {
+                    "distribute_electricity_optimally": Desire(
+                        [],
+                        description="Distribute electricity optimally based on the current demand and generation.",
+                    ),
+                    "minimize_transmission_cost": Desire(
+                        [],
+                        description="Minimize the cost of sending energy from thermoelectrics to circuits.",
+                    ),
+                    "maximize_consumer_satisfaction": Desire(
+                        [],
+                        description="Maximize consumer satisfaction based on the importance, opinion, and last power cut for each block in the circuits.",
+                    ),
+                    "plan_fast_power_cuts": Desire(
+                        [],
+                        description="Plan power cuts quickly based on the importance, opinion, and last power cut for each block in the circuits.",
+                    ),
+                },
+                description="All desires of the agent.",
+            ),
+        }
+
+    def brf(self) -> None:
+        """
+        Belief Revision Function: Updates the agent's beliefs based on new perceptions.
+        """
+
+        # Update beliefs based on new perceptions
+
+        # 1. Update beliefs about electricity generation for each thermoelectric
+        self.beliefs["generation_for_thermoelectric"].value = (
+            self.perception.generation_for_thermoelectric
         )
-        self.beliefs["total_demand"] = sum(
-            circuit.get_total_demand() for circuit in self.circuits
+
+        # 2. Update beliefs about the cost of sending energy from a thermoelectric to a circuit
+        self.beliefs["distance_template"].value = self.perception.distance_template
+
+        # 3. Update beliefs about the demand per hour for each block in the circuits
+        self.beliefs["demand_for_block_in_circuits"].value = (
+            self.perception.demand_for_block_in_circuits
         )
 
-    def update_desires(self):
-        """Defines desires like balancing generation with demand and avoiding blackouts."""
-        self.desires.clear()
-        if self.beliefs["total_demand"] > self.beliefs["total_generation"]:
-            self.desires.append("manage_deficit")
-        else:
-            self.desires.append("optimize_distribution")
+        # 4. Update beliefs about the total demand per hour for each circuit
+        self.beliefs["total_demand_for_circuits"].value = (
+            self.perception.total_demand_for_circuits
+        )
 
-    def select_intentions(self):
-        """Based on desires, the agent creates intentions to act upon."""
-        self.intentions.clear()
-        if "manage_deficit" in self.desires:
-            self.intentions.append(self.plan_power_cuts)
-        if "optimize_distribution" in self.desires:
-            self.intentions.append(self.allocate_optimal_distribution)
+        # 5. Update beliefs about the importance, opinion, and last power cut for each block in the circuits
+        self.beliefs["importance_for_block_in_circuits"].value = (
+            self.perception.importance_for_block_in_circuits
+        )
 
-    def plan_power_cuts(self):
-        """Plan power cuts across circuits in case of a generation deficit."""
-        # Placeholder for Monte Carlo or optimization algorithm for power cuts
+        # 6. Update beliefs about the opinion for each block in the circuits
+        self.beliefs["opinion_for_block_in_circuits"].value = (
+            self.perception.opinion_for_block_in_circuits
+        )
 
-    def allocate_optimal_distribution(self):
-        """Allocate the optimal electricity distribution to the circuits."""
-        # Placeholder for optimization logic or fuzzy logic based on costs and demand
+        # 7. Update beliefs about the last power cut for each block in the circuits
+        self.beliefs["last_power_cut_for_block_in_circuits"].value = (
+            self.perception.last_power_cut_for_block_in_circuits
+        )
 
-    def step(self):
-        """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
-        self.update_beliefs()
-        self.update_desires()
-        self.select_intentions()
-        for intention in self.intentions:
-            intention()
+    def generate_desires(self) -> None:
+        """
+        Generates the agent's desires based on its beliefs.
+        """
+
+        # 1. Generate desires to distribute electricity optimally
+        self.desires["distribute_electricity_optimally"] = Desire(
+            [],
+            description="Distribute electricity optimally based on the current demand and generation.",
+        )
+
+        # 2. Generate desires to plan power cuts
+        self.desires["plan_power_cuts"] = Desire(
+            [],
+            description="Plan power cuts based on the importance, opinion, and last power cut for each block in the circuits.",
+        )
 
 
 # class Citizen(Person):
