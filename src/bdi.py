@@ -33,23 +33,8 @@ class TAMaxPowerOutputDesire(Desire):
 
     def evaluate(self, agent: ThermoelectricAgent):
         if (
-            agent.beliefs["plant_is_working"].value
-            and len(agent.beliefs["broken_parts"].value) == 0
-            and agent.beliefs["max_capacity"].value
-            == agent.beliefs["current_capacity"].value
-            # and agent.beliefs["general_deficit"].value == 0
-            and all([(time > 1) for _, _, time in agent.beliefs["parts_status"].value])
-            # and all(
-            #     [
-            #         (
-            #             agent.beliefs["general_offer"].value - reduction
-            #             >= agent.beliefs["general_demand"].value
-            #         )
-            #         for _, reduction in agent.beliefs[
-            #             "power_output_reduction_on_part_failure"
-            #         ].value
-            #     ]
-            # )
+            agent.beliefs["general_deficit"].value > 0
+            and agent.beliefs["current_capacity"] < agent.beliefs["max_capacity"]
         ):
             agent.desires["maintain_maximum_power_output"] = True
         else:

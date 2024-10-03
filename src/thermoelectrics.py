@@ -25,25 +25,30 @@ class Thermoelectric:
             part.update()
         self.update_capacity()
 
+    def get_total_broken_boilers(self) -> int:
+        broken_boilers = 0
+
+        for part in self.parts:
+            if isinstance(part, Boiler) and not part.is_working():
+                broken_boilers += 1
+
+        return broken_boilers
+
+    def is_default_critical_part(self, part: Part) -> bool:
+        return isinstance(part, (Coils, SteamTurbine, Generator))
+
     def is_working(self) -> bool:
         """
         Returns True if the thermoelectric is working.
 
         The plant stops working if Coils, SteamTurbine, or Generator are broken or if all the Boilers are Broken.
         """
-        broken_boilers = 0
-
         # Check if critical parts are working (Coils, SteamTurbine, Generator) or some of the Boilers are working.
         for part in self.parts:
-            if (
-                isinstance(part, (Coils, SteamTurbine, Generator))
-                and not part.is_working()
-            ):
+            if self.is_default_critical_part(part) and not part.is_working():
                 return False
-            elif isinstance(part, Boiler) and not part.is_working():
-                broken_boilers += 1
 
-        if broken_boilers == self.get_total_boilers():
+        if self.get_total_broken_boilers() == self.get_total_boilers():
             return False
 
         return True
@@ -142,3 +147,18 @@ class Thermoelectric:
             if part.is_repairing():
                 return i
         return -1
+
+    def get_criticals_part(self) -> list:
+        """
+        Array of len N where ith is true if the part is critical
+        """
+        boilers_are_critical = False
+        if self.get_total_broken_boilers() == self.get_total_boilers():
+            boilers_are_critical = True
+
+        is_critical_part_map = []
+        for part in self.parts:
+            if self.is_default_critical_part(part) or (
+                boilers_are_critical and isinstance(part, Boiler)
+            ):
+                is_critical_part_map.append(part)

@@ -27,19 +27,20 @@ class Part:
         """
         if self.is_working():
             self.remaining_life -= 1
+            self.estimated_remaining_life -= 1
 
         if self.is_repairing():
             self.remaining_repair_days -= 1
+            self.estimated_repair_days -= 1
+
             if self.remaining_repair_days <= 0:
                 self.finish_repair()
-
-        if self.remaining_life <= 0 and not self.is_repairing():
-            self.repair()
 
     def hurry_repair(self):
         if self.is_repairing():
             self.remaining_repair_days = 0
-            
+            self.plan_break_date()  # TODO: Anadir parametros malos
+
         else:
             raise RuntimeError("Hurry repair in part that isn't repairing")
 
@@ -47,13 +48,19 @@ class Part:
         """
         Start the repair process by setting the repair days.
         """
+        if self.is_working():
+            raise RuntimeError("Repair process, but the part is working")
+
+        self.set_repairing(True)
         self.remaining_repair_days = self.lognormal.generate()
+        self.estimated_repair_days = self.lognormal.generate()
 
     def plan_break_date(self):
         """
         Plan the date when the part will break based on its life expectancy.
         """
         self.remaining_life = self.weibull.generate()
+        self.estimated_remaining_life = self.weibull.generate()
 
     def set_repairing(self, value: bool):
         self.repairing = value
@@ -75,24 +82,14 @@ class Part:
         Finishes the repair process and reinitialize the part's lifespan.
         """
         self.set_repairing(False)
-        self.remaining_repair_days = None
         self.plan_break_date()
 
     def get_estimate_remaining_life(self):
         """
         Estimates the remaining life of the part based on the current state.
         """
-        self.estimated_remaining_life = (
-            self.lognormal.generate() if self.is_working() else 0
-        )
-        return self.estimated_remaining_life
 
-    def get_estimated_repair_days(self):
-        """
-        Estimates the repair days of the part based on the current state.
-        """
-        self.estimated_repair_days = self.weibull.generate()
-        return self.estimated_repair_days
+        return self.estimated_remaining_life if self.is_working() else 0
 
 
 class Boiler(Part):
