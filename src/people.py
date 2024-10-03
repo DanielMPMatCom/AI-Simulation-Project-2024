@@ -440,22 +440,6 @@ class ThermoelectricAgent(Person):
                 # inspect_critical_parts=inspect_critical_parts,
             )
 
-        # if self.intentions["inspect_critical_parts"].value:
-        #     inspect_critical_parts = True
-        #     self.intentions["inspect_critical_parts"].value = False
-        #     # Placeholder for inspecting critical parts
-
-        #     return ThermoElectricAgentAction(
-        #         increase_power_output=increase_power_output,
-        #         operate_at_full_capacity=operate_at_full_capacity,
-        #         inspect_critical_parts=inspect_critical_parts,
-        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
-        #         repair_during_low_demand=repair_during_low_demand,
-        #         reduce_downtime=reduce_downtime,
-        #         meet_demand=meet_demand,
-        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-        #         repair_parts=repair_parts,
-        #     )
 
         if self.intentions["perform_maintenance_on_parts"].value:
             perform_maintenance_on_parts = self.intentions[
@@ -480,23 +464,6 @@ class ThermoelectricAgent(Person):
                 # repair_during_low_demand=repair_during_low_demand,
                 # inspect_critical_parts=inspect_critical_parts,
             )
-
-        # if self.intentions["repair_during_low_demand"].value:
-        #     repair_during_low_demand = True
-        #     self.intentions["repair_during_low_demand"].value = False
-        #     # Placeholder for repairing during low demand
-
-        #     return ThermoElectricAgentAction(
-        #         increase_power_output=increase_power_output,
-        #         operate_at_full_capacity=operate_at_full_capacity,
-        #         inspect_critical_parts=inspect_critical_parts,
-        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
-        #         repair_during_low_demand=repair_during_low_demand,
-        #         reduce_downtime=reduce_downtime,
-        #         meet_demand=meet_demand,
-        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-        #         repair_parts=repair_parts,
-        #     )
 
         if self.intentions["reduce_downtime"].value:
             reduce_downtime = True
@@ -531,22 +498,6 @@ class ThermoelectricAgent(Person):
                 # inspect_critical_parts=inspect_critical_parts,
             )
 
-        # if self.intentions["meet_demand"].value:
-        #     meet_demand = True
-        #     self.intentions["meet_demand"].value = False
-        #     # Placeholder for meeting demand
-
-        #     return ThermoElectricAgentAction(
-        #         increase_power_output=increase_power_output,
-        #         operate_at_full_capacity=operate_at_full_capacity,
-        #         inspect_critical_parts=inspect_critical_parts,
-        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
-        #         repair_during_low_demand=repair_during_low_demand,
-        #         reduce_downtime=reduce_downtime,
-        #         meet_demand=meet_demand,
-        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-        #         repair_parts=repair_parts,
-        #     )
 
         if self.intentions["prioritize_repair_of_critical_parts"].value:
             prioritize_repair_of_critical_parts = True
@@ -581,6 +532,58 @@ class ThermoelectricAgent(Person):
                 # inspect_critical_parts=inspect_critical_parts,
             )
 
+        # if self.intentions["repair_during_low_demand"].value:
+        #     repair_during_low_demand = True
+        #     self.intentions["repair_during_low_demand"].value = False
+        #     # Placeholder for repairing during low demand
+
+        #     return ThermoElectricAgentAction(
+        #         increase_power_output=increase_power_output,
+        #         operate_at_full_capacity=operate_at_full_capacity,
+        #         inspect_critical_parts=inspect_critical_parts,
+        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
+        #         repair_during_low_demand=repair_during_low_demand,
+        #         reduce_downtime=reduce_downtime,
+        #         meet_demand=meet_demand,
+        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+        #         repair_parts=repair_parts,
+        #     )
+
+        # if self.intentions["meet_demand"].value:
+        #     meet_demand = True
+        #     self.intentions["meet_demand"].value = False
+        #     # Placeholder for meeting demand
+
+        #     return ThermoElectricAgentAction(
+        #         increase_power_output=increase_power_output,
+        #         operate_at_full_capacity=operate_at_full_capacity,
+        #         inspect_critical_parts=inspect_critical_parts,
+        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
+        #         repair_during_low_demand=repair_during_low_demand,
+        #         reduce_downtime=reduce_downtime,
+        #         meet_demand=meet_demand,
+        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+        #         repair_parts=repair_parts,
+        #     )
+        
+        # if self.intentions["inspect_critical_parts"].value:
+        #     inspect_critical_parts = True
+        #     self.intentions["inspect_critical_parts"].value = False
+        #     # Placeholder for inspecting critical parts
+
+        #     return ThermoElectricAgentAction(
+        #         increase_power_output=increase_power_output,
+        #         operate_at_full_capacity=operate_at_full_capacity,
+        #         inspect_critical_parts=inspect_critical_parts,
+        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
+        #         repair_during_low_demand=repair_during_low_demand,
+        #         reduce_downtime=reduce_downtime,
+        #         meet_demand=meet_demand,
+        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+        #         repair_parts=repair_parts,
+        #     )
+        
+        
         # print(f"{self.name} is executing intentions.")
 
     def action(
