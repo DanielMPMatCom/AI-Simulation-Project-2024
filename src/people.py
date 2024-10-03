@@ -810,7 +810,9 @@ class Citizen:
     ):
 
         last_day_off = ctrl.Antecedent(np.arange(0, 22, 1), "last_day_off")
-        industrialization = ctrl.Atecedent(np.arange(0, 1, 1, 0.1), "industrialization")
+        industrialization = ctrl.Antecedent(
+            np.arange(0, 1, 1, 0.1), "industrialization"
+        )
         days_off_relation = ctrl.Antecedent(np.arange(0, 1.1, 0.1), "days_off_relation")
         general_satisfaction = ctrl.Antecedent(
             np.arange(0, 1.1, 0.1), "general_satisfaction"

@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "arange",
         "cmap",
         "facecolor",
         "kmeans",
@@ -10,6 +11,8 @@
         "splev",
         "splprep",
         "thermoelectrics",
+        "trapmf",
+        "trimf",
         "viridis"
     ],
     "cSpell.language": "en"
