@@ -59,7 +59,7 @@ class Thermoelectric:
             ) * self.total_capacity
         else:
             self.current_capacity = 0
-            
+
         return self.current_capacity
 
     def get_current_offer(self) -> int:
@@ -83,13 +83,13 @@ class Thermoelectric:
         return sum(
             1 for part in self.parts if isinstance(part, Boiler) and part.is_working()
         )
-        
+
     def get_working_parts(self) -> list[Part]:
         """
         Returns a list of working parts in the thermoelectric.
         """
         return [part for part in self.parts if part.is_working()]
-    
+
     def get_broken_parts(self) -> list[Part]:
         """
         Returns a list of broken parts in the thermoelectric.
@@ -109,16 +109,16 @@ class Thermoelectric:
             (part, part.is_working(), part.estimated_remaining_life)
             for part in self.parts
         ]
-        
+
     def get_output_reduction_on_part_failure(self, part: Part):
         """
         Calculate the reduction in output capacity when a specific part fails.
         Parameters:
-        part (Part): The part that has failed. This can be an instance of any part, 
+        part (Part): The part that has failed. This can be an instance of any part,
                      but if it is an instance of Boiler, a different calculation is applied.
         Returns:
-        float: The reduced output capacity. If the failed part is not a Boiler, 
-               the current capacity is returned. If the failed part is a Boiler, 
+        float: The reduced output capacity. If the failed part is not a Boiler,
+               the current capacity is returned. If the failed part is a Boiler,
                the total capacity divided by the number of total boilers is returned.
         """
 
@@ -128,4 +128,17 @@ class Thermoelectric:
             else self.total_capacity / self.get_total_boilers()
         )
 
-    def is_repairing_something()
+    def is_repairing_something(self) -> bool:
+        """
+        Check if the thermoelectric is currently repairing any part.
+        """
+        return any(part.is_repairing() for part in self.parts)
+
+    def get_current_repair_part_index(self) -> int:
+        """
+        Get the index of the part that is currently under repair.
+        """
+        for i, part in enumerate(self.parts):
+            if part.is_repairing():
+                return i
+        return -1

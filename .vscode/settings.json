@@ -6,6 +6,7 @@
         "kmeans",
         "lightgreen",
         "linalg",
+        "lognormal",
         "ndarray",
         "skfuzzy",
         "splev",
@@ -13,7 +14,8 @@
         "thermoelectrics",
         "trapmf",
         "trimf",
-        "viridis"
+        "viridis",
+        "weibull"
     ],
     "cSpell.language": "en"
 }

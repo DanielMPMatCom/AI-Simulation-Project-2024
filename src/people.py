@@ -325,16 +325,45 @@ class ThermoelectricAgent(Person):
         reduce_downtime = False
         meet_demand = False
         prioritize_repair_of_critical_parts = False
-        repair_parts = [(part, False) for part in self.thermoelectric.parts]
+        repair_parts = [
+            (part, part.is_repairing()) for part in self.thermoelectric.parts
+        ]
 
-        #
         if self.intentions["increase_power_output"].value:
             increase_power_output = True
             self.intentions["increase_power_output"].value = False
-            # Placeholder for increasing power output
-            
-            for part, status, time in self.beliefs["parts_status"].value:
-                
+
+            most_important_part_index = -1
+            reduction_on_fail = 0
+            left_time = int("inf")
+
+            for i, (_, status, time) in enumerate(self.beliefs["parts_status"].value):
+                if not status:
+                    if (
+                        reduction_on_fail
+                        < self.beliefs["power_output_reduction_on_part_failure"].value[
+                            i
+                        ][1]
+                    ):
+                        most_important_part_index = i
+                        left_time = time
+                        reduction_on_fail = self.beliefs[
+                            "power_output_reduction_on_part_failure"
+                        ].value[i][1]
+
+                    elif left_time > time:
+                        most_important_part_index = i
+                        left_time = time
+
+            if most_important_part_index >= 0:
+                current_repair_index = (
+                    self.thermoelectric.get_current_repair_part_index()
+                )
+
+                if current_repair_index >= 0:
+                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
+
+                self.thermoelectric.parts[most_important_part_index].set_repairing(True)
 
             return ThermoElectricAgentAction(
                 increase_power_output=increase_power_output,
@@ -352,6 +381,8 @@ class ThermoelectricAgent(Person):
             operate_at_full_capacity = True
             self.intentions["operate_at_full_capacity"].value = False
             # Placeholder for operating at full capacity
+
+
 
             return ThermoElectricAgentAction(
                 increase_power_output=increase_power_output,
@@ -540,7 +571,7 @@ class ThermoelectricAgent(Person):
     #     """Schedule maintenance of parts to prevent breakdowns."""
     #     for part in self.parts:
     #         if random() > 0.5:  # Randomly decide to maintain parts for now
-    #             part.planificate_break_date()
+    #             part.plan_break_date()
 
 
 class ChiefElectricCompanyAgentPerception:
@@ -954,5 +985,5 @@ class Citizen:
         # Return personal satisfaction
         self.opinion = satisfaction_simulation.output["personal_satisfaction"]
 
-    def complain():
-        pass
+    # def complain():
+    #     pass
