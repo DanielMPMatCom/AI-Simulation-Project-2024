@@ -127,3 +127,5 @@ class Thermoelectric:
             if not isinstance(part, Boiler)
             else self.total_capacity / self.get_total_boilers()
         )
+
+    def is_repairing_something()

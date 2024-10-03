@@ -37,19 +37,19 @@ class TAMaxPowerOutputDesire(Desire):
             and len(agent.beliefs["broken_parts"].value) == 0
             and agent.beliefs["max_capacity"].value
             == agent.beliefs["current_capacity"].value
-            and agent.beliefs["general_deficit"].value == 0
+            # and agent.beliefs["general_deficit"].value == 0
             and all([(time > 1) for _, _, time in agent.beliefs["parts_status"].value])
-            and all(
-                [
-                    (
-                        agent.beliefs["general_offer"].value - reduction
-                        >= agent.beliefs["general_demand"].value
-                    )
-                    for _, reduction in agent.beliefs[
-                        "power_output_reduction_on_part_failure"
-                    ].value
-                ]
-            )
+            # and all(
+            #     [
+            #         (
+            #             agent.beliefs["general_offer"].value - reduction
+            #             >= agent.beliefs["general_demand"].value
+            #         )
+            #         for _, reduction in agent.beliefs[
+            #             "power_output_reduction_on_part_failure"
+            #         ].value
+            #     ]
+            # )
         ):
             agent.desires["maintain_maximum_power_output"] = True
         else:
@@ -66,7 +66,19 @@ class TAPreventUnexpectedBreakdownDesire(Desire):
         self.weight = 2
 
     def evaluate(self, agent: ThermoelectricAgent):
-        if any([(time <= 1) for _, _, time in agent.beliefs["parts_status"].value]):
+        if any(
+            [(time <= 1) for _, _, time in agent.beliefs["parts_status"].value]
+        ) and all(
+            [
+                (
+                    (agent.beliefs["general_offer"].value - reduction)
+                    > agent.beliefs["general_demand"].value * 3 / 4
+                )
+                for _, reduction in agent.beliefs[
+                    "power_output_reduction_on_part_failure"
+                ].value
+            ]
+        ):
             agent.desires["prevent_unexpected_breakdowns"] = True
         else:
             agent.desires["prevent_unexpected_breakdowns"] = False
@@ -83,6 +95,8 @@ class TAMinimizeDowntimeDesire(Desire):
             and agent.beliefs["general_deficit"].value > 0
         ):
             agent.desires["minimize_downtime"] = True
+        else:
+            agent.desires["minimize_downtime"] = False
 
 
 class TAMeetEnergyDemandDesire(Desire):
