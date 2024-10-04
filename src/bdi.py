@@ -23,6 +23,7 @@ class Intention:
         self.value = value
         self.description = description
 
+# region Thermoelectric Agent Desires
 
 class TAMaxPowerOutputDesire(Desire):
     def __init__(self, value: bool) -> None:
@@ -141,3 +142,6 @@ class TARepairPartsDesire(Desire):
             (part, part in agent.beliefs["broken_parts"].value)
             for part in agent.thermoelectric.parts
         ]
+
+
+# region Chief of Electric Company Agent Desires

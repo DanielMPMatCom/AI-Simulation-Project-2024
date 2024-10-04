@@ -52,7 +52,8 @@ class Person:
         raise NotImplementedError("This method should be implemented by subclasses")
 
 
-class ThermoElectricAgentPerception:
+# region Thermoelectric Agent
+class ThermoelectricAgentPerception:
     def __init__(
         self,
         thermoelectric: Thermoelectric,
@@ -75,14 +76,13 @@ class ThermoElectricAgentPerception:
         self.general_offer = general_offer
 
 
-class ThermoElectricAgentAction:
+class ThermoelectricAgentAction:
     def __init__(
         self,
         increase_power_output,
         operate_at_full_capacity,
         perform_maintenance_on_parts,
         reduce_downtime,
-        meet_demand,
         prioritize_repair_of_critical_parts,
         repair_parts,
     ) -> None:
@@ -90,7 +90,6 @@ class ThermoElectricAgentAction:
         self.operate_at_full_capacity = operate_at_full_capacity
         self.perform_maintenance_on_parts = perform_maintenance_on_parts
         self.reduce_downtime = reduce_downtime
-        self.meet_demand = meet_demand
         self.prioritize_repair_of_critical_parts = prioritize_repair_of_critical_parts
         self.repair_parts = repair_parts
 
@@ -107,7 +106,7 @@ class ThermoelectricAgent(Person):
         name: str,
         id: int,
         thermoelectric: Thermoelectric,
-        perception: ThermoElectricAgentPerception = None,
+        perception: ThermoelectricAgentPerception = None,
     ) -> None:
 
         Person.__init__(self, name=name, id=id)
@@ -367,7 +366,7 @@ class ThermoelectricAgent(Person):
 
                 self.thermoelectric.parts[most_important_part_index].set_repairing(True)
 
-            return ThermoElectricAgentAction(
+            return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
                 perform_maintenance_on_parts=perform_maintenance_on_parts,
@@ -397,7 +396,7 @@ class ThermoelectricAgent(Person):
 
                 self.thermoelectric.parts[most_important_part_index].set_repairing(True)
 
-            return ThermoElectricAgentAction(
+            return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
                 perform_maintenance_on_parts=perform_maintenance_on_parts,
@@ -428,7 +427,7 @@ class ThermoelectricAgent(Person):
                 self.thermoelectric.parts[most_important_part_index].set_repairing(True)
                 self.thermoelectric.parts[most_important_part_index].hurry_repair()
 
-            return ThermoElectricAgentAction(
+            return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
                 perform_maintenance_on_parts=perform_maintenance_on_parts,
@@ -453,7 +452,7 @@ class ThermoelectricAgent(Person):
             part: Part = perform_maintenance_on_parts[0][0]
             part.repair()
 
-            return ThermoElectricAgentAction(
+            return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
                 perform_maintenance_on_parts=perform_maintenance_on_parts,
@@ -486,7 +485,7 @@ class ThermoelectricAgent(Person):
                 self.thermoelectric.parts[most_important_part_index].set_repairing(True)
                 self.thermoelectric.parts[most_important_part_index].hurry_repair()
 
-            return ThermoElectricAgentAction(
+            return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
                 perform_maintenance_on_parts=perform_maintenance_on_parts,
@@ -520,7 +519,7 @@ class ThermoelectricAgent(Person):
                 self.thermoelectric.parts[most_important_part_index].set_repairing(True)
                 self.thermoelectric.parts[most_important_part_index].repair()
 
-            return ThermoElectricAgentAction(
+            return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
                 perform_maintenance_on_parts=perform_maintenance_on_parts,
@@ -537,7 +536,7 @@ class ThermoelectricAgent(Person):
         #     self.intentions["repair_during_low_demand"].value = False
         #     # Placeholder for repairing during low demand
 
-        #     return ThermoElectricAgentAction(
+        #     return ThermoelectricAgentAction(
         #         increase_power_output=increase_power_output,
         #         operate_at_full_capacity=operate_at_full_capacity,
         #         inspect_critical_parts=inspect_critical_parts,
@@ -554,7 +553,7 @@ class ThermoelectricAgent(Person):
         #     self.intentions["meet_demand"].value = False
         #     # Placeholder for meeting demand
 
-        #     return ThermoElectricAgentAction(
+        #     return ThermoelectricAgentAction(
         #         increase_power_output=increase_power_output,
         #         operate_at_full_capacity=operate_at_full_capacity,
         #         inspect_critical_parts=inspect_critical_parts,
@@ -571,7 +570,7 @@ class ThermoelectricAgent(Person):
         #     self.intentions["inspect_critical_parts"].value = False
         #     # Placeholder for inspecting critical parts
 
-        #     return ThermoElectricAgentAction(
+        #     return ThermoelectricAgentAction(
         #         increase_power_output=increase_power_output,
         #         operate_at_full_capacity=operate_at_full_capacity,
         #         inspect_critical_parts=inspect_critical_parts,
@@ -587,8 +586,8 @@ class ThermoelectricAgent(Person):
         # print(f"{self.name} is executing intentions.")
 
     def action(
-        self, perception: ThermoElectricAgentPerception
-    ) -> ThermoElectricAgentAction:
+        self, perception: ThermoelectricAgentPerception
+    ) -> ThermoelectricAgentAction:
         """Executes a simulation step: updates beliefs, desires, and intentions, then acts."""
         self.perception = perception
         self.brf()
@@ -596,6 +595,8 @@ class ThermoelectricAgent(Person):
         self.filter_intentions()
         return self.execute()
 
+
+# region Chief of Electric Company Agent 
 
 class ChiefElectricCompanyAgentPerception:
     def __init__(
@@ -642,10 +643,15 @@ class ChiefElectricCompanyAgentPerception:
         ]
 
         self.last_power_cut_for_block_in_circuits = [
-            (block_id, block.last_power_cut[:40])  # las 40 days
+            (block_id, block.last_power_cut[:40])  # last 40 days
             for circuit in circuits
             for block_id, block in enumerate(circuit.blocks)
         ]
+        
+        
+class ChiefElectricCompanyAction:
+    def __init__(self) -> None:
+        pass
 
 
 class ChiefElectricCompanyAgent(Person):
@@ -670,7 +676,7 @@ class ChiefElectricCompanyAgent(Person):
         self.perception = perception
 
         self.beliefs = {
-            "generation_for_thermoelectric": Belief(
+            "generation_per_thermoelectric": Belief(
                 [],
                 description="Electricity generation for each thermoelectric. The first element is the thermoelectric id and the second is the generation capacity.",
             ),
@@ -678,7 +684,7 @@ class ChiefElectricCompanyAgent(Person):
                 [],
                 description="Cost of sending energy from a thermoelectric to a circuit. The first element is the thermoelectric id, the second is the circuit id, and the third is the cost.",
             ),
-            "demand_for_block_in_circuits": Belief(
+            "demand_per_block_in_circuits": Belief(
                 [],
                 description="Demand per hour for each block in the circuits. The first element is the circuit id, the second is the block id, and the third is the demand.",
             ),
@@ -778,6 +784,9 @@ class ChiefElectricCompanyAgent(Person):
             [],
             description="Plan power cuts based on the importance, opinion, and last power cut for each block in the circuits.",
         )
+        
+        
+# region Citizen
 
 
 class Citizen:
