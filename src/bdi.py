@@ -1,4 +1,4 @@
-from thermoelectrics import ThermoelectricAgent
+from thermoelectrics import ThermoelectricAgent, ChiefElectricCompanyAgent
 from part import Part, Coils, SteamTurbine, Generator, Boiler
 
 
@@ -9,12 +9,12 @@ class Belief:
 
 
 class Desire:
-    def __init__(self, value, description: str = "", id: str = "") -> None:
+    def __init__(self, value, description: str, id: str) -> None:
         self.value = value
         self.description = description
         self.id = id
 
-    def evaluate(self):
+    def evaluate(self, agent):
         return self.value
 
 
@@ -23,7 +23,9 @@ class Intention:
         self.value = value
         self.description = description
 
+
 # region Thermoelectric Agent Desires
+
 
 class TAMaxPowerOutputDesire(Desire):
     def __init__(self, value: bool) -> None:
@@ -97,7 +99,7 @@ class TAMeetEnergyDemandDesire(Desire):
             agent.desires["meet_energy_demand"] = False
 
 
-class TAPriorizeCriticalPartsRepairDesire(Desire):
+class TAPrioritizeCriticalPartsRepairDesire(Desire):
     def __init__(self, value) -> None:
         Desire.__init__(
             value,
@@ -145,3 +147,107 @@ class TARepairPartsDesire(Desire):
 
 
 # region Chief of Electric Company Agent Desires
+class CECAMeetDemandDesire(Desire):
+    def __init__(self, value) -> None:
+        Desire.__init__(
+            self,
+            value,
+            description="Desire to meet the overall energy demand",
+            id="meet_demand",
+        )
+        self.weight = 1
+
+    def evaluate(self, agent: ChiefElectricCompanyAgent):
+        if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
+            agent.desires["meet_demand"] = True
+        else:
+            agent.desires["meet_demand"] = False
+
+
+class CECAPrioritizeBlockImportance(Desire):
+    def __init__(self, value) -> None:
+        Desire.__init__(
+            self,
+            value,
+            description="Desire to prioritize energy supply for the most critical blocks",
+            id="prioritize_block_importance",
+        )
+        self.weight = 2
+
+    def evaluate(self, agent: ChiefElectricCompanyAgent):
+        if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
+            agent.desires["prioritize_block_importance"] = True
+        else:
+            agent.desires["prioritize_block_importance"] = False
+
+
+class CECAPrioritizeBlockOpinion(Desire):
+    def __init__(self, value, description: str = "", id: str = "") -> None:
+        Desire.__init__(
+            self,
+            value,
+            description="Desire to prioritize energy supply for blocks with the most influential public opinions",
+            id="prioritize_block_opinion",
+        )
+
+    def evaluate(self, agent: ChiefElectricCompanyAgent):
+        bad_opinions = [
+            opinion < 0.5
+            for (_, _, opinion) in agent.beliefs["opinion_per_block_in_circuits"].value
+        ]
+        exist_bad_opinions = len(bad_opinions) > 0
+
+        if (
+            exist_bad_opinions
+            and agent.beliefs["general_offer"].value
+            < agent.beliefs["general_demand"].value
+        ):
+            agent.desires["prioritize_block_opinion"] = True
+        else:
+            agent.desires["prioritize_block_opinion"] = False
+
+
+class CECAPrioritizeConsecutiveDaysOff(Desire):
+    def __init__(self, value) -> None:
+        Desire.__init__(
+            self,
+            value,
+            description="Desire to prioritize energy supply for blocks with a significant number of consecutive off days",
+            id="prioritize_consecutive_days_off",
+        )
+
+    def evaluate(self, agent: ChiefElectricCompanyAgent):
+        sequences = agent.beliefs["longest_sequence_off_per_block_in_circuits"].value
+        affected_blocks = [days > 3 for days in sequences]
+
+        if (
+            any(affected_blocks)
+            and agent.beliefs["general_offer"].value
+            < agent.beliefs["general_demand"].value
+        ):
+            agent.desires["prioritize_consecutive_days_off"] = True
+        else:
+            agent.desires["prioritize_consecutive_days_off"] = False
+
+
+class CECAPrioritizeDaysOff(Desire):
+    def __init__(self, value) -> None:
+        Desire.__init__(
+            self,
+            value,
+            description="Desire to prioritize energy supply for blocks with a significant number of off days",
+            id="prioritize_days_off",
+        )
+
+    def evaluate(self, agent: ChiefElectricCompanyAgent):
+        days_off = agent.beliefs["days_off_per_block_in_circuits"].value
+        affected_blocks = [days > 7 for days in days_off]
+
+        if (
+            any(affected_blocks)
+            and agent.beliefs["general_offer"].value
+            < agent.beliefs["general_demand"].value
+        ):
+            agent.desires["prioritize_days_off"] = True
+        else:
+            agent.desires["prioritize_days_off"] = False

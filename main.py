@@ -119,7 +119,11 @@ plt.show()
 # Generate thermoelectrics
 ti: list[Thermoelectric] = []
 
-for t in graphMap.thermoelectrics_nodes:
+for (
+    t
+) in (
+    graphMap.thermoelectrics_nodes
+):  # TODO : FIX THE DEFAULT GENERATION OF THERMOELECTRIC
     circuits_filtered = [
         key
         for key in mapper_circuit_with_thermoelectric
@@ -128,7 +132,9 @@ for t in graphMap.thermoelectrics_nodes:
     print(ci)
     generated_thermoelectric_min_cost = sum(
         [
-            next(circuit.mock_electric_consume for circuit in ci if circuit.id == key)
+            next(
+                circuit.mock_electric_consume for circuit in ci if circuit.id == key
+            )  # TODO : REMOVE MOCKS
             + sum(
                 [x[2] for x in distance_cost_template if x[0] == t.id and x[1] == key]
             )
