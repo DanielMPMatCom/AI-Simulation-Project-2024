@@ -13,3 +13,10 @@ class GenAIModel:
 
     def ask_model(self, question: str) -> str:
         return self.model.generate_content(question).text
+
+
+## use example
+# from generative_ai import GenAIModel
+# model = GenAIModel()
+# ans = model.ask_model("What is the meaning of life?")
+# print(ans)

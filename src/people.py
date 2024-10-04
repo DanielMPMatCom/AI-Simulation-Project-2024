@@ -47,7 +47,7 @@ class Person:
         """
         raise NotImplementedError("This method should be implemented by subclasses")
 
-    def action(self):
+    def action(self, perception):
         """A simulation step where the agent updates beliefs, desires, and intentions."""
         raise NotImplementedError("This method should be implemented by subclasses")
 
@@ -326,7 +326,7 @@ class ThermoelectricAgent(Person):
 
         return most_important_part_index
 
-    def execute(self):  # TODO : refactor and dry
+    def execute(self):
         """
         Executes the intentions of the agent.
         """
@@ -439,7 +439,6 @@ class ThermoelectricAgent(Person):
                 # inspect_critical_parts=inspect_critical_parts,
             )
 
-
         if self.intentions["perform_maintenance_on_parts"].value:
             perform_maintenance_on_parts = self.intentions[
                 "perform_maintenance_on_parts"
@@ -496,7 +495,6 @@ class ThermoelectricAgent(Person):
                 # repair_during_low_demand=repair_during_low_demand,
                 # inspect_critical_parts=inspect_critical_parts,
             )
-
 
         if self.intentions["prioritize_repair_of_critical_parts"].value:
             prioritize_repair_of_critical_parts = True
@@ -564,7 +562,7 @@ class ThermoelectricAgent(Person):
         #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
         #         repair_parts=repair_parts,
         #     )
-        
+
         # if self.intentions["inspect_critical_parts"].value:
         #     inspect_critical_parts = True
         #     self.intentions["inspect_critical_parts"].value = False
@@ -581,8 +579,7 @@ class ThermoelectricAgent(Person):
         #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
         #         repair_parts=repair_parts,
         #     )
-        
-        
+
         # print(f"{self.name} is executing intentions.")
 
     def action(
@@ -596,7 +593,8 @@ class ThermoelectricAgent(Person):
         return self.execute()
 
 
-# region Chief of Electric Company Agent 
+# region Chief of Electric Company Agent
+
 
 class ChiefElectricCompanyAgentPerception:
     def __init__(
@@ -647,8 +645,8 @@ class ChiefElectricCompanyAgentPerception:
             for circuit in circuits
             for block_id, block in enumerate(circuit.blocks)
         ]
-        
-        
+
+
 class ChiefElectricCompanyAction:
     def __init__(self) -> None:
         pass
@@ -672,8 +670,8 @@ class ChiefElectricCompanyAgent(Person):
         Person.__init__(self, name=name, id=id)
         self.thermoelectrics_agents = thermoelectrics_agents
         self.circuits = circuits
-
         self.perception = perception
+        self.prepare_auxiliary_data()
 
         self.beliefs = {
             "generation_per_thermoelectric": Belief(
@@ -784,8 +782,39 @@ class ChiefElectricCompanyAgent(Person):
             [],
             description="Plan power cuts based on the importance, opinion, and last power cut for each block in the circuits.",
         )
-        
-        
+
+    # Auxiliary functions
+    def prepare_auxiliary_data(self):
+        max_population_of_circuits = -1
+        max_population_of_block = -1
+
+        for circuit in self.circuits:
+            max_population_of_circuits = max(
+                circuit.get_all_block_population(), max_population_of_circuits
+            )
+            for block in circuit.blocks:
+                max_population_of_block = max(block.citizens, max_population_of_block)
+
+        self.auxiliary_data_max_population_of_circuits = max_population_of_circuits
+        self.auxiliary_data_max_population_of_block = max_population_of_block
+        self.IMPORTANCE_ALPHA = 0.3589
+
+    def get_circuit_importance(self, circuit: Circuit) -> float:
+        return (
+            circuit.get_all_block_population()
+            / self.auxiliary_data_max_population_of_circuits
+        ) * self.IMPORTANCE_ALPHA + circuit.industrialization * (
+            1 - self.IMPORTANCE_ALPHA
+        )
+
+    def get_block_importance(self, block: Block) -> float:
+        return (
+            block.citizens / self.auxiliary_data_max_population_of_circuits
+        ) * self.IMPORTANCE_ALPHA + block.industrialization * (
+            1 - self.IMPORTANCE_ALPHA
+        )
+
+
 # region Citizen
 
 

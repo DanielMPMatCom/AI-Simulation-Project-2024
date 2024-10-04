@@ -3,11 +3,13 @@
         "arange",
         "cmap",
         "facecolor",
+        "gaussianmixture",
         "kmeans",
         "lightgreen",
         "linalg",
         "lognormal",
         "ndarray",
+        "networkx",
         "skfuzzy",
         "splev",
         "splprep",
@@ -15,7 +17,8 @@
         "trapmf",
         "trimf",
         "viridis",
-        "weibull"
+        "weibull",
+        "worldstate"
     ],
     "cSpell.language": "en"
 }

@@ -13,52 +13,47 @@ class Circuit:
         self,
         id,
         gaussian_mixture,
-        blocks_range=(4, 8),
-        citizens_range=(100, 200),
-        industrialization=(6, 8),
+        blocks_range,
+        citizens_range,
+        industrialization,
     ) -> None:
+
+        # General Params
         self.id = id
-        self.industrialization = (
-            float(random.randint(industrialization[0], industrialization[1])) / 10
-        )
+        self.gaussian_mixture = gaussian_mixture
         self.blocks_range = blocks_range
         self.citizens_range = citizens_range
-        self.gaussian_mixture = gaussian_mixture
-        self.blocks: list[Block] = self.create_bolcks()
-        self.mock_electric_consume = self.generate_mock_consume()
+
+        self.blocks: list[Block] = self.create_blocks()
         self.circuit_satisfaction = self.set_circuit_satisfaction()
+
+        # General Data
+        self.industrialization = industrialization
+
+    def get_all_block_population(self):
+        return sum([block.citizens for block in self.blocks])
 
     def update(self):
         for block in self.blocks:
             block.update()
 
-    def create_bolcks(self):
+    def create_blocks(self):
         blocks = []
         amount_of_blocks = random.randint(self.blocks_range[0], self.blocks_range[1])
-        for i in range(amount_of_blocks):
+        for _ in range(amount_of_blocks):
             blocks.append(
                 Block(
                     self.gaussian_mixture, self.citizens_range, self.industrialization
                 )
             )
-
         return blocks
 
-    def generate_mock_consume(self):
-        mock_value = 0
-        for block in self.blocks:
-            mock_value += block.mock_electric_consume
-
-        return mock_value
-
     def set_circuit_satisfaction(self):
-
         total_people: float = 0
         total_satisfaction: float = 0
         for block in self.blocks:
             total_satisfaction += block.citizens.amount + block.get_block_opinion()
             total_people += block.citizens.amount
-
         return total_satisfaction / total_people
 
 
@@ -92,7 +87,6 @@ class Block:
         self.off_hours: tuple[int, int] = (0, 0)
         self.demand_per_hour: list[float] = []
         self.gaussian_mixture = gaussian_mixture
-        self.mock_electric_consume = self.get_mock_electric_consume()
         self.industrialization = industrialization
 
     def update(self, off_hours, world_state: WorldState):
@@ -138,11 +132,3 @@ class Block:
         return sum(self.demand_per_hour[: self.off_hours[0]]) + sum(
             self.demand_per_hour[self.off_hours[1] :]
         )
-
-    def get_mock_electric_consume(self) -> float:
-        mock_value = 0
-        for i in range(300):
-            day_consume = sum(self.gaussian_mixture.generate())
-            mock_value = max(mock_value, day_consume)
-
-        return mock_value
