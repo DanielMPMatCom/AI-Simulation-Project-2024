@@ -54,15 +54,14 @@ def crossover_uniform(
     prob_p1: float = 0.5,
     prob_p2: float = 0.5,
 ):
-    prob = random.random()
     chromosome = [-1] * len(parent_1)
 
-    print(prob)
-
     for i in range(len(parent_1)):
+        prob = random.random()
+        
         if prob <= prob_p1:
             chromosome[i] = parent_1[i]
-        elif prob <= prob_p2 + prob_p2:
+        elif prob <= prob_p1 + prob_p2:
             chromosome[i] = parent_2[i]
         else:
             chromosome[i] = random.randint(len(capacities) - 1)
