@@ -599,52 +599,50 @@ class ThermoelectricAgent(Person):
 class ChiefElectricCompanyAgentPerception:
     def __init__(
         self,
-        thermoelectrics_agents: List[ThermoelectricAgent],
-        distance_template: List[tuple[str, str, float, list[str]]],
-        circuits: list[Circuit],
+        generation_per_thermoelectric: list[float],
+        distance_template: list[tuple[str, str, float]],
+        demand_per_block_in_circuit: list[int, int, list[float]],
+        total_demand_per_circuits: list[float],
+        importance_circuits: list[float],
+        importance_per_block_in_circuits: list[str, int, float],
+        opinion_per_block_in_circuits: list[str, int, float],
+        satisfaction_per_circuit: list[float],
+        industrialization_per_circuit: list[float],
+        last_days_off_per_block_in_circuits: list[str, int, int],
+        longest_sequence_off_per_block_in_circuits: list[str, int, int],
     ) -> None:
-        self.generation_for_thermoelectric = [
-            agent.thermoelectric.current_capacity for agent in thermoelectrics_agents
-        ]
+
+        self.generation_per_thermoelectric = generation_per_thermoelectric
 
         self.distance_template = [
             (t_id, c_id, cost) for (t_id, c_id, cost, _) in distance_template
         ]
 
-        self.demand_for_block_in_circuits = [
-            (circuit.id, block_id, block.demand_per_hour)
-            for circuit in circuits
-            for block_id, block in enumerate(circuit.blocks)
-        ]
+        self.demand_per_block_in_circuits = demand_per_block_in_circuit
 
-        self.total_demand_for_circuits = [
-            sum([block.demand_per_hour for block in circuit.blocks])
-            for circuit in circuits
-        ]
+        self.total_demand_per_circuits = total_demand_per_circuits
 
-        ############################################################################################################\
+        self.general_demand = sum(self.total_demand_per_circuits)
 
-        # IMPORTANCE FOR BLOCK IN CIRCUITS  #
+        self.general_offer = sum(generation_per_thermoelectric)
 
-        ############################################################################################################
+        self.general_deficit = max(self.general_demand - self.general_offer, 0)
 
-        self.importance_for_block_in_circuits = [
-            (block_id, block.importance)
-            for circuit in circuits
-            for block_id, block in enumerate(circuit.blocks)
-        ]
+        self.importance_circuit = importance_circuits
 
-        self.opinion_for_block_in_circuits = [
-            (block_id, block.opinion)
-            for circuit in circuits
-            for block_id, block in enumerate(circuit.blocks)
-        ]
+        self.importance_per_block_in_circuits = importance_per_block_in_circuits
 
-        self.last_power_cut_for_block_in_circuits = [
-            (block_id, block.last_power_cut[:40])  # last 40 days
-            for circuit in circuits
-            for block_id, block in enumerate(circuit.blocks)
-        ]
+        self.opinion_per_block_in_circuits = opinion_per_block_in_circuits
+
+        self.satisfaction_per_circuit = satisfaction_per_circuit
+
+        self.industrialization_per_circuit = industrialization_per_circuit
+
+        self.last_days_off_per_block_in_circuits = last_days_off_per_block_in_circuits
+
+        self.longest_sequence_off_per_block_in_circuits = (
+            longest_sequence_off_per_block_in_circuits
+        )
 
 
 class ChiefElectricCompanyAction:
@@ -671,7 +669,6 @@ class ChiefElectricCompanyAgent(Person):
         self.thermoelectrics_agents = thermoelectrics_agents
         self.circuits = circuits
         self.perception = perception
-        self.prepare_auxiliary_data()
 
         self.beliefs = {
             "generation_per_thermoelectric": Belief(
@@ -781,37 +778,6 @@ class ChiefElectricCompanyAgent(Person):
         self.desires["plan_power_cuts"] = Desire(
             [],
             description="Plan power cuts based on the importance, opinion, and last power cut for each block in the circuits.",
-        )
-
-    # Auxiliary functions
-    def prepare_auxiliary_data(self):
-        max_population_of_circuits = -1
-        max_population_of_block = -1
-
-        for circuit in self.circuits:
-            max_population_of_circuits = max(
-                circuit.get_all_block_population(), max_population_of_circuits
-            )
-            for block in circuit.blocks:
-                max_population_of_block = max(block.citizens, max_population_of_block)
-
-        self.auxiliary_data_max_population_of_circuits = max_population_of_circuits
-        self.auxiliary_data_max_population_of_block = max_population_of_block
-        self.IMPORTANCE_ALPHA = 0.3589
-
-    def get_circuit_importance(self, circuit: Circuit) -> float:
-        return (
-            circuit.get_all_block_population()
-            / self.auxiliary_data_max_population_of_circuits
-        ) * self.IMPORTANCE_ALPHA + circuit.industrialization * (
-            1 - self.IMPORTANCE_ALPHA
-        )
-
-    def get_block_importance(self, block: Block) -> float:
-        return (
-            block.citizens / self.auxiliary_data_max_population_of_circuits
-        ) * self.IMPORTANCE_ALPHA + block.industrialization * (
-            1 - self.IMPORTANCE_ALPHA
         )
 
 

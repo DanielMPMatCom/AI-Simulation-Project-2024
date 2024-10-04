@@ -1,3 +1,4 @@
+from itertools import groupby
 from src.people import Citizen
 from src.worldstate import WorldState
 from utils.gaussianmixture import *
@@ -79,6 +80,7 @@ class Block:
         gaussian_mixture: DailyElectricityConsumptionBimodal,
         citizens_range,
         industrialization,
+        memory_of_history_report,
     ) -> None:
         self.citizens: Citizen = Citizen(
             self, random.randint(citizens_range[0], citizens_range[1])
@@ -88,6 +90,7 @@ class Block:
         self.demand_per_hour: list[float] = []
         self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
+        self.memory_of_history_report = memory_of_history_report
 
     def update(self, off_hours, world_state: WorldState):
 
@@ -97,19 +100,22 @@ class Block:
         time_off = off_hours[1] - off_hours[0]
         total_demand = self.get_consumed_energy_today()
 
-        history_report = self.history_report[:19:-1]
+        history_report = self.history_report[: self.memory_of_history_report : -1]
 
         days_off: float = sum(1 for report in history_report if report.time_off > 0) + (
             1 if time_off > 0 else 0
         )
+
         days_amount: float = len(history_report) + 1
 
-        near_days_off = [
+        near_days_off = [  # preguntar a toledo si aqui es la intecion desde  el inicio
             i for i, report in enumerate(history_report, 1) if report.time_off > 0
         ]
-        last_day_off = (
-            0 if time_off > 0 else 20 if not near_days_off else min(near_days_off)
-        )
+
+        last_day_off = 20 if not near_days_off else min(near_days_off)
+
+        if time_off > 0:
+            last_day_off = 0
 
         self.citizens.set_opinion(
             input_general_satisfaction=world_state.general_satisfaction,
@@ -131,4 +137,15 @@ class Block:
     def get_consumed_energy_today(self) -> float:
         return sum(self.demand_per_hour[: self.off_hours[0]]) + sum(
             self.demand_per_hour[self.off_hours[1] :]
+        )
+
+    def last_days_off(self):  # preguntar a toledo si esto esta bien
+        return sum(1 for report in self.history_report if report.time_off > 0)
+
+    def longest_sequence_of_days_off(self):
+        return max(
+            sum(1 for _ in group)
+            for _, group in groupby(
+                self.history_report, key=lambda report: report.time_off > 0
+            )
         )

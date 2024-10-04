@@ -1,5 +1,5 @@
 from src.map import Map2D, GraphMap
-from src.circuits import Circuit
+from src.circuits import Circuit, Block
 from src.thermoelectrics import Thermoelectric
 from src.worldstate import WorldState
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
@@ -33,6 +33,10 @@ RANDOM_SEED = 42
 
 MIN_BLOCKS_PER_CIRCUIT = 1
 MAX_BLOCKS_PER_CIRCUIT = 10
+
+# CHIEF PARAMS
+IMPORTANCE_ALPHA = 0.374345
+
 
 map_2d = Map2D(
     no_circuits=NO_CIRCUITS,
@@ -140,5 +144,33 @@ for t in graphMap.thermoelectrics_nodes:
 
 for t in ti:
     print(t.id, t.total_capacity)
+
+### CHIEF
+# Auxiliary functions
+max_population_of_circuits = -1
+max_population_of_block = -1
+
+for circuit in ci:
+    max_population_of_circuits = max(
+        circuit.get_all_block_population(), max_population_of_circuits
+    )
+    for block in circuit.blocks:
+        max_population_of_block = max(block.citizens, max_population_of_block)
+
+auxiliary_data_max_population_of_circuits = max_population_of_circuits
+auxiliary_data_max_population_of_block = max_population_of_block
+
+
+def get_circuit_importance(circuit: Circuit) -> float:
+    return (
+        circuit.get_all_block_population() / auxiliary_data_max_population_of_circuits
+    ) * IMPORTANCE_ALPHA + circuit.industrialization * (1 - IMPORTANCE_ALPHA)
+
+
+def get_block_importance(block: Block) -> float:
+    return (
+        block.citizens / auxiliary_data_max_population_of_circuits
+    ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
+
 
 worldstate = WorldState(ci, ti)
