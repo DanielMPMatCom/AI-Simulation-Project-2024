@@ -1,7 +1,9 @@
 import random
 
+
 def fitness():
     pass
+
 
 def assign_thermoelectric_to_circuit(
     circuit: int, chromosome: list[int], capacities: list[int], P: list[list[int]]
@@ -60,7 +62,7 @@ def crossover_uniform(
 
     for i in range(len(parent_1)):
         prob = random.random()
-        
+
         if prob <= prob_p1:
             chromosome[i] = parent_1[i]
         elif prob <= prob_p1 + prob_p2:
@@ -119,40 +121,57 @@ def repair_chromosome(chromosome: list[int], capacities: list[int], P: list[list
     for circuit in range(len(chromosome)):
         assign_thermoelectric_to_circuit(circuit, chromosome, remaining_capacities, P)
 
-def select_chromosomes(fitness_scores:list[tuple[int, int]], amount:int):
-    return sorted(fitness_scores, key=lambda x : x[1])[:amount]
 
-def mutatate(chromosome:list[int], capacities:list[int], P:list[list[int]], mutation:str='single_point'):
-    
-    if mutation == 'single_point':
+def select_chromosomes(fitness_scores: list[tuple[int, int]], amount: int):
+    return sorted(fitness_scores, key=lambda x: x[1])[:amount]
+
+
+def mutatate(
+    chromosome: list[int],
+    capacities: list[int],
+    P: list[list[int]],
+    mutation: str = "single_point",
+):
+
+    if mutation == "single_point":
         index = random.randint(0, len(chromosome) - 1)
         chromosome[index] = random.randint(len(capacities))
-    elif mutation == 'multiple_points':
+    elif mutation == "multiple_points":
         index_amount = random.randint(0, len(chromosome) // 2)
         for _ in index_amount:
             index = random.randint(len(chromosome))
             chromosome[index] = random.randint(0, len(capacities) - 1)
-    elif mutation == 'swap':
+    elif mutation == "swap":
         index_1 = random.randint(0, len(chromosome) - 1)
         index_2 = random.randint(0, len(chromosome) - 1)
-        chromosome[index_1], chromosome[index_2] = chromosome[index_2], chromosome[index_1]
-
+        chromosome[index_1], chromosome[index_2] = (
+            chromosome[index_2],
+            chromosome[index_1],
+        )
 
     if is_invalid(chromosome, capacities, P):
         repair_chromosome(chromosome)
 
 
-
-
-def genetic_algorithm(P:list[list[int]], capacities:list[int], generations:int, pop_size:int, circuits:int, mutation_rate:float=0, ft=fitness):
+def genetic_algorithm(
+    P: list[list[int]],
+    capacities: list[int],
+    generations: int,
+    pop_size: int,
+    circuits: int,
+    mutation_rate: float = 0,
+    ft=fitness,
+):
 
     population = generate_population(P, capacities, circuits, pop_size)
 
     best_chromosome = None
-    best_fitness = float('inf')
+    best_fitness = float("inf")
 
     for generation in range(generations):
-        fitness_scores = [(chromosome, fitness(chromosome)) for chromosome in population]
+        fitness_scores = [
+            (chromosome, fitness(chromosome)) for chromosome in population
+        ]
 
         for chromosome, score in fitness_scores:
             if score < best_fitness:
