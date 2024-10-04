@@ -31,7 +31,7 @@ class WorldState:
         total_importance: float = 0
         for circuit in self.circuits:
             total_importance += (
-                circuit.industrialization * circuit.get_circuit_satisfaction
+                circuit.industrialization * circuit.circuit_satisfaction
             )
             total_industrialization += circuit.industrialization
 
