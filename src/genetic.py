@@ -1,5 +1,7 @@
 import random
 
+def fitness():
+    pass
 
 def assign_thermoelectric_to_circuit(
     circuit: int, chromosome: list[int], capacities: list[int], P: list[list[int]]
@@ -117,19 +119,40 @@ def repair_chromosome(chromosome: list[int], capacities: list[int], P: list[list
     for circuit in range(len(chromosome)):
         assign_thermoelectric_to_circuit(circuit, chromosome, remaining_capacities, P)
 
+def select_chromosomes(fitness_scores:list[tuple[int, int]], amount:int):
+    return sorted(fitness_scores, key=lambda x : x[1])[:amount]
 
-capacities = [2, 1, 2]
-P = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
+def mutatate(chromosome:list[int], capacities:list[int], P):
+    pass
 
-q = generate_population(P=P, capacities=capacities, circuits=3, pop_size=5)
+def genetic_algorithm(P:list[list[int]], capacities:list[int], generations:int, pop_size:int, circuits:int, mutation_rate:float=0, ft=fitness):
 
-children = [crossover_uniform(q[i], q[i + 1], capacities, P) for i in range(len(q) - 1)]
+    population = generate_population(P, capacities, circuits, pop_size)
 
-print("Population")
-for chromosome in q:
-    print(chromosome)
+    best_chromosome = None
+    best_fitness = float('inf')
 
+    for generation in range(generations):
+        fitness_scores = [(chromosome, fitness(chromosome)) for chromosome in population]
 
-print("Children")
-for child in children:
-    print(child)
+        for chromosome, score in fitness_scores:
+            if score < best_fitness:
+                best_fitness = score
+                best_chromosome = chromosome[:]
+
+        selection = select_chromosomes(fitness_scores, pop_size)
+        random.shuffle(selection)
+
+        population = []
+        for i in range(pop_size):
+            parent_1 = selection[i]
+
+            for _ in range(3):
+                parent_2 = random.choice(selection)
+                population.append(crossover(parent_1, parent_2, capacities, P))
+
+        for i in range(len(population)):
+            if random.random() < mutation_rate:
+                population[i] = mutatate(population[i], capacities, P)
+
+    return best_chromosome, best_fitness
