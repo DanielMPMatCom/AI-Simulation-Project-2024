@@ -92,11 +92,11 @@ def repair_chromosome(chromosome: list[int], capacities: list[int], P: list[list
     for circuit, thermoelectric in enumerate(chromosome):
         current_capacities[thermoelectric] -= P[thermoelectric][circuit]
 
+    waiting = []
     remaining_capacities = [0] * len(current_capacities)
     for thermoelectric, capacity in enumerate(current_capacities):
 
         current_capacity = capacity
-        waiting = []
 
         while current_capacity < 0:
             thermoelectric_circuits = [
@@ -148,6 +148,10 @@ def mutatate(
             chromosome[index_2],
             chromosome[index_1],
         )
+    elif mutation == "rotation":
+        if len(chromosome) >= 2:
+            index = random.randint(1, len(chromosome) - 2)
+            chromosome = chromosome[index:] + chromosome[: index - 1]
 
     if is_invalid(chromosome, capacities, P):
         repair_chromosome(chromosome)
