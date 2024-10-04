@@ -15,9 +15,9 @@ class WorldState:
         self.circuits = circuits
         self.thermoelectrics = thermoelectrics
         self.distance_template = [
-            (t_id, c_id, cost) for (t_id, c_id, cost, _) in self.distance_template
+            (t_id, c_id, cost) for (t_id, c_id, cost, _) in distance_template
         ]
-        self.get_circuit_importance = get_block_importance
+        self.get_circuit_importance = get_circuit_importance
         self.get_block_importance = get_block_importance
 
         self.update()
