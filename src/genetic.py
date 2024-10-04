@@ -122,8 +122,27 @@ def repair_chromosome(chromosome: list[int], capacities: list[int], P: list[list
 def select_chromosomes(fitness_scores:list[tuple[int, int]], amount:int):
     return sorted(fitness_scores, key=lambda x : x[1])[:amount]
 
-def mutatate(chromosome:list[int], capacities:list[int], P):
-    pass
+def mutatate(chromosome:list[int], capacities:list[int], P:list[list[int]], mutation:str='single_point'):
+    
+    if mutation == 'single_point':
+        index = random.randint(0, len(chromosome) - 1)
+        chromosome[index] = random.randint(len(capacities))
+    elif mutation == 'multiple_points':
+        index_amount = random.randint(0, len(chromosome) // 2)
+        for _ in index_amount:
+            index = random.randint(len(chromosome))
+            chromosome[index] = random.randint(0, len(capacities) - 1)
+    elif mutation == 'swap':
+        index_1 = random.randint(0, len(chromosome) - 1)
+        index_2 = random.randint(0, len(chromosome) - 1)
+        chromosome[index_1], chromosome[index_2] = chromosome[index_2], chromosome[index_1]
+
+
+    if is_invalid(chromosome, capacities, P):
+        repair_chromosome(chromosome)
+
+
+
 
 def genetic_algorithm(P:list[list[int]], capacities:list[int], generations:int, pop_size:int, circuits:int, mutation_rate:float=0, ft=fitness):
 
@@ -153,6 +172,6 @@ def genetic_algorithm(P:list[list[int]], capacities:list[int], generations:int, 
 
         for i in range(len(population)):
             if random.random() < mutation_rate:
-                population[i] = mutatate(population[i], capacities, P)
+                mutatate(population[i], capacities, P)
 
     return best_chromosome, best_fitness
