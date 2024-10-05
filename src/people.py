@@ -657,8 +657,19 @@ class ChiefElectricCompanyAgentPerception:
 
 
 class ChiefElectricCompanyAction:
-    def __init__(self) -> None:
-        pass
+    def __init__(
+        self,
+        meet_demand,
+        prioritize_block_importance,
+        prioritize_block_opinion,
+        prioritize_consecutive_days_off,
+        prioritize_days_off,
+    ) -> None:
+        self.meet_demand = meet_demand
+        self.prioritize_block_importance = prioritize_block_importance
+        self.prioritize_block_opinion = prioritize_block_opinion
+        self.prioritize_consecutive_days_off = prioritize_consecutive_days_off
+        self.prioritize_days_off = prioritize_days_off
 
 
 class ChiefElectricCompanyAgent(Person):
@@ -674,7 +685,7 @@ class ChiefElectricCompanyAgent(Person):
         id: int,
         thermoelectrics_agents: List[ThermoelectricAgent],
         circuits: List["Circuit"],
-        perception: ChiefElectricCompanyAgentPerception,  # ?
+        perception: ChiefElectricCompanyAgentPerception,
     ):
         Person.__init__(self, name=name, id=id)
         self.thermoelectrics_agents = thermoelectrics_agents
@@ -748,6 +759,44 @@ class ChiefElectricCompanyAgent(Person):
                     "prioritize_days_off": CECAPrioritizeDaysOff(),
                 }
             ),
+            "current_desires": [
+                "meet_demand",
+                "prioritize_block_importance",
+                "prioritize_block_opinion",
+                "prioritize_consecutive_days_off",
+                "prioritize_days_off",
+            ],
+        }
+
+        self.desires = {
+            "meet_demand": False,
+            "prioritize_block_importance": False,
+            "prioritize_block_opinion": False,
+            "prioritize_consecutive_days_off": False,
+            "prioritize_days_off": False,
+        }
+
+        self.intentions = {
+            "meet_demand": Intention(
+                False,
+                description="Intention to meet the demand using the current capacity.",
+            ),
+            "prioritize_block_importance": Intention(
+                False,
+                description="Intention to prioritize the block with the highest importance.",
+            ),
+            "prioritize_block_opinion": Intention(
+                False,
+                description="Intention to prioritize blocks based on their negative opinions.",
+            ),
+            "prioritize_consecutive_days_off": Intention(
+                False,
+                description="Intention to prioritize blocks with the most consecutive days off.",
+            ),
+            "prioritize_days_off": Intention(
+                False,
+                description="Intention to prioritize circuits that have had the most days without energy.",
+            ),
         }
 
     def brf(self) -> None:
@@ -814,17 +863,84 @@ class ChiefElectricCompanyAgent(Person):
         Generates the agent's desires based on its beliefs.
         """
 
-        # 1. Generate desires to distribute electricity optimally
-        self.desires["distribute_electricity_optimally"] = Desire(
-            [],
-            description="Distribute electricity optimally based on the current demand and generation.",
+        self.beliefs["current_desires"].value.sort(
+            key=lambda x: self.beliefs["all_desires"].value[x].weight
         )
 
-        # 2. Generate desires to plan power cuts
-        self.desires["plan_power_cuts"] = Desire(
-            [],
-            description="Plan power cuts based on the importance, opinion, and last power cut for each block in the circuits.",
-        )
+        for desire in self.beliefs["current_desires"].value:
+            self.beliefs["all_desires"].value[desire].evaluate(self)
+
+    def filter_intentions(self):
+        """
+        Filter intentions based on the current beliefs and desires of the agent.
+        """
+        if self.desires["meet_demand"]:
+            self.intentions["meet_demand"].value = True
+        else:
+            self.intentions["meet_demand"].value = False
+
+        if self.desires["prioritize_block_importance"]:
+            self.intentions["prioritize_block_importance"].value = True
+        else:
+            self.intentions["prioritize_block_importance"].value = False
+
+        if self.desires["prioritize_block_opinion"]:
+            self.intentions["prioritize_block_opinion"].value = True
+        else:
+            self.intentions["prioritize_block_opinion"].value = False
+
+        if self.desires["prioritize_consecutive_days_off"]:
+            self.intentions["prioritize_consecutive_days_off"] = True
+
+        else:
+            self.intentions["prioritize_consecutive_days_off"] = False
+
+        if self.desires["prioritize_days_off"]:
+            self.intentions["prioritize_days_off"] = True
+
+        else:
+            self.intentions["prioritize_days_off"] = False
+
+    def execute(self) -> list[ChiefElectricCompanyAction]:
+        intentions_executed = []
+        while True:
+            active_index = [
+                intention
+                for intention in self.intentions
+                if self.intentions[intention].value
+            ]
+
+            if len(active_index) <= 0:
+                break
+
+            if self.intentions["meet_demand"].value:
+                self.intentions["meet_demand"].value = False
+
+                
+                # update belief if necessary, maybe using a new perception
+                intentions_executed.append("meet_demand")
+
+        return [
+            ChiefElectricCompanyAction(
+                meet_demand="meet_demand" in intentions_executed,
+                prioritize_block_importance="prioritize_block_importance"
+                in intentions_executed,
+                prioritize_consecutive_days_off="prioritize_consecutive_days_off"
+                in intentions_executed,
+                prioritize_days_off="prioritize_days_off" in intentions_executed,
+                prioritize_block_opinion="prioritize_block_opinion"
+                in intentions_executed,
+            )
+        ]
+
+    def action(
+        self, perception: ChiefElectricCompanyAgentPerception
+    ) -> list[ChiefElectricCompanyAction]:
+        self.perception = perception
+        self.brf()
+        self.generate_desires()
+        self.filter_intentions()
+        return self.execute()
 
 
 # region Citizen

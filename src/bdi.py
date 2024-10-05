@@ -155,7 +155,7 @@ class CECAMeetDemandDesire(Desire):
             description="Desire to meet the overall energy demand",
             id="meet_demand",
         )
-        self.weight = 1
+        self.weight = 5
 
     def evaluate(self, agent: ChiefElectricCompanyAgent):
         if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
@@ -189,6 +189,7 @@ class CECAPrioritizeBlockOpinion(Desire):
             description="Desire to prioritize energy supply for blocks with the most influential public opinions",
             id="prioritize_block_opinion",
         )
+        self.weight = 2
 
     def evaluate(self, agent: ChiefElectricCompanyAgent):
         bad_opinions = [
@@ -215,6 +216,7 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
             description="Desire to prioritize energy supply for blocks with a significant number of consecutive off days",
             id="prioritize_consecutive_days_off",
         )
+        self.weight = 1
 
     def evaluate(self, agent: ChiefElectricCompanyAgent):
         sequences = agent.beliefs["longest_sequence_off_per_block_in_circuits"].value
@@ -238,6 +240,7 @@ class CECAPrioritizeDaysOff(Desire):
             description="Desire to prioritize energy supply for blocks with a significant number of off days",
             id="prioritize_days_off",
         )
+        self.weight = 1
 
     def evaluate(self, agent: ChiefElectricCompanyAgent):
         days_off = agent.beliefs["days_off_per_block_in_circuits"].value
