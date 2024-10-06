@@ -162,3 +162,12 @@ class Thermoelectric:
                 boilers_are_critical and isinstance(part, Boiler)
             ):
                 is_critical_part_map.append(part)
+
+    def consume_energy(self, amount):
+        if amount > self.current_capacity:
+            raise RuntimeError(
+                f"Thermoelectric consume energy must be le than his current capacity {self.current_capacity}, id: {self.id}"
+            )
+
+        self.current_capacity -= amount
+        return amount

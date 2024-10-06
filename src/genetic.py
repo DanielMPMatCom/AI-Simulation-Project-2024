@@ -54,7 +54,6 @@ def crossover(
     get_cost_thermoelectric_to_block: callable,
 ):
     position = random.randint(1, len(parent_1) - 1)
-    print(parent_1, parent_2, "parents")
     chromosome = parent_1[:position] + parent_2[position:]
 
     if is_invalid(chromosome, capacities, get_cost_thermoelectric_to_block):
@@ -234,15 +233,18 @@ def genetic_algorithm(
 
 
 def get_cost_thermoelectric_to_block(thermoelectric: int, block: int):
-    M = [[1, 2, 3], [4, 5, 6]]
+    M = [[1, 1, 1], [1, 1, 1]]
     return M[thermoelectric][block]
 
 
+A = [100, 5000]
+
+
 def fx(x):
-    print(x)
-    return sum(x)
+    y = 0
+    for i, t in enumerate(x):
+        y += get_cost_thermoelectric_to_block(t, i)
+    return (A[t] - y)
 
 
-print(
-    genetic_algorithm(get_cost_thermoelectric_to_block, [10, 10], 100, 10, 3, 0, ft=fx)
-)
+print(genetic_algorithm(get_cost_thermoelectric_to_block, A, 100, 10, 3, 0, ft=fx))

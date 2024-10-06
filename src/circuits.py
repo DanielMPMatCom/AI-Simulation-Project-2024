@@ -1,7 +1,7 @@
 from itertools import groupby
 from src.people import Citizen
 from src.worldstate import WorldState
-from utils.gaussianmixture import *
+from utils.gaussianmixture import DailyElectricityConsumptionBimodal
 import random
 
 
@@ -86,18 +86,17 @@ class Block:
             self, random.randint(citizens_range[0], citizens_range[1])
         )
         self.history_report: list[BlockReport] = []
-        self.off_hours: tuple[int, int] = (0, 0)
+        self.off_hours: list[bool] = [False] * 24
         self.demand_per_hour: list[float] = []
         self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
         self.memory_of_history_report = memory_of_history_report
 
-    def update(self, off_hours, world_state: WorldState):
+    def update(self, world_state: WorldState):
 
-        self.off_hours = off_hours
         self.demand_per_hour = self.gaussian_mixture.generate()
 
-        time_off = off_hours[1] - off_hours[0]
+        time_off = sum(self.off_hours)
         total_demand = self.get_consumed_energy_today()
 
         history_report = self.history_report[: self.memory_of_history_report : -1]
@@ -108,7 +107,7 @@ class Block:
 
         days_amount: float = len(history_report) + 1
 
-        near_days_off = [  # preguntar a toledo si aqui es la intecion desde  el inicio
+        near_days_off = [
             i for i, report in enumerate(history_report, 1) if report.time_off > 0
         ]
 
@@ -139,7 +138,7 @@ class Block:
             self.demand_per_hour[self.off_hours[1] :]
         )
 
-    def last_days_off(self):  # preguntar a toledo si esto esta bien
+    def last_days_off(self):
         return sum(1 for report in self.history_report if report.time_off > 0)
 
     def longest_sequence_of_days_off(self):
@@ -149,3 +148,11 @@ class Block:
                 self.history_report, key=lambda report: report.time_off > 0
             )
         )
+
+    def set_days_distribution(self, off_hours: list[bool]):
+        if len(off_hours) != 24:
+            raise RuntimeError(
+                f"Off hours must be and array of length 24, and {off_hours} was given"
+            )
+
+        self.off_hours = off_hours
