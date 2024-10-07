@@ -1,12 +1,12 @@
-from src.circuits import *
-from src.thermoelectrics import *
+from src.circuits import Circuit
+from src.thermoelectrics import Thermoelectric
 
 
 class WorldState:
     def __init__(
         self,
-        circuits: list['Circuit'],
-        thermoelectrics: list['Thermoelectric'],
+        circuits: list["Circuit"],
+        thermoelectrics: list["Thermoelectric"],
         distance_template: list[tuple[str, str, list[str]]],
         get_circuit_importance: callable,
         get_block_importance: callable,

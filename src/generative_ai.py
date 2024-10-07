@@ -9,7 +9,9 @@ GOOGLE_API_KEY = secrets["GOOGLE_API_KEY"]
 class GenAIModel:
     def __init__(self, system_instruction=None) -> None:
         genai.configure(api_key=GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=system_instruction)
+        self.model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash", system_instruction=system_instruction
+        )
 
     def ask_model(self, question: str) -> str:
         return self.model.generate_content(question).text

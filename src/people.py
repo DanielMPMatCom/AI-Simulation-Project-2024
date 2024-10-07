@@ -1112,6 +1112,8 @@ class ChiefElectricCompanyAgent(Person):
                 intention_executed.append(intention)
                 intentions_func.append(func)
 
+        final_distribution
+
         return ChiefElectricCompanyAction(
             meet_demand="meet_demand" in intention_executed,
             prioritize_block_importance="prioritize_block_importance"
