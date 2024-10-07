@@ -208,7 +208,7 @@ class ThermoelectricAgent(Person):
                 False, "Intention to prioritize repair of critical parts"
             ),
             "repair_parts": Intention(
-                [(part, False) for part in self.thermoelectric.parts]
+                [(part, False) for part in self.thermoelectric.parts], "A list of tuples where the left side is a Part and the right side is True if there is an intention of repairi the part and False otherwise"
             ),
             # "meet_demand": Intention(False, "Intention to meet demand"),
             # "inspect_critical_parts": Intention(
