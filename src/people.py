@@ -19,7 +19,7 @@ from src.bdi import (
 )
 from circuits import Circuit, Block
 from part import Part
-from genetic import genetic_algorithm
+from genetic_per_hour import genetic_algorithm
 from copy import deepcopy
 
 
@@ -997,33 +997,28 @@ class ChiefElectricCompanyAgent(Person):
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
         return distance_cost + block.demand_per_hour[hour]
 
-    def template_intention_func(perception: ChiefElectricCompanyAgentPerception):
-        # calculate something
-        # the return value must be (normalized perception value * value of weight of perception)
-        return
-
     def generic_objective_function(
         self, complete_distribution: list[list], funcs: callable
     ) -> float:
         # simulate make the distribution and get the belief to pass to any function
-        thermoelectric_copy = deepcopy(self.thermoelectrics)  # TODO :REVIEW THIS COPY
-        circuit_copy = deepcopy(self.circuits)  # TODO: REVIEW THIS COPY
+        # thermoelectric_copy = deepcopy(self.thermoelectrics)  # TODO :REVIEW THIS COPY
+        # circuit_copy = deepcopy(self.circuits)  # TODO: REVIEW THIS COPY
 
-        self.distribute_energy_to_blocks_from_thermoelectrics(
-            complete_distribution=complete_distribution,
-            thermoelectrics=thermoelectric_copy,
-            circuits=circuit_copy,
-        )
-        # TODO:is update needed?
+        # self.distribute_energy_to_blocks_from_thermoelectrics(
+        #     complete_distribution=complete_distribution,
+        #     thermoelectrics=thermoelectric_copy,
+        #     circuits=circuit_copy,
+        # )
+        # # TODO:is update needed?
 
-        new_perception = self.build_new_perception(
-            thermoelectrics=thermoelectric_copy, circuits=circuit_copy
-        )
+        # new_perception = self.build_new_perception(
+        #     thermoelectrics=thermoelectric_copy, circuits=circuit_copy
+        # )
 
         y = 0
 
         for func in funcs:
-            y += func(new_perception)
+            y += func(self.perception)
 
         return y
 
@@ -1064,9 +1059,17 @@ class ChiefElectricCompanyAgent(Person):
             circuits[circuit_index].set_days_distribution(days_off)
 
     def meet_demand_intention_func(
-        self, perception: ChiefElectricCompanyAgentPerception
+        self,
+        perception: ChiefElectricCompanyAgentPerception,
+        complete_distribution: list[list[int]],
     ):
-        # TODO: Complete this function
+        energy = 0
+        for block_key, distribution in enumerate(complete_distribution):
+            days_off = []
+            (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
+            for hour, thermoelectric_index in enumerate(distribution):
+         
+
         return
 
     def prioritize_block_importance_intention_func(
@@ -1112,7 +1115,23 @@ class ChiefElectricCompanyAgent(Person):
                 intention_executed.append(intention)
                 intentions_func.append(func)
 
-        final_distribution
+        final_distribution, _ = genetic_algorithm(
+            get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
+            capacities=self.beliefs["generation_per_thermoelectric"],
+            generations=50,
+            pop_size=1,
+            blocks=len(self.mapper_key_to_circuit_block),
+            mutation_rate=0,
+            ft=lambda distribution: self.generic_objective_function(
+                complete_distribution=distribution, funcs=intentions_func
+            ),
+        )
+
+        self.distribute_energy_to_blocks_from_thermoelectrics(
+            final_distribution,
+            thermoelectrics=self.thermoelectrics,
+            circuits=self.circuits,
+        )
 
         return ChiefElectricCompanyAction(
             meet_demand="meet_demand" in intention_executed,
