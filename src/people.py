@@ -811,6 +811,7 @@ class ChiefElectricCompanyAgent(Person):
             "prioritize_block_opinion": False,
             "prioritize_consecutive_days_off": False,
             "prioritize_days_off": False,
+            "max_stored_energy": False,
         }
 
         self.intentions = {
@@ -833,6 +834,9 @@ class ChiefElectricCompanyAgent(Person):
             "prioritize_days_off": Intention(
                 False,
                 description="Intention to prioritize circuits that have had the most days without energy.",
+            ),
+            "max_stored_energy": Intention(
+                False, description="Intention to maximize the stored energy."
             ),
         }
 
@@ -940,6 +944,11 @@ class ChiefElectricCompanyAgent(Person):
         else:
             self.intentions["meet_demand"].value = False
 
+        if self.desires["max_stored_energy"]:
+            self.intentions["max_stored_energy"].value = True
+        else:
+            self.intentions["max_stored_energy"].value = False
+
         if self.desires["prioritize_block_importance"]:
             self.intentions["prioritize_block_importance"].value = True
         else:
@@ -974,10 +983,7 @@ class ChiefElectricCompanyAgent(Person):
         return mapper
 
     def get_cost_to_meet_demand_from_thermoelectric_to_block(
-        self,
-        thermoelectric_index,
-        block_key,
-        hour,
+        self, thermoelectric_index, block_key, hour, return_sum=True
     ):
 
         (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
@@ -995,30 +1001,21 @@ class ChiefElectricCompanyAgent(Person):
             )
 
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
-        return distance_cost + block.demand_per_hour[hour]
+
+        return (
+            distance_cost + block.fake_demand_per_hour[hour]
+            if return_sum
+            else (distance_cost, block.fake_demand_per_hour)
+        )
 
     def generic_objective_function(
         self, complete_distribution: list[list], funcs: callable
     ) -> float:
-        # simulate make the distribution and get the belief to pass to any function
-        # thermoelectric_copy = deepcopy(self.thermoelectrics)  # TODO :REVIEW THIS COPY
-        # circuit_copy = deepcopy(self.circuits)  # TODO: REVIEW THIS COPY
-
-        # self.distribute_energy_to_blocks_from_thermoelectrics(
-        #     complete_distribution=complete_distribution,
-        #     thermoelectrics=thermoelectric_copy,
-        #     circuits=circuit_copy,
-        # )
-        # # TODO:is update needed?
-
-        # new_perception = self.build_new_perception(
-        #     thermoelectrics=thermoelectric_copy, circuits=circuit_copy
-        # )
 
         y = 0
 
         for func in funcs:
-            y += func(self.perception)
+            y += func(self.perception, complete_distribution)
 
         return y
 
@@ -1058,6 +1055,25 @@ class ChiefElectricCompanyAgent(Person):
                     )
             circuits[circuit_index].set_days_distribution(days_off)
 
+    def max_stored_energy_intention_func(
+        self,
+        perception: ChiefElectricCompanyAgentPerception,
+        complete_distribution: list[list[int]],
+    ):
+        energy = 0
+        for block_key, distribution in enumerate(complete_distribution):
+            for hour, thermoelectric_index in enumerate(distribution):
+                if thermoelectric_index != -1:
+                    energy, _ += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                        thermoelectric_index=thermoelectric_index,
+                        block_key=block_key,
+                        hour=hour,
+                        return_sum=False,
+                    )
+                    
+        return self.beliefs['general_offer'] - energy
+
+
     def meet_demand_intention_func(
         self,
         perception: ChiefElectricCompanyAgentPerception,
@@ -1065,16 +1081,24 @@ class ChiefElectricCompanyAgent(Person):
     ):
         energy = 0
         for block_key, distribution in enumerate(complete_distribution):
-            days_off = []
-            (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
             for hour, thermoelectric_index in enumerate(distribution):
-         
+                if thermoelectric_index != -1:
+                    energy, _ += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                        thermoelectric_index=thermoelectric_index,
+                        block_key=block_key,
+                        hour=hour,
+                        return_sum=False,
+                    )
 
-        return
+        return self.beliefs['general_demand'] - energy
+
 
     def prioritize_block_importance_intention_func(
-        self, perception: ChiefElectricCompanyAgentPerception
+        self,
+        perception: ChiefElectricCompanyAgentPerception,
+        complete_distribution: list[list[int]],
     ):
+
         # TODO: Complete this function
         return
 
@@ -1100,6 +1124,7 @@ class ChiefElectricCompanyAgent(Person):
         intention_executed = []
 
         intention_map = {
+            "max_stored_energy": self.max_stored_energy_intention_func,
             "meet_demand": self.meet_demand_intention_func,
             "prioritize_block_importance": self.prioritize_block_importance_intention_func,
             "prioritize_block_opinion": self.prioritize_block_opinion_intention_func,

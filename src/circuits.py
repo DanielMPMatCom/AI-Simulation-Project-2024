@@ -89,7 +89,10 @@ class Block:
         )
         self.history_report: list["BlockReport"] = []
         self.off_hours: list[bool] = [False] * 24
+
         self.demand_per_hour: list[float] = []
+        self.predicted_demand_per_hour: list[float] = []
+
         self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
         self.memory_of_history_report = memory_of_history_report

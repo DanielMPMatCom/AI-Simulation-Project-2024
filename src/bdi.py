@@ -148,6 +148,23 @@ class TARepairPartsDesire(Desire):
 
 
 # region Chief of Electric Company Agent Desires
+class CECAMaxStoredEnergyDesire(Desire):
+    def __init__(self, value) -> None:
+        Desire.__init__(
+            self,
+            value,
+            description="Desire to maximize stored energy",
+            id="max_stored_energy",
+        )
+        self.weight = 5
+
+    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+        if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
+            agent.desires["max_stored_energy"] = True
+        else:
+            agent.desires["max_stored_energy"] = False
+
+
 class CECAMeetDemandDesire(Desire):
     def __init__(self, value) -> None:
         Desire.__init__(
@@ -159,7 +176,10 @@ class CECAMeetDemandDesire(Desire):
         self.weight = 5
 
     def evaluate(self, agent: "ChiefElectricCompanyAgent"):
-        if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
+        if (
+            agent.beliefs["general_demand"].value
+            >= agent.beliefs["general_offer"].value
+        ):
             agent.desires["meet_demand"] = True
         else:
             agent.desires["meet_demand"] = False
