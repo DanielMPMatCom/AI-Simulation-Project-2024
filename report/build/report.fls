@@ -219,6 +219,7 @@ INPUT .\assets\map_example.png
 INPUT .\assets\map_example.png
 INPUT .\assets\map_example.png
 INPUT .\assets\map_example.png
+INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmbxti10.tfm
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\tfm\public\cm\cmtt10.tfm
 INPUT d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.aux
 INPUT d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.out
@@ -231,6 +232,8 @@ INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfont
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmbx12.pfb
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmbx9.pfb
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmbx9.pfb
+INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmbxti10.pfb
+INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmbxti10.pfb
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmcsc10.pfb
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cm\cmcsc10.pfb
 INPUT C:\Users\DanielHP\AppData\Local\Programs\MiKTeX\fonts\type1\public\amsfonts\cmextra\cmex7.pfb

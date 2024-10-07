@@ -252,8 +252,8 @@ sistema como la demanda y la oferta del día anterior.
 También puede conocer un tiempo estimado de rotura de las 
 piezas de la termoeléctrica, lo cual serviría para planificar 
 posibles mantenimientos, su máxima generación posible, su generación actual y
-la pérdida de capacidad de generación ante la rotura de una pieza.
-\subsubsection{Beliefs}
+la pérdida de capacidad de generación ante la rotura de una pieza.\\
+\textbf{Beliefs}
 
 \begin{itemize}
   \item \textbf{plant\_is\_working}: True si la Planta Termoeléctrica del Agente está funcionando, False en caso contrario.
@@ -268,7 +268,7 @@ la pérdida de capacidad de generación ante la rotura de una pieza.
   \item \textbf{all\_desires}: Todos los deseos posibles del Agente.
   \item \textbf{current\_desires}: Los deseos actuales del Agente.
 \end{itemize}
-\subsubsection{Desires}
+\textbf{Desires}
 \begin{itemize}
   
   \item \textbf{maintain\_maximum\_power\_output}: Deseo de mantener la máxima producción de energía. (True o False)
@@ -280,30 +280,182 @@ la pérdida de capacidad de generación ante la rotura de una pieza.
 
 \end{itemize}
 
-\subsubsection{Intentions}
+\textbf{Intentions}
 
 \begin{itemize}
   \item \textbf{increase\_power\_output}: Intención de aumentar la producción de energía
   \item \textbf{operate\_at\_full\_capacity}: Intención de operar a plena capacidad
-  \item \textbf{perform\_maintenance\_on\_parts}: Una lista de tuplas donde el lado izquierdo es la Parte y el lado derecho es Verdadero si la Parte necesita mantenimiento
+  \item \textbf{perform\_maintenance\_on\_parts}: Una lista de tuplas donde el lado izquierdo es la Parte y el lado derecho es True si la Parte necesita mantenimiento y False en caso contrario.
   \item \textbf{reduce\_downtime}: Intención de reducir el tiempo de inactividad
   \item \textbf{prioritize\_repair\_of\_critical\_parts}: Intención de priorizar la reparación de partes críticas
-  \item \textbf{repair\_parts}: Una lista de tuplas donde el lado izquierdo es una Parte y el lado derecho es Verdadero si hay intención de reparar la parte y Falso en caso contrario
+  \item \textbf{repair\_parts}: Una lista de tuplas donde el lado izquierdo es una Parte y el lado derecho es True si hay intención de reparar la parte y False en caso contrario
 
 \end{itemize}
 
 \subsection{Jefe de la Empresa Eléctrica}
 
-\subsubsection{Beliefs}
+Su percepción está  dada por una lista de todas las termoeléctricas, todos los circuitos, la matriz de las dictancias entre objetos del mapa, la demanda po bloque, la generación por termoeléctrica, el coeficiente de importancia, industralización y estado de opinión por circuito, un registro de los cortes de electricidad que han ocurrido y los datos generales del sistema como el déficit. \\
 
-\subsubsection{Desires}
-\subsubsection{Intentions}
+\textbf{Beliefs}
 
+\begin{itemize}
+    \item thermoelectrics\_id: El identificador único de cada termoeléctrica.
+            \item circuits\_id: El identificador único de cada circuito.
+            \item generation\_per\_thermoelectric: La electricidad generda por cada termoeléctrica.
+            \item distance\_matrix: El costo de transmitir energía de cada termoelétrica a cada circuito.
+            \item demand\_per\_block\_in\_circuits: La demanda por hora de cada bloque en cada circuito.
+            \item total\_demand\_per\_circuits: La demanda total por hora por cada circuito.
+            \item general\_demand: La demanda general del sistema.
+            \item general\_offer: La generación total del sistemma.
+            \item general\_deficit: El déficit total del sistema.
+            \item circuits\_importance: El coeficiente de importanccia de cada circuito.
+            \item importance\_per\_block\_in\_circuits: El coeficiente de importancia de cada bloquee.
+            \item opinion\_per\_block\_in\_circuits: El estado de opinión de los ciudadanos de cada bloque.
+            \item opinion\_per\_circuit: El estado de opinión de los ciudadanos de cada bloque.
+            \item industrialization\_per\_circuit: El coeficiente de industrialización de cada circuito.
+            \item last\_days\_off\_per\_block\_in\_circuits: El número de días con corte de electricidad por cada bloque.
+            \item longest\_sequence\_off\_per\_block\_in\_circuits: El número de días consecutivos con cortes de electricidad por cada bloque.
+            \item working\_thermoelectrics\_amount: El número de termoeléctricas que se encuentran funcionando.
+            \item thermoelectric\_state: El estado operacional de cada termoeléctrica.
+            \item general\_opinion:  El estado de opinió general de los ciudadanos del sistema.
+            \item all\_desires: El conjunto de todos los posibles deseos.
+            \item current\_desires: El conjunto de deseos actualmente activos.
+\end{itemize}
+
+\textbf{Desires}
+
+\begin{itemize}
+  \item \textbf{meet\_demand}: Satisfacer la demanda en situaciones de déficit de generación
+  \item \textbf{prioritize\_block\_importance}: Priorizar el abastecimiento a los bloques más importantes
+  \item \textbf{prioritize\_block\_opinion}: Priorizar el abastecimiento a los bloques con peor opinión ciudadana
+  \item \textbf{prioritize\_consecutive\_days\_off}: Priorizar el abastecimiento a los bloques con más días consecutivos sin energía
+  \item \textbf{prioritize\_days\_off}: Priorizar el abastecimiento a los bloques que han tenido más cortes de electricidad
+\end{itemize}
+\textbf{Intentions}
+
+\begin{itemize}
+  \item \textbf{meet\_demand}: Intención de satisfacer la demanda incrementando la capacidad actual.
+  \item \textbf{prioritize\_block\_importance}: Intención de priorizar bloques con mayor importancia.
+  \item \textbf{prioritize\_block\_opinion}: Intención de priorizar bloques basándose en las opiniones de sus ciudadanos.
+  \item \textbf{prioritize\_consecutive\_days\_off}: Intención de priorizar los bloques con más días consecutivos con cortes de electricidad.
+  \item \textbf{prioritize\_days\_off}: Intención de priorizar los bloques con más días con cortes de electricidad.
+\end{itemize}
+
+Este agente tiene la peculiaridad de poseer dinamismo en cuanto a la elección de sus opciones
+para generar los \textit{desires}. Ello se logra mediante la comunicación con un \textbf{LLM}, al que se le proporciona una instrucción inicial con una lista de los
+posibles \textit{desires} y ciertas condiciones y su tarea es proporcionar la lista de condiciones seleccionadas y la lista de \textit{desires} que considera que deberían ser activados
+bajo esas condiciones. De esta forma se logra generar desires de una forma más dinámica y flexible. En próximas secciones se abordará más sobre el \textbf{LLM}.
 \section{Algoritmo Genético}
+
+Para que el agente \textbf{Jefe de la Empresa Eléctrica} sea capaz de resolver el problema de búsqueda de decidir una buena planificación
+de la dstribución de electricidad se decidió implemnetar un \textbf{Algoritmo Genético}. Para ellos se siguieron los siguientes pasos:
+\textbf{inicialización}, \textbf{evaluación}, \textbf{selección}, 
+\textbf{cruce (\textit{crossover})}, \textbf{mutación}, y \textbf{repetición a través de 
+generaciones}.\\
+
+\textbf{Inicialización}
+
+El algoritmo empieza creando una población 
+inicial de soluciones aleatorias (cromosomas), cada una de 
+ellas representando una posible asignación de termoeléctricas a bloques. 
+El tamaño de la población es definido por el parámetro \textbf{pop\_size}. 
+En nuestra población cada cromosoma es una matriz (lista de listas), donde cada fila 
+representa el estado de asignación de termoeléctricas a bloques 
+en un momento del día (24 horas en total). \\
+
+\textbf{Evaluación}
+
+Cada cromosoma es evaluado usando una función de aptitud (\textit{fitness function}), 
+que mide cuán buena es la asignación, teniendo en 
+cuenta las intenciones del \textbf{Jefe de la Empresa Eléctrica}. \\
+(Describir como se comporta la funcion de fitness). \\
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+\textbf{Selección}
+
+Después de evaluar a la población, se seleccionan los mejores 
+cromosomas (las soluciones más aptas) para servir de modelos de 
+la siguiente generación. \\
+
+\textbf{Cruce}
+
+Se combina la información genética de 
+los cromosomas seleccionados (padres) para crear nuevos 
+cromosomas (hijos). Este paso introduce diversidad en la 
+población y permite que las características de ambos padres se 
+transmitan a los hijos. La selección de las parejas a combinar 
+se realiza de forma aleatoria. \\
+
+\textbf{Mutación}
+
+Después del cruce, se introduce 
+una probabilidad de mutación en los cromosomas para mantener la 
+diversidad genética y evitar la convergencia prematura. 
+Un cromosoma puede experimentar una pequeña alteración 
+(como reasignar una termoeléctrica a un bloque diferente). 
+La tasa de mutación controla la frecuencia con 
+la que ocurre este proceso. \\
+
+
+\textbf{Repetición a través de generaciones}
+
+El algoritmo continúa repitiendo 
+los pasos de evaluación, selección, cruce y mutación por un 
+número definido de generaciones. En cada generación se crea 
+una nueva población que reemplaza a la anterior, con la 
+esperanza de que las soluciones mejoren con el tiempo. El 
+algoritmo compara los cromosomas generados con el mejor 
+cromosoma encontrado hasta el momento y lo actualiza si 
+encuentra uno con mejor aptitud. Al finalizar el número de 
+generaciones, el algoritmo devuelve el mejor cromosoma 
+encontrado y su valor de aptitud
 
 \section{Lógica Difusa}
 
+Para evaluar el nivel de satisfacción personal de los ciudadanos de un bloque y con ello generar el estado de opinión,
+se utiliza un sistema de \textbf{Lógica Difusa}. Este se encarga de procesar entradas 
+imprecisas o subjetivas y generar una salida que representa 
+la satisfacción personal. Los factores que influyen en la 
+satisfacción personal del ciudadano son los siguientes: 
+\begin{itemize}
+  \item \textbf{last\_day\_off}: Representa el tiempo transcurrido desde el último día sin electricidad.
+  \item \textbf{days\_off\_relation}: Relación entre los días con y sin servicio eléctrico.
+  \item \textbf{industrialization}: Refleja el nivel de industrialización del circuito en el que viven los ciudadanos, lo que influye en la necesidad de la energía eléctrica en la prestación de servicios.
+  \item \textbf{general\_satisfaction}: Representa la satisfacción general, lo que puede afectar la satisfacción personal.
+\end{itemize}
+
+Estas variables se definen de forma difusa en categorías como: reciente, moderado, 
+distante, bajísimo, más bajo, bajo, medio y alto. Luego se 
+establecen las reglas difusas que determinan cómo la combinación 
+de factores de la entrada afectan la satisfacción personal. 
+Por ejemplo una regla podría ser que si el último día de 
+descanso fue reciente, los días sin servicio son altos, la 
+industrialización es baja y la satisfacción general es la más 
+baja, entonces la satisfacción personal será baja. Después de 
+definir las reglas, se crea un sistema de control difuso que se 
+utiliza para realizar simulaciones. Se proporcionan los valores 
+de entrada al sistema de simulación, que representan las 
+percepciones actuales del ciudadano. Después de proporcionar 
+las entradas y aplicar las reglas, el sistema calcula el nivel 
+de satisfacción personal. La el atributo \textbf{opinion} de la clase \textbf{Citizen} 
+almacena el resultado final, que representa el nivel de satisfacción 
+personal del ciudadano basado en las percepciones difusas y 
+las reglas.
+
 \section{Modelo Extenso de Lenguaje}
+
+Para agregar dinamismo al comportamiento del agente \textbf{Jefe de la Empresa Eléctrica}
+se decidió utilizar un \textbf{Modelo Extenso de Lenguaje} (LLM). Ello se logra proporcionando 
+una instrucción al sistema con las especificaciones de lo que se quiere obtener, aclarando 
+el formato de la entrada y de la salida. En dicha instrucción se refleja el conjunto total de deseos
+del agente, para que al ser proporcionada una lista de condiciones basadas en las percepciones, el modelo decida 
+qué deseos deberían ser activados por algún subconjunto de dichas condiciones y de esa forma se genere una nueva regla.
+Las consultas al modelo se realizarán en algunos momentos de la simulación.
+
+Se utilizó la API de \textbf{Gemini} de Google, específicamente el modelo \textbf{gemini-1.5-flash}.
 
 \section{Ejecución de la Simulación}
 
