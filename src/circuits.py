@@ -36,6 +36,7 @@ class Circuit:
     def update(self):
         for block in self.blocks:
             block.update()
+        self.set_circuit_satisfaction()
 
     def create_blocks(self):
         blocks = []

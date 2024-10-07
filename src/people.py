@@ -1014,13 +1014,16 @@ class ChiefElectricCompanyAgent(Person):
             thermoelectrics=thermoelectric_copy,
             circuits=circuit_copy,
         )
+        # TODO:is update needed?
 
-        new_perception = self.build_new_perception(thermoelectrics=thermoelectric_copy, circuits=circuit_copy)
+        new_perception = self.build_new_perception(
+            thermoelectrics=thermoelectric_copy, circuits=circuit_copy
+        )
 
         y = 0
 
         for func in funcs:
-            y+= func(new_perception)
+            y += func(new_perception)
 
         return y
 
@@ -1060,55 +1063,64 @@ class ChiefElectricCompanyAgent(Person):
                     )
             circuits[circuit_index].set_days_distribution(days_off)
 
-    def execute(self) -> list["ChiefElectricCompanyAction"]:
-        intention_executed = ""
+    def meet_demand_intention_func(
+        self, perception: ChiefElectricCompanyAgentPerception
+    ):
+        # TODO: Complete this function
+        return
 
-        if self.intentions["meet_demand"].value:
-            self.intentions["meet_demand"].value = False
-            intention_executed = "meet_demand"
-            fx = self.meet_demand_function
-            f_cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block
+    def prioritize_block_importance_intention_func(
+        self, perception: ChiefElectricCompanyAgentPerception
+    ):
+        # TODO: Complete this function
+        return
 
-            final_distribution, _ = genetic_algorithm(
-                get_cost_thermoelectric_to_block=f_cost,
-                capacities=self.beliefs["generation_per_thermoelectric"],
-                generations=100,
-                pop_size=10,
-                circuits=len(self.mapper_key_to_circuit_block.items()),
-                mutation_rate=0,
-                ft=fx,
-            )
+    def prioritize_block_opinion_intention_func(
+        self, perception: ChiefElectricCompanyAgentPerception
+    ):
+        # TODO: Complete this function
+        return
 
-            self.distribute_energy_to_blocks_from_thermoelectrics(final_distribution)
+    def prioritize_consecutive_days_off_intention_func(
+        self, perception: ChiefElectricCompanyAgentPerception
+    ):
+        # TODO: Complete this function
+        return
 
-        elif self.intentions["prioritize_block_importance"].value:
-            self.intentions["prioritize_block_importance"].value = False
-            intention_executed = "prioritize_block_importance"
+    def prioritize_days_off_intention_func(
+        self, perception: ChiefElectricCompanyAgentPerception
+    ):
+        # TODO: Complete this function
+        return
 
-        elif self.intentions["prioritize_block_opinion"].value:
-            self.intentions["prioritize_block_opinion"].value = False
-            intention_executed = "prioritize_block_opinion"
+    def execute(self) -> "ChiefElectricCompanyAction":
+        intention_executed = []
 
-        elif self.intentions["prioritize_consecutive_days_off"].value:
-            self.intentions["prioritize_consecutive_days_off"].value = False
-            intention_executed = "prioritize_consecutive_days_off"
+        intention_map = {
+            "meet_demand": self.meet_demand_intention_func,
+            "prioritize_block_importance": self.prioritize_block_importance_intention_func,
+            "prioritize_block_opinion": self.prioritize_block_opinion_intention_func,
+            "prioritize_consecutive_days_off": self.prioritize_consecutive_days_off_intention_func,
+            "prioritize_days_off": self.prioritize_days_off_intention_func,
+        }
 
-        elif self.intentions["prioritize_days_off"].value:
-            self.intentions["prioritize_days_off"].value = False
-            intention_executed = "prioritize_days_off"
+        intentions_func = []
 
-        return [
-            ChiefElectricCompanyAction(
-                meet_demand="meet_demand" in intention_executed,
-                prioritize_block_importance="prioritize_block_importance"
-                in intention_executed,
-                prioritize_consecutive_days_off="prioritize_consecutive_days_off"
-                in intention_executed,
-                prioritize_days_off="prioritize_days_off" in intention_executed,
-                prioritize_block_opinion="prioritize_block_opinion"
-                in intention_executed,
-            )
-        ]
+        for intention, func in intention_map.items():
+            if self.intentions[intention].value:
+                self.intentions[intention].value = False
+                intention_executed.append(intention)
+                intentions_func.append(func)
+
+        return ChiefElectricCompanyAction(
+            meet_demand="meet_demand" in intention_executed,
+            prioritize_block_importance="prioritize_block_importance"
+            in intention_executed,
+            prioritize_consecutive_days_off="prioritize_consecutive_days_off"
+            in intention_executed,
+            prioritize_days_off="prioritize_days_off" in intention_executed,
+            prioritize_block_opinion="prioritize_block_opinion" in intention_executed,
+        )
 
     def action(
         self, perception: "ChiefElectricCompanyAgentPerception"
