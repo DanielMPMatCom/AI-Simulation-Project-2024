@@ -54,22 +54,22 @@ class DailyElectricityConsumptionBimodal:
         
         return consumption
 
-# Instantiate the class with more abrupt peaks and added variability in the base consumption
-bimodal_consumption = DailyElectricityConsumptionBimodal(
-    base_consumption=100, base_variability=5, mean_morning=7, std_morning=1, 
-    mean_evening=19, std_evening=1, weight_morning=20, weight_evening=40
-)
+# # Instantiate the class with more abrupt peaks and added variability in the base consumption
+# bimodal_consumption = DailyElectricityConsumptionBimodal(
+#     base_consumption=100, base_variability=5, mean_morning=7, std_morning=1, 
+#     mean_evening=19, std_evening=1, weight_morning=20, weight_evening=40
+# )
 
-# Generate consumption data for 24 hours
-consumption_bimodal = bimodal_consumption.generate()
+# # Generate consumption data for 24 hours
+# consumption_bimodal = bimodal_consumption.generate()
 
-# Plotting the consumption by hour
-hours = np.arange(24)
-plt.figure(figsize=(10, 6))
-plt.plot(hours, consumption_bimodal, marker='o', linestyle='-', color='b')
-plt.title('Bimodal Hourly Electricity Consumption with Morning and Evening Peaks (Abrupt)')
-plt.xlabel('Hour of the Day')
-plt.ylabel('Electricity Consumption (kWh)')
-plt.grid(True)
-plt.xticks(hours)
-plt.show()
+# # Plotting the consumption by hour
+# hours = np.arange(24)
+# plt.figure(figsize=(10, 6))
+# plt.plot(hours, consumption_bimodal, marker='o', linestyle='-', color='b')
+# plt.title('Bimodal Hourly Electricity Consumption with Morning and Evening Peaks (Abrupt)')
+# plt.xlabel('Hour of the Day')
+# plt.ylabel('Electricity Consumption (kWh)')
+# plt.grid(True)
+# plt.xticks(hours)
+# plt.show()

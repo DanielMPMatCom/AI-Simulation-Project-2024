@@ -1,6 +1,4 @@
-from src.part import *
-from src.people import *
-from src.circuits import *
+from src.part import Coils, Boiler, SteamTurbine, Generator, Part
 
 
 class Thermoelectric:
@@ -9,7 +7,7 @@ class Thermoelectric:
     and provides the electricity generation functionality.
     """
 
-    def __init__(self, id, parts: list[Part], total_capacity: int) -> None:
+    def __init__(self, id, parts: list["Part"], total_capacity: int) -> None:
         self.id = id
         self.parts = parts
         self.total_capacity = total_capacity
@@ -34,7 +32,7 @@ class Thermoelectric:
 
         return broken_boilers
 
-    def is_default_critical_part(self, part: Part) -> bool:
+    def is_default_critical_part(self, part: "Part") -> bool:
         return isinstance(part, (Coils, SteamTurbine, Generator))
 
     def is_working(self) -> bool:
@@ -89,13 +87,13 @@ class Thermoelectric:
             1 for part in self.parts if isinstance(part, Boiler) and part.is_working()
         )
 
-    def get_working_parts(self) -> list[Part]:
+    def get_working_parts(self) -> list["Part"]:
         """
         Returns a list of working parts in the thermoelectric.
         """
         return [part for part in self.parts if part.is_working()]
 
-    def get_broken_parts(self) -> list[Part]:
+    def get_broken_parts(self) -> list["Part"]:
         """
         Returns a list of broken parts in the thermoelectric.
         """
@@ -115,7 +113,7 @@ class Thermoelectric:
             for part in self.parts
         ]
 
-    def get_output_reduction_on_part_failure(self, part: Part):
+    def get_output_reduction_on_part_failure(self, part: "Part"):
         """
         Calculate the reduction in output capacity when a specific part fails.
         Parameters:

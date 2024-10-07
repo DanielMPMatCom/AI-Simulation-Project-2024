@@ -244,7 +244,7 @@ def fx(x):
     y = 0
     for i, t in enumerate(x):
         y += get_cost_thermoelectric_to_block(t, i)
-    return (A[t] - y)
+    return A[t] - y
 
 
 print(genetic_algorithm(get_cost_thermoelectric_to_block, A, 100, 10, 3, 0, ft=fx))

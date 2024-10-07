@@ -1,6 +1,6 @@
-from thermoelectrics import ThermoelectricAgent, ChiefElectricCompanyAgent
-from part import Part, Coils, SteamTurbine, Generator, Boiler
 from generative_ai import GenAIModel
+from src.people import ThermoelectricAgent, ChiefElectricCompanyAgent
+from part import Coils, SteamTurbine, Generator, Boiler
 
 
 class Belief:
@@ -35,7 +35,7 @@ class TAMaxPowerOutputDesire(Desire):
         )
         self.weight = 1
 
-    def evaluate(self, agent: ThermoelectricAgent):
+    def evaluate(self, agent: "ThermoelectricAgent"):
         if (
             agent.beliefs["general_deficit"].value > 0
             and agent.beliefs["current_capacity"] < agent.beliefs["max_capacity"]
@@ -54,7 +54,7 @@ class TAPreventUnexpectedBreakdownDesire(Desire):
         )
         self.weight = 2
 
-    def evaluate(self, agent: ThermoelectricAgent):
+    def evaluate(self, agent: "ThermoelectricAgent"):
         if any(
             [(time <= 1) for _, _, time in agent.beliefs["parts_status"].value]
         ) and all(
@@ -78,7 +78,7 @@ class TAMinimizeDowntimeDesire(Desire):
         Desire.__init__(value, "Desire to minimize downtime", "minimize_downtime")
         self.weight = 3
 
-    def evaluate(self, agent: ThermoelectricAgent):
+    def evaluate(self, agent: "ThermoelectricAgent"):
         if (
             agent.beliefs["plant_is_working"].value == False
             and agent.beliefs["general_deficit"].value > 0
@@ -93,7 +93,7 @@ class TAMeetEnergyDemandDesire(Desire):
         Desire.__init__(value, "Desire to meet energy demand", "meet_energy_demand")
         self.weight = 4
 
-    def evaluate(self, agent: ThermoelectricAgent):
+    def evaluate(self, agent: "ThermoelectricAgent"):
         if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
             agent.desires["meet_energy_demand"] = True
         else:
@@ -109,7 +109,7 @@ class TAPrioritizeCriticalPartsRepairDesire(Desire):
         )
         self.weight = 5
 
-    def evaluate(self, agent: ThermoelectricAgent):
+    def evaluate(self, agent: "ThermoelectricAgent"):
 
         broken_boilers = sum(
             1
@@ -140,7 +140,7 @@ class TARepairPartsDesire(Desire):
         )
         self.weight = 6
 
-    def evaluate(self, agent: ThermoelectricAgent):
+    def evaluate(self, agent: "ThermoelectricAgent"):
         agent.desires["repair_parts"] = [
             (part, part in agent.beliefs["broken_parts"].value)
             for part in agent.thermoelectric.parts
@@ -158,7 +158,7 @@ class CECAMeetDemandDesire(Desire):
         )
         self.weight = 5
 
-    def evaluate(self, agent: ChiefElectricCompanyAgent):
+    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
         if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
             agent.desires["meet_demand"] = True
         else:
@@ -175,7 +175,7 @@ class CECAPrioritizeBlockImportance(Desire):
         )
         self.weight = 2
 
-    def evaluate(self, agent: ChiefElectricCompanyAgent):
+    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
         if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
             agent.desires["prioritize_block_importance"] = True
         else:
@@ -192,7 +192,7 @@ class CECAPrioritizeBlockOpinion(Desire):
         )
         self.weight = 2
 
-    def evaluate(self, agent: ChiefElectricCompanyAgent):
+    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
         bad_opinions = [
             opinion < 0.5
             for (_, _, opinion) in agent.beliefs["opinion_per_block_in_circuits"].value
@@ -219,7 +219,7 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
         )
         self.weight = 1
 
-    def evaluate(self, agent: ChiefElectricCompanyAgent):
+    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
         sequences = agent.beliefs["longest_sequence_off_per_block_in_circuits"].value
         affected_blocks = [days > 3 for days in sequences]
 
@@ -243,7 +243,7 @@ class CECAPrioritizeDaysOff(Desire):
         )
         self.weight = 1
 
-    def evaluate(self, agent: ChiefElectricCompanyAgent):
+    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
         days_off = agent.beliefs["days_off_per_block_in_circuits"].value
         affected_blocks = [days > 7 for days in days_off]
 

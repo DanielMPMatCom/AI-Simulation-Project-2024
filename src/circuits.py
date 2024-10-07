@@ -1,7 +1,6 @@
+from src.citizen import Citizen
+from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from itertools import groupby
-from src.people import Citizen
-from src.worldstate import WorldState
-from utils.gaussianmixture import DailyElectricityConsumptionBimodal
 import random
 
 
@@ -25,7 +24,7 @@ class Circuit:
         self.blocks_range = blocks_range
         self.citizens_range = citizens_range
 
-        self.blocks: list[Block] = self.create_blocks()
+        self.blocks: list["Block"] = self.create_blocks()
         self.circuit_satisfaction = self.set_circuit_satisfaction()
 
         # General Data
@@ -53,7 +52,9 @@ class Circuit:
         total_people: float = 0
         total_satisfaction: float = 0
         for block in self.blocks:
-            total_satisfaction += block.citizens.amount + block.get_block_opinion()
+            total_satisfaction += (
+                block.citizens.amount * block.get_block_opinion()
+            )  # TODO: Review this sum, changed: mean
             total_people += block.citizens.amount
         return total_satisfaction / total_people
 
@@ -77,22 +78,22 @@ class Block:
 
     def __init__(
         self,
-        gaussian_mixture: DailyElectricityConsumptionBimodal,
+        gaussian_mixture: "DailyElectricityConsumptionBimodal",
         citizens_range,
         industrialization,
         memory_of_history_report,
     ) -> None:
-        self.citizens: Citizen = Citizen(
+        self.citizens: "Citizen" = Citizen(
             self, random.randint(citizens_range[0], citizens_range[1])
         )
-        self.history_report: list[BlockReport] = []
+        self.history_report: list["BlockReport"] = []
         self.off_hours: list[bool] = [False] * 24
         self.demand_per_hour: list[float] = []
         self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
         self.memory_of_history_report = memory_of_history_report
 
-    def update(self, world_state: WorldState):
+    def update(self, general_satisfaction: float):
 
         self.demand_per_hour = self.gaussian_mixture.generate()
 
@@ -117,7 +118,7 @@ class Block:
             last_day_off = 0
 
         self.citizens.set_opinion(
-            input_general_satisfaction=world_state.general_satisfaction,
+            input_general_satisfaction=general_satisfaction,
             input_industrialization=self.industrialization,
             input_days_off_relation=days_off / days_amount,
             input_last_day_off=last_day_off,

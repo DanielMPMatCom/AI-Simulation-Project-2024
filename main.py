@@ -1,8 +1,8 @@
 from src.map import Map2D, GraphMap
+from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from src.circuits import Circuit, Block
 from src.thermoelectrics import Thermoelectric
-from src.worldstate import WorldState
-from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
+# from src.worldstate import WorldState
 from numpy.random import default_rng
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -179,4 +179,29 @@ def get_block_importance(block: Block) -> float:
     ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
 
 
-worldstate = WorldState(ci, ti)
+def distance_template_to_distance_matrix(
+    template: list[tuple[str, str, float, list[str]]],
+    thermoelectrics: list[Thermoelectric],
+    circuits: list[Circuit],
+):
+    matrix = [[] * len(thermoelectrics)] * len(circuits)
+
+    c_map = {}
+    t_map = {}
+
+    for i, t in enumerate(thermoelectrics):
+        t_map[t.id] = i
+
+    for i, c in enumerate(circuits):
+        c_map[c.id] = i
+
+    for t, c, cost, _ in template:
+        matrix[t_map[t]][c_map[c]] = cost
+
+    return matrix
+
+
+print(distance_cost_template(distance_cost_template, ti, ci))
+
+
+# worldstate = WorldState(ci, ti)
