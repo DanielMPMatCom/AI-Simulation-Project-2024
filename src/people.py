@@ -18,8 +18,7 @@ from src.bdi import (
     TARepairPartsDesire,
 )
 from circuits import Circuit, Block
-import numpy as np
-
+from part import Part
 from genetic import genetic_algorithm
 
 
@@ -461,7 +460,7 @@ class ThermoelectricAgent(Person):
                 (part, False) for part in self.thermoelectric.parts
             ]
 
-            part: Part = perform_maintenance_on_parts[0][0]
+            part: "Part" = perform_maintenance_on_parts[0][0]
             part.repair()
 
             return ThermoelectricAgentAction(
@@ -973,7 +972,8 @@ class ChiefElectricCompanyAgent(Person):
         return mapper
 
     def get_cost_to_meet_demand_from_thermoelectric_to_block(
-        self, thermoelectric_index, block_key, hour
+        self, thermoelectric_index, block_key, hour, intentions_params, intentions_funcs
+
     ):
 
         (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
@@ -1004,10 +1004,10 @@ class ChiefElectricCompanyAgent(Person):
                     hour=hour,
                 )
 
-        return self.beliefs["general_offer"] - cost
+        return -(self.beliefs["general_offer"] - cost)
 
     def prioritize_block_importance_function(
-        self, complete_distribution: list[list]
+        self, complete_distribution: list[list],
     ) -> float:
         # TODO : IMPLEMENT THIS FUNCTION
         return
@@ -1066,7 +1066,9 @@ class ChiefElectricCompanyAgent(Person):
                 ft=fx,
             )
 
-            self.distribute_energy_to_blocks_from_thermoelectrics
+            self.distribute_energy_to_blocks_from_thermoelectrics(
+                final_distribution
+            )
 
         elif self.intentions["prioritize_block_importance"].value:
             self.intentions["prioritize_block_importance"].value = False
