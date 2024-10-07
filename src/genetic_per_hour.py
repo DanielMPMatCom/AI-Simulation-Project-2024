@@ -17,11 +17,14 @@ def assign_thermoelectric_to_block(
     assigned_thermoelectric = (
         random.choice(valid_thermoelectrics) if valid_thermoelectrics else -1
     )
+    print(f"{time}, {block}: {assigned_thermoelectric}")
     chromosome[time][block] = assigned_thermoelectric
-    
+
     capacities[assigned_thermoelectric] -= get_cost_thermoelectric_to_block(
         assigned_thermoelectric, block, time
     )
+
+    return
 
 
 def is_invalid(
@@ -140,16 +143,24 @@ def generate_population(
         waiting = [(i, j) for i in range(blocks) for j in range(24)]
         random.shuffle(waiting)
 
-        for circuit, time in waiting:
+
+        for block, time in waiting:
             assign_thermoelectric_to_block(
-                circuit,
+                block,
                 time,
                 chromosome,
                 remaining_capacities,
                 get_cost_thermoelectric_to_block,
             )
 
+        print("*+"*50)
+        for day_statistics in chromosome:
+            print(day_statistics)
+        print("*+"*50)
+
         population.append(chromosome)
+        
+    
     return population
 
 
@@ -247,15 +258,25 @@ def genetic_algorithm(
     )
 
     best_chromosome = None
-    best_fitness = float("inf")
+    best_fitness = 0
 
-    for _ in range(generations):
+    for i in range(pop_size):
+        print("*-"*50)
+        print(f"CITIZEN {i}")
+        for day_statistics in population[i]:
+            print(day_statistics)
+        print("*-"*50)
+    
+
+    for g in range(generations):
         fitness_scores = [(chromosome, ft(chromosome)) for chromosome in population]
 
         for chromosome, score in fitness_scores:
-            if score < best_fitness:
+            if score > best_fitness:
                 best_fitness = score
                 best_chromosome = [row[:] for row in chromosome]
+
+                print(score)
 
         selection = select_chromosomes(fitness_scores, pop_size)
 
@@ -283,22 +304,23 @@ def cost(thermoelectric, block, time):
 def ft(chromosome):
     result = 1
     for day_state in chromosome:
-        day = 0
         
-        for ci, ti in enumerate(day_state):
-            day += abs(ti - ci) + 1
+        for ti in day_state:
+            if ti == -1:
+                continue
+
+            result += 1
         
-        result += day
     return result
 
 capacities = [24, 24, 24, 24]
-generations = 10
-pop_size = 20
-blocks = 20
-mutation_rate = 0.05
+generations = 5
+pop_size = 1
+blocks = 4
+mutation_rate = 0
 
 chromosome, fitness = genetic_algorithm(cost, capacities, generations, pop_size, blocks, mutation_rate, ft)
 
-for t in range(len(chromosome)-1):
-    print(f"{t} {chromosome[t]}")
+# for t in range(len(chromosome)-1):
+#     print(f"{t} {chromosome[t]}")
         
