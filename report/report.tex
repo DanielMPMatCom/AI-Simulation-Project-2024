@@ -143,7 +143,7 @@ una rotura de cada una de ellas en el rendimiento de la termoeléctrica. Se asum
  En cuanto a las demás partes, cada planta posee una sola de cada una de ellas y su rotura implica la salida de circulación
  de la termoeléctrica del sistema eléctrico. Cada termoeléctrica tendrá una generación máxima, una ubicación en el mapa,
  una planilla del costo de suministrar energía a cada circuito, una energía almacenada y un \textbf{Agente} planificador de
- mantenimientos y reparaciones a sus partes.\\
+ mantenimientos y reparaciones a sus partes. Además constan de la capacidad de almacenar la energía sobrante de la distribución, la cual pueden poner en circulación en la distribución de un próximo día.\\
  Los \textbf{Circuitos} fueron modelados como un conjunto de \textbf{Bloques}, un consumo eléctrico por hora, 
  un nivel de industrialización y una cantidad de ciudadanos. Cada uno tiene una ubicación en el mapa inicial y está conectado 
  a la línea principal de la red eléctrica. Cada bloque consta de una demanda energética, un registro de los horarios de corte 
@@ -330,6 +330,7 @@ Su percepción está  dada por una lista de todas las termoeléctricas, todos lo
   \item \textbf{prioritize\_block\_opinion}: Priorizar el abastecimiento a los bloques con peor opinión ciudadana
   \item \textbf{prioritize\_consecutive\_days\_off}: Priorizar el abastecimiento a los bloques con más días consecutivos sin energía
   \item \textbf{prioritize\_days\_off}: Priorizar el abastecimiento a los bloques que han tenido más cortes de electricidad
+  \item \textbf{max\_stored\_energy}: Maximizar la energía almacenada en caso de estar sobrecubierta la demanda
 \end{itemize}
 \textbf{Intentions}
 
@@ -339,12 +340,15 @@ Su percepción está  dada por una lista de todas las termoeléctricas, todos lo
   \item \textbf{prioritize\_block\_opinion}: Intención de priorizar bloques basándose en las opiniones de sus ciudadanos.
   \item \textbf{prioritize\_consecutive\_days\_off}: Intención de priorizar los bloques con más días consecutivos con cortes de electricidad.
   \item \textbf{prioritize\_days\_off}: Intención de priorizar los bloques con más días con cortes de electricidad.
+  \item \textbf{max\_stored\_energy}:  Intención de maximizar la energía almacenada en el sistema.
 \end{itemize}
 
 Este agente tiene la peculiaridad de poseer dinamismo en cuanto a la elección de sus opciones
 para generar los \textit{desires}. Ello se logra mediante la comunicación con un \textbf{LLM}, al que se le proporciona una instrucción inicial con una lista de los
 posibles \textit{desires} y ciertas condiciones y su tarea es proporcionar la lista de condiciones seleccionadas y la lista de \textit{desires} que considera que deberían ser activados
 bajo esas condiciones. De esta forma se logra generar desires de una forma más dinámica y flexible. En próximas secciones se abordará más sobre el \textbf{LLM}.
+
+
 \section{Algoritmo Genético}
 
 Para que el agente \textbf{Jefe de la Empresa Eléctrica} sea capaz de resolver el problema de búsqueda de decidir una buena planificación
@@ -360,19 +364,17 @@ inicial de soluciones aleatorias (cromosomas), cada una de
 ellas representando una posible asignación de termoeléctricas a bloques. 
 El tamaño de la población es definido por el parámetro \textbf{pop\_size}. 
 En nuestra población cada cromosoma es una matriz (lista de listas), donde cada fila 
-representa el estado de asignación de termoeléctricas a bloques 
-en un momento del día (24 horas en total). \\
+representa un bloque, cada columna el momento del día (24 horas en total) y la casilla significa la termoeléctrica que provee energía al bloque de la fila en la hora de la columna. \\
 
 \textbf{Evaluación}
 
 Cada cromosoma es evaluado usando una función de aptitud (\textit{fitness function}), 
 que mide cuán buena es la asignación, teniendo en 
 cuenta las intenciones del \textbf{Jefe de la Empresa Eléctrica}. \\
-(Describir como se comporta la funcion de fitness). \\
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+Esta función no es más que la suma ponderada de los coeficientes que se calculan para cuantificar 
+la calidad de la asignación de termoeléctricas a bloques atendiendo a los criterios de las intenciones del agente. La ponderación se utiliza para 
+establecer una prioridadd del criterio de la intención que se va a ejecutar por encima de los demás criterios.\\
 
 \textbf{Selección}
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.10.4)  7 OCT 2024 17:36
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.10.4)  7 OCT 2024 19:46
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -553,9 +553,6 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 
 ]
-Underfull \vbox (badness 5548) has occurred while \output is active []
-
-
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 187--188
@@ -610,13 +607,13 @@ Underfull \hbox (badness 1755) in paragraph at lines 264--265
  []
 
 
+
+[3 <./assets/map_example.png>]
 Underfull \hbox (badness 1701) in paragraph at lines 265--266
 []\OT1/cmr/bx/n/10 general[]deficit\OT1/cmr/m/n/10 : El d^^Seficit gen-eral del Sis-tema
  []
 
 
-
-[3 <./assets/map_example.png>]
 Underfull \hbox (badness 3849) in paragraph at lines 267--268
 []\OT1/cmr/bx/n/10 general[]offer\OT1/cmr/m/n/10 : La oferta gen-eral del Sis-tema
  []
@@ -646,93 +643,85 @@ Underfull \hbox (badness 10000) in paragraph at lines 331--332
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 350--355
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 358--365
+Underfull \hbox (badness 10000) in paragraph at lines 354--359
 
  []
 
 
 
 
-Overfull \hbox (23.44212pt too wide) in paragraph at lines 368--376
-\OT1/cmr/m/n/10 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 
+Underfull \hbox (badness 10000) in paragraph at lines 362--368
+
  []
 
 
-Overfull \hbox (33.44215pt too wide) in paragraph at lines 368--376
-\OT1/cmr/m/n/10 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 
+Underfull \hbox (badness 10000) in paragraph at lines 371--374
+
  []
 
 
-Overfull \hbox (33.44215pt too wide) in paragraph at lines 368--376
-\OT1/cmr/m/n/10 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 
+Underfull \hbox (badness 10000) in paragraph at lines 375--378
+
  []
 
 
-Underfull \hbox (badness 1122) in paragraph at lines 379--382
+Underfull \hbox (badness 1122) in paragraph at lines 381--384
 \OT1/cmr/m/n/10 mejores cro-mo-so-mas (las solu-ciones m^^Sas ap-tas) para
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 379--382
+Underfull \hbox (badness 10000) in paragraph at lines 381--384
 
  []
 
 
-Underfull \hbox (badness 1009) in paragraph at lines 385--391
+Underfull \hbox (badness 1009) in paragraph at lines 387--393
 \OT1/cmr/m/n/10 se-lec-ciona-dos (padres) para crear nuevos cro-mo-so-mas
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 385--391
+Underfull \hbox (badness 10000) in paragraph at lines 387--393
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 394--401
+Underfull \hbox (badness 10000) in paragraph at lines 396--403
 
  []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
 [5]
-Underfull \hbox (badness 1158) in paragraph at lines 427--428
+Underfull \hbox (badness 1158) in paragraph at lines 429--430
 []\OT1/cmr/bx/n/10 general[]satisfaction\OT1/cmr/m/n/10 : Rep-re-senta la sat-is-facci^^Son
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 472--473
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 474--475
 []\OT1/cmr/m/n/10 Fundaci^^Son En-desa. (s.f.). Cen-tral
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 472--473
+Underfull \hbox (badness 10000) in paragraph at lines 474--475
 \OT1/cmr/m/n/10 t^^Sermica con-ven-cional. Fun-daci^^Son En-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 472--473
+Underfull \hbox (badness 10000) in paragraph at lines 474--475
 \OT1/cmr/m/n/10 desa. [][]$\OT1/cmtt/m/n/10 https : / / www . fundacionendesa . org /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 472--473
+Underfull \hbox (badness 10000) in paragraph at lines 474--475
 \OT1/cmtt/m/n/10 es / educacion / endesa-[]educa / recursos /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 472--473
+Underfull \hbox (badness 10000) in paragraph at lines 474--475
 \OT1/cmtt/m/n/10 centrales-[]electricas-[]convencionales /
  []
-
-
 
 
 
@@ -751,9 +740,9 @@ Here is how much of TeX's memory you used:
  37026 multiletter control sequences out of 15000+600000
  563402 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 79i,11n,93p,1180b,575s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,12n,93p,1180b,577s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\DanielHP\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx9.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbxti10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cmextra/cmex7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on "d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.pdf" (6 pages, 386202 bytes).
+Output written on "d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.pdf" (6 pages, 386786 bytes).
 PDF statistics:
  240 PDF objects out of 1000 (max. 8388607)
  29 named destinations out of 1000 (max. 500000)
