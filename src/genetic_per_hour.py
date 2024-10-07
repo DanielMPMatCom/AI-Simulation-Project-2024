@@ -17,10 +17,14 @@ def assign_thermoelectric_to_block(
     assigned_thermoelectric = (
         random.choice(valid_thermoelectrics) if valid_thermoelectrics else -1
     )
+    print(f"{time}, {block}: {assigned_thermoelectric}")
     chromosome[time][block] = assigned_thermoelectric
+
     capacities[assigned_thermoelectric] -= get_cost_thermoelectric_to_block(
         assigned_thermoelectric, block, time
     )
+
+    return
 
 
 def is_invalid(
@@ -32,7 +36,8 @@ def is_invalid(
     current_capacities = capacities[:]
 
     for time in range(24):
-        for block, thermoelectric in enumerate(chromosome):
+        for block, thermoelectric in enumerate(chromosome[time]):
+
             current_capacities[thermoelectric] -= get_cost_thermoelectric_to_block(
                 thermoelectric, block, time
             )
@@ -47,34 +52,57 @@ def repair_chromosome(
 ):
 
     current_capacities = capacities[:]
+
+    print(current_capacities)
+    
     for time in range(24):
+        # print(f"{time}: {chromosome[time]}")
         for block, thermoelectric in enumerate(chromosome[time]):
+
             current_capacities[thermoelectric] -= get_cost_thermoelectric_to_block(
                 thermoelectric, block, time
             )
 
+    print(current_capacities)
+
     waiting = []
-    remaining_capacities = [0] * len(current_capacities)
 
     for thermoelectric, capacity in enumerate(current_capacities):
         
         current_capacity = capacity
 
         while current_capacity < 0:
-            thermoelectric_blocks = [
-                ((ci, time) for ci, th in enumerate(chromosome[time]) if th == thermoelectric)
-                for time in range(24)
-            ]
+            
+            print(current_capacity, " ", thermoelectric)
+            
+            thermoelectric_blocks = []
+            for time in range(24):
+                thermoelectric_blocks += [
+                    (bi, time) for bi, th in enumerate(chromosome[time]) if th == thermoelectric
+                ]
+                
+
+            print("+" * 50)
+            print(thermoelectric_blocks)
+            print("+" * 50)
+
 
             point = random.randint(0, len(thermoelectric_blocks) - 1)
-            block = thermoelectric_blocks[point]
+            block = thermoelectric_blocks[point][0]
+            time = thermoelectric_blocks[point][1]
             current_capacity += get_cost_thermoelectric_to_block(
                 thermoelectric, block, time
             )
-            chromosome[block] = -1
-            waiting.append(block)
+            chromosome[time][block] = -1
+            waiting.append((block, time))
 
-        remaining_capacities[thermoelectric] = current_capacity
+            # print(f"thermoelectric: {thermoelectric}, block: {block}, time: {time}")
+            # print(
+            #     get_cost_thermoelectric_to_block(
+            #     thermoelectric, block, time
+            # ))
+
+        current_capacities[thermoelectric] = current_capacity
 
     random.shuffle(waiting)
     
@@ -115,16 +143,24 @@ def generate_population(
         waiting = [(i, j) for i in range(blocks) for j in range(24)]
         random.shuffle(waiting)
 
-        for circuit, time in waiting:
+
+        for block, time in waiting:
             assign_thermoelectric_to_block(
-                circuit,
+                block,
                 time,
                 chromosome,
                 remaining_capacities,
                 get_cost_thermoelectric_to_block,
             )
 
+        print("*+"*50)
+        for day_statistics in chromosome:
+            print(day_statistics)
+        print("*+"*50)
+
         population.append(chromosome)
+        
+    
     return population
 
 
@@ -162,17 +198,17 @@ def mutate(
     if mutation == "single_point_0":
         index = random.randint(0, len(chromosome[0]) - 1)
         time = random.randint(0, 23)
-        chromosome[time][index] = random.randint(len(capacities))
+        chromosome[time][index] = random.randint(0, len(capacities) - 1)
         
     elif mutation == "single_point_1":
         index = random.randint(0, len(chromosome[0]) - 1)
         for time in range(24):
-            chromosome[time][index] = random.randint(len(capacities))
+            chromosome[time][index] = random.randint(0, len(capacities) - 1)
 
     elif mutation == "signle_point_2":
         for time in range(24):
             index = random.randint(len(chromosome[0]) - 1)
-            chromosome[time][index] = random.randint(len(capacities))
+            chromosome[time][index] = random.randint(0, len(capacities) - 1)
 
     elif mutation == "multiple_points":
         index_amount = random.randint(0, len(chromosome[0]) // 2 * random.randint(1, 12))
@@ -222,15 +258,25 @@ def genetic_algorithm(
     )
 
     best_chromosome = None
-    best_fitness = float("inf")
+    best_fitness = 0
 
-    for _ in range(generations):
+    for i in range(pop_size):
+        print("*-"*50)
+        print(f"CITIZEN {i}")
+        for day_statistics in population[i]:
+            print(day_statistics)
+        print("*-"*50)
+    
+
+    for g in range(generations):
         fitness_scores = [(chromosome, ft(chromosome)) for chromosome in population]
 
         for chromosome, score in fitness_scores:
-            if score < best_fitness:
+            if score > best_fitness:
                 best_fitness = score
                 best_chromosome = [row[:] for row in chromosome]
+
+                print(score)
 
         selection = select_chromosomes(fitness_scores, pop_size)
 
@@ -250,3 +296,31 @@ def genetic_algorithm(
                 mutate(population[i], capacities, get_cost_thermoelectric_to_block)
 
     return best_chromosome, best_fitness
+
+
+def cost(thermoelectric, block, time):
+    return (abs(thermoelectric - block) + 1) if thermoelectric != -1 else 0
+
+def ft(chromosome):
+    result = 1
+    for day_state in chromosome:
+        
+        for ti in day_state:
+            if ti == -1:
+                continue
+
+            result += 1
+        
+    return result
+
+capacities = [24, 24, 24, 24]
+generations = 5
+pop_size = 1
+blocks = 4
+mutation_rate = 0
+
+chromosome, fitness = genetic_algorithm(cost, capacities, generations, pop_size, blocks, mutation_rate, ft)
+
+# for t in range(len(chromosome)-1):
+#     print(f"{t} {chromosome[t]}")
+        
