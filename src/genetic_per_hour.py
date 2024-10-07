@@ -1,3 +1,4 @@
+from src.mutations import single_point_0, single_point_1, single_point_2, swap_points, multiple_points, rotation
 import random
 
 
@@ -139,14 +140,17 @@ def crossover(
     get_cost_thermoelectric_to_block: callable,
 ):
 
-    chromosome = [[]] * len(parent_1)
+    chromosome = [[-1] * 24 for _ in range(len(parent_1))]
 
-    for bi in range(len(chromosome)):
-        time = random.randint(0, 23)
-        if random.random() < 0.5:
-            chromosome[bi] = parent_1[bi][:time] + parent_2[bi][time:]
-        else:
-            chromosome[bi] = parent_1[bi][time:] + parent_2[bi][:time]
+    parent_time = [random.randint(0, len(parent_1) - 1) for _ in range(24)]
+    first_parent = [random.random() < 0.5 for _ in range(len(parent_1))]
+
+    for time in range(24):
+        for block in range(len(parent_1)):
+            if (block <= parent_time[time] and first_parent[block]) or (block > parent_time[time] and not first_parent[block]):
+                chromosome[block][time] = parent_1[block][time]
+            else:
+                chromosome[block][time] = parent_2[block][time]
 
     if is_invalid(chromosome, capacities, get_cost_thermoelectric_to_block):
         repair_chromosome(chromosome, capacities, get_cost_thermoelectric_to_block)
@@ -160,64 +164,51 @@ def select_chromosomes(fitness_scores: list[tuple[int, int]], amount: int):
         for chromosome, _ in sorted(fitness_scores, key=lambda x: x[1])[:amount]
     ]
 
-
 def mutate(
+    get_cost_thermoelectric_to_block:callable,
     chromosome: list[list[int]],
     capacities: list[int],
-    get_cost_thermoelectric_to_block,
     mutation: str = "single_point_0",
 ):
 
     if mutation == "single_point_0":
-        index = random.randint(0, len(chromosome) - 1)
-        time = random.randint(0, 23)
-        chromosome[index][time] = random.randint(0, len(capacities) - 1)
+        single_point_0(chromosome, capacities)
 
     elif mutation == "single_point_1":
-        index = random.randint(0, len(chromosome) - 1)
-        for time in range(24):
-            chromosome[index][time] = random.randint(0, len(capacities) - 1)
+        single_point_1(chromosome, capacities)
 
     elif mutation == "single_point_2":
-        for time in range(24):
-            index = random.randint(len(chromosome) - 1)
-            chromosome[index][time] = random.randint(0, len(capacities) - 1)
+        single_point_2(chromosome, capacities)
 
     elif mutation == "multiple_points":
-        index_amount = random.randint(
-            0, len(chromosome) // 2 * random.randint(1, 12)
-        )
-        for _ in index_amount:
-            index = random.randint(len(chromosome) - 1)
-            time = random.randint(0, 23)
-            chromosome[index][time] = random.randint(len(capacities) - 1)
+        multiple_points(chromosome, capacities)
 
     elif mutation == "swap_points":
-        index_amount = random.randint(
-            0, len(chromosome) // 2 * random.randint(1, 12)
-        )
-        for _ in index_amount:
-            index_1 = random.randint(0, len(chromosome) - 1)
-            index_2 = random.randint(0, len(chromosome) - 1)
-            time_1 = random.randint(0, 23)
-            time_2 = random.randint(0, 23)
-
-            chromosome[index_1][time_1], chromosome[index_2][time_2] = (
-                chromosome[index_2][time_2],
-                chromosome[index_1][time_1],
-            )
+        swap_points(chromosome)
 
     elif mutation == "rotation" and len(chromosome) >= 2:
-        for time in range(24):
-            index = random.randint(1, len(chromosome) - 2)
-            if random.random() <= 0.5:
-                chromosome = chromosome[index:][time] + chromosome[: index - 1][time]
-            else:
-                chromosome = chromosome[: index - 1][time] + chromosome[index:][time]
+        rotation(chromosome)
 
     if is_invalid(chromosome, capacities, get_cost_thermoelectric_to_block):
         repair_chromosome(chromosome, capacities, get_cost_thermoelectric_to_block)
 
+
+def create_new_population(
+    get_cost_thermoelectric_to_block: callable,
+    selection: list[list[list[int]]],
+    pop_size: int,
+):
+    population = []
+    for i in range(pop_size):
+        parent_1 = selection[i]
+        for _ in range(3):
+            parent_2 = random.choice(selection)
+            population.append(
+                crossover(
+                    parent_1, parent_2, capacities, get_cost_thermoelectric_to_block
+                )
+            )
+    return population
 
 def genetic_algorithm(
     get_cost_thermoelectric_to_block: callable,
@@ -246,16 +237,11 @@ def genetic_algorithm(
 
         selection = select_chromosomes(fitness_scores, pop_size)
 
-        population = []
-        for i in range(pop_size):
-            parent_1 = selection[i]
-            for _ in range(3):
-                parent_2 = random.choice(selection)
-                population.append(
-                    crossover(
-                        parent_1, parent_2, capacities, get_cost_thermoelectric_to_block
-                    )
-                )
+        population = create_new_population(
+            get_cost_thermoelectric_to_block,
+            selection,
+            pop_size
+        )
 
         for i in range(len(population)):
             if random.random() < mutation_rate:
