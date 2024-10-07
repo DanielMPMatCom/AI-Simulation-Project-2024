@@ -20,6 +20,7 @@ from src.bdi import (
 from circuits import Circuit, Block
 from part import Part
 from genetic import genetic_algorithm
+from copy import deepcopy
 
 
 class Person:
@@ -202,7 +203,8 @@ class ThermoelectricAgent(Person):
                 False, "Intention to prioritize repair of critical parts"
             ),
             "repair_parts": Intention(
-                [(part, False) for part in self.thermoelectric.parts], "A list of tuples where the left side is a Part and the right side is True if there is an intention of repairi the part and False otherwise"
+                [(part, False) for part in self.thermoelectric.parts],
+                "A list of tuples where the left side is a Part and the right side is True if there is an intention of repairi the part and False otherwise",
             ),
             # "meet_demand": Intention(False, "Intention to meet demand"),
             # "inspect_critical_parts": Intention(
@@ -613,7 +615,7 @@ class ChiefElectricCompanyAgentPerception:
         circuits_id: list[str],
         generation_per_thermoelectric: list[float],
         distance_matrix: list[tuple[str, str, float]],
-        demand_per_block_in_circuit: list[int, int, list[float]],
+        demand_per_block_in_circuit: list[tuple[int, int, list[float]]],
         total_demand_per_circuits: list[float],
         circuits_importance: list[float],
         importance_per_block_in_circuits: list[str, int, float],
@@ -972,8 +974,10 @@ class ChiefElectricCompanyAgent(Person):
         return mapper
 
     def get_cost_to_meet_demand_from_thermoelectric_to_block(
-        self, thermoelectric_index, block_key, hour, intentions_params, intentions_funcs
-
+        self,
+        thermoelectric_index,
+        block_key,
+        hour,
     ):
 
         (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
@@ -993,59 +997,68 @@ class ChiefElectricCompanyAgent(Person):
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
         return distance_cost + block.demand_per_hour[hour]
 
-    def meet_demand_function(self, complete_distribution: list[list]) -> float:
-        cost = 0
+    def template_intention_func(perception: ChiefElectricCompanyAgentPerception):
+        # calculate something
+        # the return value must be (normalized perception value * value of weight of perception)
+        return
 
-        for block_key, distribution in complete_distribution:
-            for hour, thermoelectric_index in enumerate(distribution):
-                cost += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
-                    thermoelectric_index=thermoelectric_index,
-                    block_key=block_key,
-                    hour=hour,
-                )
-
-        return -(self.beliefs["general_offer"] - cost)
-
-    def prioritize_block_importance_function(
-        self, complete_distribution: list[list],
+    def generic_objective_function(
+        self, complete_distribution: list[list], funcs: callable
     ) -> float:
-        # TODO : IMPLEMENT THIS FUNCTION
-        return
+        # simulate make the distribution and get the belief to pass to any function
+        thermoelectric_copy = deepcopy(self.thermoelectrics)  # TODO :REVIEW THIS COPY
+        circuit_copy = deepcopy(self.circuits)  # TODO: REVIEW THIS COPY
 
-    def prioritize_consecutive_days_off_function(
-        self, complete_distribution: list[list]
-    ) -> float:
-        # TODO : IMPLEMENT THIS FUNCTION
-        return
+        self.distribute_energy_to_blocks_from_thermoelectrics(
+            complete_distribution=complete_distribution,
+            thermoelectrics=thermoelectric_copy,
+            circuits=circuit_copy,
+        )
 
-    def prioritize_days_off_function(self, complete_distribution: list[list]) -> float:
-        # TODO : IMPLEMENT THIS FUNCTION
-        return
+        new_perception = self.build_new_perception(thermoelectrics=thermoelectric_copy, circuits=circuit_copy)
 
-    def prioritize_block_opinion_function(
-        self, complete_distribution: list[list]
-    ) -> float:
-        # TODO : IMPLEMENT THIS FUNCTION
-        return
+        y = 0
+
+        for func in funcs:
+            y+= func(new_perception)
+
+        return y
+
+    def build_new_perception(
+        self, thermoelectrics: list[Thermoelectric], circuits: list[Circuit]
+    ) -> ChiefElectricCompanyAgentPerception:
+        return ChiefElectricCompanyAgentPerception(
+            thermoelectrics_id=self.perception.thermoelectrics_id,
+            circuits_id=self.perception.circuits_id,
+            generation_per_thermoelectric=[t.current_capacity for t in thermoelectrics],
+            distance_matrix=self.perception.distance_matrix,
+            demand_per_block_in_circuit=[
+                (circuit.id, idb, block.demand_per_hour)
+                for circuit in circuits
+                for idb, block in enumerate(circuit.blocks)
+            ],
+        )
 
     def distribute_energy_to_blocks_from_thermoelectrics(
-        self, complete_distribution: list[list]
-    ):
+        self, complete_distribution: list[list], thermoelectrics, circuits
+    ):  # make the distribution
 
         for block_key, distribution in enumerate(complete_distribution):
             days_off = []
+            (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index == -1:
                     days_off.append(False)
                 else:
                     days_off.append(True)
-                    self.thermoelectrics[thermoelectric_index].consume_energy(
+                    thermoelectrics[thermoelectric_index].consume_energy(
                         self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                             thermoelectric_index=thermoelectric_index,
                             block_key=block_key,
                             hour=hour,
                         )
                     )
+            circuits[circuit_index].set_days_distribution(days_off)
 
     def execute(self) -> list["ChiefElectricCompanyAction"]:
         intention_executed = ""
@@ -1066,9 +1079,7 @@ class ChiefElectricCompanyAgent(Person):
                 ft=fx,
             )
 
-            self.distribute_energy_to_blocks_from_thermoelectrics(
-                final_distribution
-            )
+            self.distribute_energy_to_blocks_from_thermoelectrics(final_distribution)
 
         elif self.intentions["prioritize_block_importance"].value:
             self.intentions["prioritize_block_importance"].value = False
