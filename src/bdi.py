@@ -1,5 +1,6 @@
 from thermoelectrics import ThermoelectricAgent, ChiefElectricCompanyAgent
 from part import Part, Coils, SteamTurbine, Generator, Boiler
+from generative_ai import GenAIModel
 
 
 class Belief:
@@ -254,3 +255,56 @@ class CECAPrioritizeDaysOff(Desire):
             agent.desires["prioritize_days_off"] = True
         else:
             agent.desires["prioritize_days_off"] = False
+
+
+class CECAGeneratedDesire:
+    def __init__(self, id, description, weight, desires, conditions) -> None:
+        self.id = id
+        self.description = description
+        self.weight = weight
+        self.desires = desires
+        self.conditions = conditions
+
+    def evaluate(self, agent: ChiefElectricCompanyAgent):
+        for condition in self.conditions:
+            if not condition(agent.beliefs):
+                return
+        for desire in self.desires:
+            agent.desires[desire] = True
+
+
+class DesireGenerator:
+    def __init__(self) -> None:
+        self.api = GenAIModel(
+            system_instruction="""
+            You are an intelligent agent with a BDI architecture simulating the chief of an 
+            electric company. I will provide you with a list of desires and a list of conditions. 
+            Your task is to evaluate which desires could be activated based on all or a subset of 
+            those conditions. Return only two lists: one containing the subset of selected 
+            conditions and another containing the subset of desires that would be activated.
+            Do not provide any explanations or additional text. I only want the two lists.
+            Example output:
+            conditions = ["fully covered system", "neutral general opinion", "many thermoelectrics working"]
+            desires = ["prioritize_block_opinion", "prioritize_block_importance"]
+            The desires list is: ["meet_demand", "prioritize_block_importance", "prioritize_block_opinion", "prioritize_consecutive_days_off", "prioritize_days_off"]
+            Here are the desires you should consider and an explination of what each one of them means in this context:
+            "meet_demand": Desire to meet the demand when there is a generation deficit.
+            "prioritize_block_importance": Desire to prioritize supplying energy to blocks of greater importance.
+            "prioritize_block_opinion": Desire to prioritize supplying energy to blocks with the worst public opinion.
+            "prioritize_consecutive_days_off": Desire to prioritize supplying energy to blocks that have suffered power cuts for more consecutive days.
+            "prioritize_days_off": Desire to prioritize supplying energy to blocks that have experienced more power cuts in total days.
+            Now that you know the desires, I will send you the list of conditions for evaluation.
+            """
+        )
+
+        self.conversation = self.api.model.start_chat(history=[])
+
+    def generate_new_desire(self, conditions: str = "no conditions"):
+        if conditions == "no conditions":
+            raise Exception("No conditions have been provided")
+
+        query = f"""
+        The list of conditions is as follows: {conditions}
+        """
+        ans = self.conversation.send_message(query)
+        return ans.text.strip()

@@ -11,6 +11,8 @@ from bdi import (
     CECAPrioritizeBlockOpinion,
     CECAPrioritizeConsecutiveDaysOff,
     CECAPrioritizeDaysOff,
+    CECAGeneratedDesire,
+    DesireGenerator,
     TAMaxPowerOutputDesire,
     TAMeetEnergyDemandDesire,
     TAMinimizeDowntimeDesire,
@@ -18,7 +20,7 @@ from bdi import (
     TAPrioritizeCriticalPartsRepairDesire,
     TARepairPartsDesire,
 )
-from part import Boiler, SteamTurbine, Generator, Coils
+from part import Boiler, SteamTurbine, Generator, Coils, Part
 from circuits import Circuit, Block
 import numpy as np
 import skfuzzy as fuzz
@@ -700,11 +702,15 @@ class ChiefElectricCompanyAgent(Person):
         thermoelectrics: list[Thermoelectric],
         circuits: list[Circuit],
         perception: ChiefElectricCompanyAgentPerception,
+        rules,
+        current_rules,
     ):
         Person.__init__(self, name=name, id=id)
 
         self.circuits = circuits
         self.thermoelectrics = thermoelectrics
+        self.rules = rules
+        self.current_rules = current_rules
 
         self.perception = perception
 
@@ -767,22 +773,26 @@ class ChiefElectricCompanyAgent(Person):
                 [],
                 description="The longest sequence of consecutive days off for each block within the circuits. Each tuple contains the circuit ID, block ID, and the number of consecutive days off.",
             ),
-            "all_desires": Belief(
-                {
-                    "meet_demand": CECAMeetDemandDesire(),
-                    "prioritize_block_importance": CECAPrioritizeBlockImportance(),
-                    "prioritize_block_opinion": CECAPrioritizeBlockOpinion(),
-                    "prioritize_consecutive_days_off": CECAPrioritizeConsecutiveDaysOff(),
-                    "prioritize_days_off": CECAPrioritizeDaysOff(),
-                }
-            ),
-            "current_desires": [
-                "meet_demand",
-                "prioritize_block_importance",
-                "prioritize_block_opinion",
-                "prioritize_consecutive_days_off",
-                "prioritize_days_off",
-            ],
+            "all_desires": Belief(self.rules, "All possible desires"),
+            "current_desires": Belief(self.current_rules, "The current active desires"),
+            # "all_desires": Belief(
+            #     {
+            #         "meet_demand": CECAMeetDemandDesire(),
+            #         "prioritize_block_importance": CECAPrioritizeBlockImportance(),
+            #         "prioritize_block_opinion": CECAPrioritizeBlockOpinion(),
+            #         "prioritize_consecutive_days_off": CECAPrioritizeConsecutiveDaysOff(),
+            #         "prioritize_days_off": CECAPrioritizeDaysOff(),
+            #     }, "All possible desires"
+            # ),
+            # "current_desires": Belief(
+            # [
+            #     "meet_demand",
+            #     "prioritize_block_importance",
+            #     "prioritize_block_opinion",
+            #     "prioritize_consecutive_days_off",
+            #     "prioritize_days_off",
+            #     ], "The current active desires"
+            # )
         }
 
         self.desires = {
@@ -1021,7 +1031,7 @@ class ChiefElectricCompanyAgent(Person):
                             hour=hour,
                         )
                     )
-            
+
         return
 
     def execute(self) -> list[ChiefElectricCompanyAction]:
@@ -1082,6 +1092,109 @@ class ChiefElectricCompanyAgent(Person):
         self.generate_desires()
         self.filter_intentions()
         return self.execute()
+
+    def learn_new_desires(self):
+        conditions = [
+            (
+                lambda beliefs: beliefs["general_offer"].value
+                - beliefs["general_demand"].value
+                > 1000,
+                "fully covered system",
+            ),
+            (
+                lambda beliefs: beliefs["general_offer"].value
+                - beliefs["general_demand"].value
+                < 1000
+                and beliefs["general_deficit"].value <= 0,
+                "tightly covered system",
+            ),
+            (
+                lambda beliefs: beliefs["general_deficit"].value > 0
+                and beliefs["general_deficit"].value <= 1000,
+                "almost covered system",
+            ),
+            (
+                lambda beliefs: beliefs["general_deficit"].value > 0
+                and beliefs["general_deficit"].value > 1000,
+                "not covered system",
+            ),
+            # TODO: belief general opinion
+            (
+                lambda beliefs: beliefs["general_opinion"].value > 0.7,
+                "good general opinion",
+            ),
+            (
+                lambda beliefs: beliefs["general_opinion"].value >= 0.4
+                and beliefs["genreal_opinion"].value <= 0.7,
+                "neutral general opinion",
+            ),
+            (
+                lambda beliefs: beliefs["general_opinion"].value < 0.4,
+                "bad general opinion",
+            ),
+            # TODO: working_thermoelectrics_amount
+            (
+                lambda beliefs: beliefs["working_thermoelectrics_amount"].value
+                / len(beliefs["thermoelectrics_id"].value)
+                > 0.7,
+                "many thermoelectrics working",
+            ),
+            (
+                lambda beliefs: beliefs["working_thermoelectrics_amount"].value
+                / len(beliefs["thermoelectrics_id"].value)
+                >= 0.4
+                and beliefs["working_thermoelectrics_amount"].value
+                / len(beliefs["thermoelectrics_id"].value)
+                <= 0.7,
+                "half of thermoelectrics working",
+            ),
+            (
+                lambda beliefs: beliefs["working_thermoelectrics_amount"].value
+                / len(beliefs["thermoelectrics_id"].value)
+                < 0.4,
+                "few thermoelectrics working",
+            ),
+        ]
+
+        valid_cond = []
+
+        for item in conditions:
+            if item[0](self.beliefs):
+                valid_cond.append(item)
+
+        str_cond = "["
+        for item in valid_cond:
+            str_cond = str_cond + item[1] + ","
+        str_cond = str_cond[:-1] + "]"
+
+        generator = DesireGenerator()
+        ans = generator.generate_new_desire(str_cond)
+
+        desires = []
+        chosen_cond = []
+        description = ""
+
+        for item in valid_cond:
+            if item[1] in ans:
+                chosen_cond.append(item[0])
+                description = description + item[1] + "\n"
+
+        description += " => "
+
+        for desire in self.desires.keys():
+            if desire in ans:
+                desires.append(desire)
+                description += desire + "\n"
+        generated_desire = CECAGeneratedDesire(
+            id="generated_desire" + str(len(self.beliefs["all_desires"].value)),
+            description=description,
+            weight=1,
+            desires=desires,
+            conditions=chosen_cond,
+        )
+
+        self.beliefs["all_desires"].value[generated_desire.id] = generated_desire
+        self.beliefs["current_desires"].value.append(generated_desire.id)
 
 
 # region Citizen
