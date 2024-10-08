@@ -20,8 +20,7 @@ from src.bdi import (
 from circuits import Circuit, Block
 from part import Part
 from genetic_per_hour import genetic_algorithm
-from copy import deepcopy
-
+from simulation_constants import DISTANCE_REGULATOR
 
 class Person:
     """
@@ -663,9 +662,9 @@ class ChiefElectricCompanyAgentPerception:
             longest_sequence_off_per_block_in_circuits
         )
 
-        self.thermoelectrics_state = [x > 0 for x in generation_per_thermoelectric]
+        self.thermoelectrics_state  = [x > 0 for x in generation_per_thermoelectric]
 
-        self.working_thermoelectrics_amount = sum(self.thermoelectric_state)
+        self.working_thermoelectrics_amount = sum(self.thermoelectrics_state)
 
     def generate_desires(self) -> None:
         """
@@ -984,7 +983,7 @@ class ChiefElectricCompanyAgent(Person):
 
     def get_cost_to_meet_demand_from_thermoelectric_to_block(
         self, thermoelectric_index, block_key, hour, return_sum=True
-    ):
+    ) -> float | tuple[int, int]:
 
         (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
 
@@ -1003,9 +1002,9 @@ class ChiefElectricCompanyAgent(Person):
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
 
         return (
-            distance_cost + block.fake_demand_per_hour[hour]
+            distance_cost + block.predicted_demand_per_hour[hour]
             if return_sum
-            else (distance_cost, block.fake_demand_per_hour)
+            else (distance_cost, block.predicted_demand_per_hour[hour])
         )
 
     def generic_objective_function(
@@ -1061,17 +1060,18 @@ class ChiefElectricCompanyAgent(Person):
         complete_distribution: list[list[int]],
     ):
         energy = 0
+        distance_percent = 0
         for block_key, distribution in enumerate(complete_distribution):
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index != -1:
-                    energy, _ += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                    energy, distance_percent += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
                         hour=hour,
                         return_sum=False,
                     )
                     
-        return self.beliefs['general_offer'] - energy
+        return ( 1 - distance_percent * DISTANCE_REGULATOR ) if energy >= self.beliefs['general_demand'] else 0
 
 
     def meet_demand_intention_func(
