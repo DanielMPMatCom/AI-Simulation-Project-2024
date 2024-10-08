@@ -1,5 +1,5 @@
 from src.citizen import Citizen
-from src.simulation_constants import DAYS_OF_MEMORY
+from src.simulation_constants import DAYS_OF_MEMORY, K_PREDICT_CONSUMPTION_ITER
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from itertools import groupby
 import random
@@ -51,7 +51,7 @@ class Circuit:
                 )
             )
         return blocks
-    
+
     def get_mock_electric_consume(self):
         mock_value = 0
         for block in self.blocks:
@@ -99,13 +99,25 @@ class Block:
         self.history_report: list["BlockReport"] = []
         self.off_hours: list[bool] = [False] * 24
 
-        self.demand_per_hour: list[float] = []
-        self.predicted_demand_per_hour: list[float] = []
-
         self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
 
+        self.demand_per_hour: list[float] = []
+        self.predicted_demand_per_hour: list[float] = self.predict_demand_per_hour()
+
         self.mock_electric_consume = self.get_mock_electric_consume()
+
+    def predict_demand_per_hour(self):
+        predicted_demand_per_hour = self.gaussian_mixture.generate()
+
+        for _ in range(K_PREDICT_CONSUMPTION_ITER - 1):
+            new_prediction = self.gaussian_mixture.generate()
+            predicted_demand_per_hour = [
+                max(predicted_demand_per_hour[i], new_prediction[i])
+                for i in range(len(new_prediction))
+            ]
+
+        return predicted_demand_per_hour
 
     def update(self, general_satisfaction: float):
 
@@ -114,7 +126,7 @@ class Block:
         time_off = sum(self.off_hours)
         total_demand = self.get_consumed_energy_today()
 
-        history_report = self.history_report[: DAYS_OF_MEMORY : -1]
+        history_report = self.history_report[:DAYS_OF_MEMORY:-1]
 
         days_off: float = sum(1 for report in history_report if report.time_off > 0) + (
             1 if time_off > 0 else 0
@@ -173,9 +185,4 @@ class Block:
         self.off_hours = off_hours
 
     def get_mock_electric_consume(self) -> float:
-        mock_value = 0
-        for _ in range(300):
-            day_consume = sum(self.gaussian_mixture.generate())
-            mock_value = max(mock_value, day_consume)
-        
-        return mock_value
+        return sum(self.predicted_demand_per_hour)

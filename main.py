@@ -3,40 +3,30 @@ from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from src.circuits import Circuit, Block
 from src.thermoelectrics import Thermoelectric
 
-# from src.worldstate import WorldState
 from numpy.random import default_rng
 import networkx as nx
 import matplotlib.pyplot as plt
-
-NO_CIRCUITS = 50
-NO_THERMOELECTRICS = 8
-
-MIN_CITIZEN = 1000
-MAX_CITIZEN = 10000
-MAX_DEVIATION_CITIZEN_IN_BLOCK = 200
-
-DEMAND_PER_PERSON = 1
-DEMAND_INDUSTRIALIZATION = 5000
-
-VARIABILITY_DEMAND_PER_PERSON = 0.01
-VARIABILITY_DEMAND_PER_INDUSTRIALIZATION = 100
-
-PEAK_CONSUMPTION_MORNING = 7
-PEAK_CONSUMPTION_EVENING = 19
-
-MAX_DEVIATION_MORNING = 2
-MAX_DEVIATION_EVENING = 3
-
-WEIGHT_MORNING = 10
-WEIGHT_EVENING = 20
-
-RANDOM_SEED = 42
-
-MIN_BLOCKS_PER_CIRCUIT = 1
-MAX_BLOCKS_PER_CIRCUIT = 10
-
-# CHIEF PARAMS
-IMPORTANCE_ALPHA = 0.374345
+from src.simulation_constants import (
+    NO_CIRCUITS,
+    NO_THERMOELECTRICS,
+    MIN_CITIZEN,
+    MAX_CITIZEN,
+    MAX_DEVIATION_CITIZEN_IN_BLOCK,
+    DEMAND_PER_PERSON,
+    DEMAND_INDUSTRIALIZATION,
+    VARIABILITY_DEMAND_PER_PERSON,
+    VARIABILITY_DEMAND_PER_INDUSTRIALIZATION,
+    PEAK_CONSUMPTION_MORNING,
+    PEAK_CONSUMPTION_EVENING,
+    MAX_DEVIATION_MORNING,
+    MAX_DEVIATION_EVENING,
+    WEIGHT_MORNING,
+    WEIGHT_EVENING,
+    RANDOM_SEED,
+    MIN_BLOCKS_PER_CIRCUIT,
+    MAX_BLOCKS_PER_CIRCUIT,
+    IMPORTANCE_ALPHA,
+)
 
 
 map_2d = Map2D(
@@ -116,31 +106,26 @@ for i in mapper_circuit_with_thermoelectric:
     )
 
 nx.draw(G, with_labels=True, font_weight="bold")
-# plt.show() 
+# plt.show()
 
 
 # Generate thermoelectrics
 ti: list[Thermoelectric] = []
 
-for (
-    t
-) in (
-    graphMap.thermoelectrics_nodes
-):  # TODO : FIX THE DEFAULT GENERATION OF THERMOELECTRIC
+for t in graphMap.thermoelectrics_nodes:
     circuits_filtered = [
         key
         for key in mapper_circuit_with_thermoelectric
         if mapper_circuit_with_thermoelectric[key] == t.id
     ]
-    print(ci)
+
     generated_thermoelectric_min_cost = sum(
         [
-            next(
-                circuit.mock_electric_consume for circuit in ci if circuit.id == key
-            )  # TODO : REMOVE MOCKS
+            next(circuit.mock_electric_consume for circuit in ci if circuit.id == key)
             + sum(
                 [x[2] for x in distance_cost_template if x[0] == t.id and x[1] == key]
             )
+            + 200
             for key in circuits_filtered
         ]
     )
@@ -151,8 +136,6 @@ for (
         )
     )
 
-# for t in ti:
-#     print(t.id, t.total_capacity)
 
 ### CHIEF
 # Auxiliary functions
@@ -174,12 +157,6 @@ def get_circuit_importance(circuit: Circuit) -> float:
     return (
         circuit.get_all_block_population() / auxiliary_data_max_population_of_circuits
     ) * IMPORTANCE_ALPHA + circuit.industrialization * (1 - IMPORTANCE_ALPHA)
-
-
-# def get_block_importance(block: Block) -> float:
-#     return (
-#         block.citizens.amount / auxiliary_data_max_population_of_circuits
-#     ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
 
 
 def distance_template_to_distance_matrix(
@@ -208,6 +185,7 @@ def distance_template_to_distance_matrix(
 
     return matrix
 
+
 def set_importance(ci):
     for circuit in ci:
         circuit.importance = get_circuit_importance(circuit)
@@ -215,6 +193,3 @@ def set_importance(ci):
 
 matrix = distance_template_to_distance_matrix(distance_cost_template, ti, ci)
 set_importance(ci)
-
-
-# worldstate = WorldState(ci, ti)
