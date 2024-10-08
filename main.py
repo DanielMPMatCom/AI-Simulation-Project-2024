@@ -145,22 +145,14 @@ matrix = distance_template_to_distance_matrix(
 # Generate thermoelectrics
 ti: list[Thermoelectric] = []
 
-for ti, t in enumerate(graphMap.thermoelectrics_nodes):
+for i, t in enumerate(graphMap.thermoelectrics_nodes):
     generated_thermoelectric_min_cost = 0
 
-    for ci, c in enumerate(graphMap.circuits_nodes):
+    for j, c in enumerate(graphMap.circuits_nodes):
         if mapper_circuit_with_thermoelectric[c.id] == t.id:
-            circuits_filtered = [
-                key
-                for key in mapper_circuit_with_thermoelectric
-                if mapper_circuit_with_thermoelectric[key] == t.id
-            ]
-
-            for key in circuits_filtered:
-                generated_thermoelectric_min_cost += (
-                    ci[key].mock_electric_consume
-                    + ci[key].mock_electric_consume * matrix[ti][ci]
-                )
+            generated_thermoelectric_min_cost += (
+                ci[j].mock_electric_consume + ci[j].mock_electric_consume * matrix[i][j]
+            )
 
     ti.append(
         Thermoelectric(
