@@ -1002,7 +1002,7 @@ class ChiefElectricCompanyAgent(Person):
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
 
         return (
-            distance_cost + block.predicted_demand_per_hour[hour]
+            distance_cost * block.predicted_demand_per_hour[hour]
             if return_sum
             else (distance_cost, block.predicted_demand_per_hour[hour])
         )
