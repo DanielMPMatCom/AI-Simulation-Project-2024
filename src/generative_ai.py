@@ -7,6 +7,17 @@ GOOGLE_API_KEY = secrets["GOOGLE_API_KEY"]
 
 
 class GenAIModel:
+    """
+    GenAIModel is a class that interfaces with a generative AI model to generate content based on provided questions.
+    Attributes:
+        model (genai.GenerativeModel): An instance of the generative AI model.
+    Methods:
+        __init__(system_instruction=None):
+            Initializes the GenAIModel instance and configures the generative AI model.
+        ask_model(question: str) -> str:
+            Generates content based on the provided question and returns the generated text.
+    """
+
     def __init__(self, system_instruction=None) -> None:
         genai.configure(api_key=GOOGLE_API_KEY)
         self.model = genai.GenerativeModel(

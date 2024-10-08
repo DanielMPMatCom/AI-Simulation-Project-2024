@@ -4,12 +4,20 @@ from part import Coils, SteamTurbine, Generator, Boiler
 
 
 class Belief:
+    """
+    A class to represent a belief in the BDI (Belief-Desire-Intention) model.
+    """
+
     def __init__(self, value, description: str = "") -> None:
         self.value = value
         self.description = description
 
 
 class Desire:
+    """
+    Desire class represents a goal or objective that an agent aims to achieve.
+    """
+
     def __init__(self, value, description: str, id: str) -> None:
         self.value = value
         self.description = description
@@ -20,6 +28,10 @@ class Desire:
 
 
 class Intention:
+    """
+    Represents an intention with a specific value and an optional description.
+    """
+
     def __init__(self, value, description: str = "") -> None:
         self.value = value
         self.description = description
@@ -29,6 +41,10 @@ class Intention:
 
 
 class TAMaxPowerOutputDesire(Desire):
+    """
+    Represents a desire for a thermoelectric agent to maintain maximum power output.
+    """
+
     def __init__(self, value: bool) -> None:
         Desire.__init__(
             value, "Desire to maintain maximum power output", "max_power_output"
@@ -46,6 +62,11 @@ class TAMaxPowerOutputDesire(Desire):
 
 
 class TAPreventUnexpectedBreakdownDesire(Desire):
+    """
+    TAPreventUnexpectedBreakdownDesire is a subclass of Desire that represents the
+    desire to prevent unexpected breakdowns in a thermoelectric agent.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             value,
@@ -74,6 +95,10 @@ class TAPreventUnexpectedBreakdownDesire(Desire):
 
 
 class TAMinimizeDowntimeDesire(Desire):
+    """
+    Represents a desire to minimize downtime in a thermoelectric plant.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(value, "Desire to minimize downtime", "minimize_downtime")
         self.weight = 3
@@ -89,6 +114,10 @@ class TAMinimizeDowntimeDesire(Desire):
 
 
 class TAMeetEnergyDemandDesire(Desire):
+    """
+    A class representing the desire to meet energy demand for a thermoelectric agent.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(value, "Desire to meet energy demand", "meet_energy_demand")
         self.weight = 4
@@ -101,6 +130,10 @@ class TAMeetEnergyDemandDesire(Desire):
 
 
 class TAPrioritizeCriticalPartsRepairDesire(Desire):
+    """
+    A desire class that prioritizes the repair of critical parts in a thermoelectric agent.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             value,
@@ -131,6 +164,10 @@ class TAPrioritizeCriticalPartsRepairDesire(Desire):
 
 
 class TARepairPartsDesire(Desire):
+    """
+    TARepairPartsDesire is a class that represents the desire of a thermoelectric agent to repair parts if necessary.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             value,
@@ -149,6 +186,10 @@ class TARepairPartsDesire(Desire):
 
 # region Chief of Electric Company Agent Desires
 class CECAMaxStoredEnergyDesire(Desire):
+    """
+    CECAMaxStoredEnergyDesire is a subclass of Desire that represents the desire to maximize stored energy.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             self,
@@ -166,6 +207,10 @@ class CECAMaxStoredEnergyDesire(Desire):
 
 
 class CECAMeetDemandDesire(Desire):
+    """
+    CECAMeetDemandDesire is a subclass of Desire that represents the desire to meet the overall energy demand.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             self,
@@ -186,6 +231,10 @@ class CECAMeetDemandDesire(Desire):
 
 
 class CECAPrioritizeBlockImportance(Desire):
+    """
+    CECAPrioritizeBlockImportance is a class that represents the desire to prioritize energy supply for the most critical blocks.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             self,
@@ -203,7 +252,12 @@ class CECAPrioritizeBlockImportance(Desire):
 
 
 class CECAPrioritizeBlockOpinion(Desire):
-    def __init__(self, value, description: str = "", id: str = "") -> None:
+    """
+    A desire class that represents the priority to supply energy
+    to blocks with the most negative public opinions.
+    """
+
+    def __init__(self, value) -> None:
         Desire.__init__(
             self,
             value,
@@ -230,6 +284,10 @@ class CECAPrioritizeBlockOpinion(Desire):
 
 
 class CECAPrioritizeConsecutiveDaysOff(Desire):
+    """
+    A desire class that prioritizes energy supply for blocks with a significant number of consecutive off days.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             self,
@@ -254,6 +312,10 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
 
 
 class CECAPrioritizeDaysOff(Desire):
+    """
+    A class representing the desire to prioritize energy supply for blocks with a significant number of off days.
+    """
+
     def __init__(self, value) -> None:
         Desire.__init__(
             self,
@@ -278,6 +340,10 @@ class CECAPrioritizeDaysOff(Desire):
 
 
 class CECAGeneratedDesire:
+    """
+    CECAGeneratedDesire represents a desire generated by the Chief Electric Company Agent (CECA).
+    """
+
     def __init__(self, id, description, weight, desires, conditions) -> None:
         self.id = id
         self.description = description
@@ -294,6 +360,18 @@ class CECAGeneratedDesire:
 
 
 class DesireGenerator:
+    """
+    DesireGenerator is a class that interacts with a generative AI model to simulate the decision-making process of an intelligent agent with a BDI (Belief-Desire-Intention) architecture. The agent acts as the chief of an electric company, evaluating which desires to activate based on given conditions.
+    Attributes:
+        api (GenAIModel): An instance of the generative AI model configured with specific system instructions.
+        conversation (Chat): An ongoing conversation with the AI model to facilitate continuous interaction.
+    Methods:
+        __init__(): Initializes the DesireGenerator with the AI model and starts a new chat conversation.
+        generate_new_desire(conditions: str): Generates a new desire based on the provided conditions. Raises an exception if no conditions are provided.
+    Raises:
+        Exception: If no conditions are provided to the generate_new_desire method.
+    """
+
     def __init__(self) -> None:
         self.api = GenAIModel(
             system_instruction="""
