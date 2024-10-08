@@ -6,7 +6,7 @@ import numpy as np
 class Citizen:
     def __init__(self, amount: int) -> None:
         self.amount = amount
-        self.opinion
+        self.opinion = None
 
     def set_opinion(
         self,

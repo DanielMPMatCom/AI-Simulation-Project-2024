@@ -43,6 +43,8 @@ map_2d = Map2D(
     no_thermoelectrics=NO_THERMOELECTRICS,
 )
 
+map_2d.visualize()
+
 graphMap = GraphMap(
     thermoelectric_labels=[f"Th{i}" for i in range(NO_THERMOELECTRICS)],
     circuits_labels=[f"C{i}" for i in range(NO_CIRCUITS)],
@@ -77,8 +79,8 @@ for i in range(NO_CIRCUITS):
         + VARIABILITY_DEMAND_PER_INDUSTRIALIZATION * industrialization,
         mean_morning=PEAK_CONSUMPTION_MORNING,
         mean_evening=PEAK_CONSUMPTION_EVENING,
-        std_morning=rng(1, MAX_DEVIATION_MORNING),
-        std_evening=rng(1, MAX_DEVIATION_EVENING),
+        std_morning=rng.uniform(1.0, MAX_DEVIATION_MORNING),
+        std_evening=rng.uniform(1.0, MAX_DEVIATION_EVENING),
         weight_morning=WEIGHT_MORNING,
         weight_evening=WEIGHT_EVENING,
     )
@@ -161,7 +163,7 @@ for circuit in ci:
         circuit.get_all_block_population(), max_population_of_circuits
     )
     for block in circuit.blocks:
-        max_population_of_block = max(block.citizens, max_population_of_block)
+        max_population_of_block = max(block.citizens.amount, max_population_of_block)
 
 auxiliary_data_max_population_of_circuits = max_population_of_circuits
 auxiliary_data_max_population_of_block = max_population_of_block
@@ -198,10 +200,15 @@ def distance_template_to_distance_matrix(
     for t, c, cost, _ in template:
         matrix[t_map[t]][c_map[c]] = cost
 
+    max_value = max(matrix)
+
+    for t, c, _, _ in template:
+        matrix[t_map[t]], matrix[c_map[c]] /= max_value
+
     return matrix
 
 
-print(distance_cost_template(distance_cost_template, ti, ci))
+# print(distance_cost_template(distance_cost_template, ti, ci))
 
 
 # worldstate = WorldState(ci, ti)

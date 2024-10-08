@@ -1,4 +1,5 @@
 from src.citizen import Citizen
+from src.simulation_constants import DAYS_OF_MEMORY
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from itertools import groupby
 import random
@@ -23,15 +24,17 @@ class Circuit:
         self.gaussian_mixture = gaussian_mixture
         self.blocks_range = blocks_range
         self.citizens_range = citizens_range
+        self.industrialization = industrialization
 
         self.blocks: list["Block"] = self.create_blocks()
         self.circuit_satisfaction = self.set_circuit_satisfaction()
+        self.mock_electric_consume = self.get_mock_electric_consume()
 
         # General Data
         self.industrialization = industrialization
 
     def get_all_block_population(self):
-        return sum([block.citizens for block in self.blocks])
+        return sum([block.citizens.amount for block in self.blocks])
 
     def update(self):
         for block in self.blocks:
@@ -48,6 +51,13 @@ class Circuit:
                 )
             )
         return blocks
+    
+    def get_mock_electric_consume(self):
+        mock_value = 0
+        for block in self.blocks:
+            mock_value += block.mock_electric_consume
+
+        return mock_value
 
     def set_circuit_satisfaction(self):
         total_people: float = 0
@@ -82,10 +92,9 @@ class Block:
         gaussian_mixture: "DailyElectricityConsumptionBimodal",
         citizens_range,
         industrialization,
-        memory_of_history_report,
     ) -> None:
         self.citizens: "Citizen" = Citizen(
-            self, random.randint(citizens_range[0], citizens_range[1])
+            random.randint(citizens_range[0], citizens_range[1])
         )
         self.history_report: list["BlockReport"] = []
         self.off_hours: list[bool] = [False] * 24
@@ -95,7 +104,8 @@ class Block:
 
         self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
-        self.memory_of_history_report = memory_of_history_report
+
+        self.mock_electric_consume = self.get_mock_electric_consume()
 
     def update(self, general_satisfaction: float):
 
@@ -104,7 +114,7 @@ class Block:
         time_off = sum(self.off_hours)
         total_demand = self.get_consumed_energy_today()
 
-        history_report = self.history_report[: self.memory_of_history_report : -1]
+        history_report = self.history_report[: DAYS_OF_MEMORY : -1]
 
         days_off: float = sum(1 for report in history_report if report.time_off > 0) + (
             1 if time_off > 0 else 0
@@ -136,7 +146,7 @@ class Block:
         self.history_report.append(daily_report)
 
     def get_block_opinion(self) -> float:
-        return self.citizens.opinion
+        return self.citizens.opinion if self.citizens.opinion is not None else 0.8
 
     def get_consumed_energy_today(self) -> float:
         return sum(self.demand_per_hour[: self.off_hours[0]]) + sum(
@@ -161,3 +171,11 @@ class Block:
             )
 
         self.off_hours = off_hours
+
+    def get_mock_electric_consume(self) -> float:
+        mock_value = 0
+        for _ in range(300):
+            day_consume = sum(self.gaussian_mixture.generate())
+            mock_value = max(mock_value, day_consume)
+        
+        return mock_value
