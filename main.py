@@ -109,30 +109,64 @@ nx.draw(G, with_labels=True, font_weight="bold")
 # plt.show()
 
 
+def distance_template_to_distance_matrix(
+    template: list[tuple[str, str, float, list[str]]],
+    thermoelectrics: list[str],
+    circuits: list[str],
+):
+    matrix = [[-1 for _ in range(len(circuits))] for _ in range(len(thermoelectrics))]
+
+    c_map = {}
+    t_map = {}
+
+    for i, t in enumerate(thermoelectrics):
+        t_map[t] = i
+
+    for i, c in enumerate(circuits):
+        c_map[c] = i
+
+    max_cost = 1
+    for t, c, cost, _ in template:
+        matrix[t_map[t]][c_map[c]] = cost
+        max_cost = max(max_cost, cost)
+
+    for t, c, _, _ in template:
+        matrix[t_map[t]][c_map[c]] /= max_cost
+
+    return matrix
+
+
+matrix = distance_template_to_distance_matrix(
+    distance_cost_template,
+    [t.id for t in graphMap.thermoelectrics_nodes],
+    [c.id for c in graphMap.circuits_nodes],
+)
+
 # Generate thermoelectrics
 ti: list[Thermoelectric] = []
 
-for t in graphMap.thermoelectrics_nodes:
-    circuits_filtered = [
-        key
-        for key in mapper_circuit_with_thermoelectric
-        if mapper_circuit_with_thermoelectric[key] == t.id
-    ]
+for ti, t in enumerate(graphMap.thermoelectrics_nodes):
+    generated_thermoelectric_min_cost = 0
 
-    generated_thermoelectric_min_cost = sum(
-        [
-            next(circuit.mock_electric_consume for circuit in ci if circuit.id == key)
-            + sum(
-                [x[2] for x in distance_cost_template if x[0] == t.id and x[1] == key]
-            )
-            + 200
-            for key in circuits_filtered
-        ]
-    )
+    for ci, c in enumerate(graphMap.circuits_nodes):
+        if mapper_circuit_with_thermoelectric[c.id] == t.id:
+            circuits_filtered = [
+                key
+                for key in mapper_circuit_with_thermoelectric
+                if mapper_circuit_with_thermoelectric[key] == t.id
+            ]
+
+            for key in circuits_filtered:
+                generated_thermoelectric_min_cost += (
+                    ci[key].mock_electric_consume
+                    + ci[key].mock_electric_consume * matrix[ti][ci]
+                )
 
     ti.append(
         Thermoelectric(
-            id=t.id, parts=[], total_capacity=generated_thermoelectric_min_cost
+            id=t.id,
+            parts=[],
+            total_capacity=generated_thermoelectric_min_cost * 24 + 200,
         )
     )
 
@@ -165,39 +199,11 @@ def get_block_importance(block: Block) -> float:
     ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
 
 
-def distance_template_to_distance_matrix(
-    template: list[tuple[str, str, float, list[str]]],
-    thermoelectrics: list[Thermoelectric],
-    circuits: list[Circuit],
-):
-    matrix = [[-1 for _ in range(len(circuits))] for _ in range(len(thermoelectrics))]
-
-    c_map = {}
-    t_map = {}
-
-    for i, t in enumerate(thermoelectrics):
-        t_map[t.id] = i
-
-    for i, c in enumerate(circuits):
-        c_map[c.id] = i
-
-    max_cost = 1
-    for t, c, cost, _ in template:
-        matrix[t_map[t]][c_map[c]] = cost
-        max_cost = max(max_cost, cost)
-
-    for t, c, _, _ in template:
-        matrix[t_map[t]][c_map[c]] /= max_cost
-
-    return matrix
-
-
-def set_importance(ci:list[Circuit]):
+def set_importance(ci: list[Circuit]):
     for circuit in ci:
         for block in circuit.blocks:
             block.importance = get_block_importance(block)
         circuit.importance = get_circuit_importance(circuit)
 
 
-matrix = distance_template_to_distance_matrix(distance_cost_template, ti, ci)
 set_importance(ci)

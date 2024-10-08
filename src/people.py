@@ -1015,7 +1015,7 @@ class ChiefElectricCompanyAgent(Person):
         demand : float =  block.predicted_demand_per_hour[hour] if predicted else block.demand_per_hour[hour]
 
         return (
-            distance_cost * demand
+            demand + distance_cost * demand
             if return_sum
             else (distance_cost, demand)
         )
