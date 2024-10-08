@@ -44,7 +44,7 @@ map_2d = Map2D(
     no_thermoelectrics=NO_THERMOELECTRICS,
 )
 
-map_2d.visualize()
+# map_2d.visualize()
 
 graphMap = GraphMap(
     thermoelectric_labels=[f"Th{i}" for i in range(NO_THERMOELECTRICS)],
@@ -116,7 +116,7 @@ for i in mapper_circuit_with_thermoelectric:
     )
 
 nx.draw(G, with_labels=True, font_weight="bold")
-plt.show()
+# plt.show() 
 
 
 # Generate thermoelectrics
@@ -151,8 +151,8 @@ for (
         )
     )
 
-for t in ti:
-    print(t.id, t.total_capacity)
+# for t in ti:
+#     print(t.id, t.total_capacity)
 
 ### CHIEF
 # Auxiliary functions
@@ -176,10 +176,10 @@ def get_circuit_importance(circuit: Circuit) -> float:
     ) * IMPORTANCE_ALPHA + circuit.industrialization * (1 - IMPORTANCE_ALPHA)
 
 
-def get_block_importance(block: Block) -> float:
-    return (
-        block.citizens / auxiliary_data_max_population_of_circuits
-    ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
+# def get_block_importance(block: Block) -> float:
+#     return (
+#         block.citizens.amount / auxiliary_data_max_population_of_circuits
+#     ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
 
 
 def distance_template_to_distance_matrix(
@@ -187,7 +187,7 @@ def distance_template_to_distance_matrix(
     thermoelectrics: list[Thermoelectric],
     circuits: list[Circuit],
 ):
-    matrix = [[] * len(thermoelectrics)] * len(circuits)
+    matrix = [[-1 for _ in range(len(circuits))] for _ in range(len(thermoelectrics))]
 
     c_map = {}
     t_map = {}
@@ -198,18 +198,23 @@ def distance_template_to_distance_matrix(
     for i, c in enumerate(circuits):
         c_map[c.id] = i
 
+    max_cost = 1
     for t, c, cost, _ in template:
         matrix[t_map[t]][c_map[c]] = cost
-
-    max_value = max(matrix)
+        max_cost = max(max_cost, cost)
 
     for t, c, _, _ in template:
-        matrix[t_map[t]], matrix[c_map[c]] /= max_value
+        matrix[t_map[t]][c_map[c]] /= max_cost
 
     return matrix
 
+def set_importance(ci):
+    for circuit in ci:
+        circuit.importance = get_circuit_importance(circuit)
 
-# print(distance_cost_template(distance_cost_template, ti, ci))
+
+matrix = distance_template_to_distance_matrix(distance_cost_template, ti, ci)
+set_importance(ci)
 
 
 # worldstate = WorldState(ci, ti)
