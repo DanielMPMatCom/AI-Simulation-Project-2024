@@ -843,6 +843,11 @@ class ChiefElectricCompanyAgent(Person):
             self.circuits
         )
 
+        self.max_importance_of_all_circuits = sum(
+            sum(block.importance for block in circuit.blocks) for circuit in self.circuits
+        )  # TODO : Implement circuit importance
+        
+
     def brf(self) -> None:
         """
         Belief Revision Function: Updates the agent's beliefs based on new perceptions.
@@ -921,6 +926,7 @@ class ChiefElectricCompanyAgent(Person):
         self.beliefs["general_opinion"] = (
             self.perception.longest_sequence_off_per_block_in_circuits
         )
+
 
     def generate_desires(self) -> None:
         """
@@ -1033,25 +1039,25 @@ class ChiefElectricCompanyAgent(Person):
             ],
         )
 
+    # TODO: Refactor to include common factors such as blocks supplied with energy, sum of costs, distances, etc.
     def distribute_energy_to_blocks_from_thermoelectrics(
         self, complete_distribution: list[list], thermoelectrics, circuits
     ):  # make the distribution
 
         for block_key, distribution in enumerate(complete_distribution):
             days_off = []
-            (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
+            (circuit_index, _) = self.mapper_key_to_circuit_block[block_key]
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index == -1:
                     days_off.append(False)
                 else:
                     days_off.append(True)
-                    thermoelectrics[thermoelectric_index].consume_energy(
-                        self.get_cost_to_meet_demand_from_thermoelectric_to_block(
-                            thermoelectric_index=thermoelectric_index,
-                            block_key=block_key,
-                            hour=hour,
-                        )
+                    cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                        thermoelectric_index=thermoelectric_index,
+                        block_key=block_key,
+                        hour=hour,
                     )
+                    thermoelectrics[thermoelectric_index].consume_energy(cost)
             circuits[circuit_index].set_days_distribution(days_off)
 
     def max_stored_energy_intention_func(
@@ -1061,9 +1067,12 @@ class ChiefElectricCompanyAgent(Person):
     ):
         energy = 0
         distance_percent = 0
+        count = 0
+        
         for block_key, distribution in enumerate(complete_distribution):
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index != -1:
+                    count +=1
                     energy, distance_percent += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
@@ -1071,7 +1080,7 @@ class ChiefElectricCompanyAgent(Person):
                         return_sum=False,
                     )
                     
-        return ( 1 - distance_percent * DISTANCE_REGULATOR ) if energy >= self.beliefs['general_demand'] else 0
+        return ( 1 - (distance_percent * DISTANCE_REGULATOR) / count ) if energy >= self.beliefs['general_demand'].value else 0
 
 
     def meet_demand_intention_func(
@@ -1090,7 +1099,7 @@ class ChiefElectricCompanyAgent(Person):
                         return_sum=False,
                     )
 
-        return self.beliefs['general_demand'] - energy
+        return 1 - max(self.beliefs['general_demand'].value - energy, 0)  / self.beliefs['general_demand'].value
 
 
     def prioritize_block_importance_intention_func(
@@ -1098,27 +1107,46 @@ class ChiefElectricCompanyAgent(Person):
         perception: ChiefElectricCompanyAgentPerception,
         complete_distribution: list[list[int]],
     ):
-
-        # TODO: Complete this function
-        return
+        total_importance = 0
+        for block_key, distribution in enumerate(complete_distribution):
+            (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
+            on_hours = sum(1 for x in distribution if x >= 0)
+            total_importance += on_hours * self.circuits[circuit_index].blocks[block_index].importanceId
+        
+        return total_importance / self.max_importance_of_all_circuits * 24
 
     def prioritize_block_opinion_intention_func(
-        self, perception: ChiefElectricCompanyAgentPerception
+        self, perception: ChiefElectricCompanyAgentPerception, complete_distribution: list[list[int]],
     ):
-        # TODO: Complete this function
-        return
+        total_opinion = 0
+        
+        for block_key, distribution in enumerate(complete_distribution):
+            on_hours = sum(1 for x in distribution if x >= 0)
+            total_opinion += on_hours * self.beliefs['opinion_per_block_in_circuits'].value[block_key]
+
+        return total_opinion / (sum(self.beliefs['opinion_per_block_in_circuits'].value) * 24)
 
     def prioritize_consecutive_days_off_intention_func(
-        self, perception: ChiefElectricCompanyAgentPerception
+        self, perception: ChiefElectricCompanyAgentPerception,  complete_distribution: list[list[int]],
     ):
-        # TODO: Complete this function
-        return
+        total_consecutive_days = 0
+        
+        for block_key, distribution in enumerate(complete_distribution):
+            on_hours = sum(1 for x in distribution if x >= 0)
+            total_consecutive_days += on_hours * self.beliefs['longest_sequence_off_per_block_in_circuits'].value[block_key]
+
+        return total_consecutive_days / (sum(self.beliefs['longest_sequence_off_per_block_in_circuits'].value) * 24)
 
     def prioritize_days_off_intention_func(
-        self, perception: ChiefElectricCompanyAgentPerception
+        self, perception: ChiefElectricCompanyAgentPerception,  complete_distribution: list[list[int]],
     ):
-        # TODO: Complete this function
-        return
+        total_off_days = 0
+        
+        for block_key, distribution in enumerate(complete_distribution):
+            on_hours = sum(1 for x in distribution if x >= 0)
+            total_off_days += on_hours * self.beliefs['prioritize_days_off'].value[block_key]
+
+        return total_off_days / (sum(self.beliefs['prioritize_days_off'].value) * 24)
 
     def execute(self) -> "ChiefElectricCompanyAction":
         intention_executed = []
@@ -1209,7 +1237,7 @@ class ChiefElectricCompanyAgent(Person):
             ),
             (
                 lambda beliefs: beliefs["general_opinion"].value >= 0.4
-                and beliefs["genreal_opinion"].value <= 0.7,
+                and beliefs["general_opinion"].value <= 0.7,
                 "neutral general opinion",
             ),
             (

@@ -2,6 +2,7 @@ from src.map import Map2D, GraphMap
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from src.circuits import Circuit, Block
 from src.thermoelectrics import Thermoelectric
+
 # from src.worldstate import WorldState
 from numpy.random import default_rng
 import networkx as nx
