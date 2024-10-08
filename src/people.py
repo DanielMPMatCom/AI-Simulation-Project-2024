@@ -993,7 +993,7 @@ class ChiefElectricCompanyAgent(Person):
         return mapper
 
     def get_cost_to_meet_demand_from_thermoelectric_to_block(
-        self, thermoelectric_index, block_key, hour, return_sum=True
+        self, thermoelectric_index, block_key, hour, return_sum=True, predicted = True
     ) -> float | tuple[int, int]:
 
         (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
@@ -1012,10 +1012,12 @@ class ChiefElectricCompanyAgent(Person):
 
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
 
+        demand : float =  block.predicted_demand_per_hour[hour] if predicted else block.demand_per_hour[hour]
+
         return (
-            distance_cost * block.predicted_demand_per_hour[hour]
+            distance_cost * demand
             if return_sum
-            else (distance_cost, block.predicted_demand_per_hour[hour])
+            else (distance_cost, demand)
         )
 
     def generic_objective_function(
@@ -1061,6 +1063,7 @@ class ChiefElectricCompanyAgent(Person):
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
                         hour=hour,
+                        predicted=False
                     )
                     thermoelectrics[thermoelectric_index].consume_energy(cost)
             circuits[circuit_index].set_days_distribution(days_off)
