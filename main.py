@@ -159,6 +159,12 @@ def get_circuit_importance(circuit: Circuit) -> float:
     ) * IMPORTANCE_ALPHA + circuit.industrialization * (1 - IMPORTANCE_ALPHA)
 
 
+def get_block_importance(block: Block) -> float:
+    return (
+        block.citizens / auxiliary_data_max_population_of_circuits
+    ) * IMPORTANCE_ALPHA + block.industrialization * (1 - IMPORTANCE_ALPHA)
+
+
 def distance_template_to_distance_matrix(
     template: list[tuple[str, str, float, list[str]]],
     thermoelectrics: list[Thermoelectric],
@@ -186,8 +192,10 @@ def distance_template_to_distance_matrix(
     return matrix
 
 
-def set_importance(ci):
+def set_importance(ci:list[Circuit]):
     for circuit in ci:
+        for block in circuit.blocks:
+            block.importance = get_block_importance(block)
         circuit.importance = get_circuit_importance(circuit)
 
 
