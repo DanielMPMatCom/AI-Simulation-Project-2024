@@ -20,7 +20,7 @@ from src.bdi import (
 from circuits import Circuit, Block
 from part import Part
 from genetic_per_hour import genetic_algorithm
-from simulation_constants import DISTANCE_REGULATOR
+from simulation_constants import DISTANCE_REGULATOR, OBJECTIVE_FUNCTION_INTENTION_PARAMS_WEIGHT,OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT
 
 class Person:
     """
@@ -704,6 +704,7 @@ class ChiefElectricCompanyAgent(Person):
         perception: "ChiefElectricCompanyAgentPerception",
         rules,
         current_rules,
+        learn = False
     ):
         Person.__init__(self, name=name, id=id)
 
@@ -846,7 +847,8 @@ class ChiefElectricCompanyAgent(Person):
         self.max_importance_of_all_circuits = sum(
             sum(block.importance for block in circuit.blocks) for circuit in self.circuits
         )  # TODO : Implement circuit importance
-        
+    
+        self.learn = learn
 
     def brf(self) -> None:
         """
@@ -926,6 +928,9 @@ class ChiefElectricCompanyAgent(Person):
         self.beliefs["general_opinion"] = (
             self.perception.longest_sequence_off_per_block_in_circuits
         )
+
+        if self.learn:
+            self.learn_new_desires()
 
 
     def generate_desires(self) -> None:
@@ -1014,13 +1019,13 @@ class ChiefElectricCompanyAgent(Person):
         )
 
     def generic_objective_function(
-        self, complete_distribution: list[list], funcs: callable
+        self, complete_distribution: list[list], funcs: callable, params: list
     ) -> float:
 
         y = 0
 
-        for func in funcs:
-            y += func(self.perception, complete_distribution)
+        for pi,func in enumerate(funcs):
+            y += func(self.perception, complete_distribution) * params[pi]
 
         return y
 
@@ -1161,12 +1166,16 @@ class ChiefElectricCompanyAgent(Person):
         }
 
         intentions_func = []
+        intentions_params = []
 
         for intention, func in intention_map.items():
             if self.intentions[intention].value:
                 self.intentions[intention].value = False
                 intention_executed.append(intention)
                 intentions_func.append(func)
+                intentions_params.append(OBJECTIVE_FUNCTION_INTENTION_PARAMS_WEIGHT)
+            else:
+                intentions_params.append(OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT)
 
         final_distribution, _ = genetic_algorithm(
             get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
@@ -1176,7 +1185,7 @@ class ChiefElectricCompanyAgent(Person):
             blocks=len(self.mapper_key_to_circuit_block),
             mutation_rate=0,
             ft=lambda distribution: self.generic_objective_function(
-                complete_distribution=distribution, funcs=intentions_func
+                complete_distribution=distribution, funcs=intentions_func, params=intentions_params
             ),
         )
 
