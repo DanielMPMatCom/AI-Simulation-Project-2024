@@ -93,15 +93,16 @@ class ThermoelectricAgentPerception:
 
     def __str__(self):
         power_output = [
-            (str(part), reduction)
+            (part.__class__.__name__, reduction)
             for part, reduction in self.power_output_reduction_on_part_failure
         ]
-        print(self.thermoelectric.parts)
-        print(self.power_output_reduction_on_part_failure)
+
+        parts_status = [( p.__class__.__name__ , s, c ) for p,s,c in self.parts_status]
+
         properties = f"""{{
             "thermoelectric: {self.thermoelectric},
             "plant_status": {self.plant_status},
-            "parts_status": {self.parts_status},
+            "parts_status": {parts_status},
             "broken_parts": {[str(part) for part in self.broken_parts]},
             "max_capacity": {self.max_capacity},
             "current_capacity": {self.current_capacity},

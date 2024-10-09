@@ -47,12 +47,12 @@ class Thermoelectric:
 
     def __init__(self, id, total_capacity: int) -> None:
         self.id = id
-        self.parts: list[Part] = []
+        self.parts: list["Part"] = []
         self.total_capacity = total_capacity
         self.current_capacity = 0
         self.stored_energy = 0
-        self.update_capacity()
         self.create_parts()
+        self.update_capacity()
 
     def __str__(self):
         properties = {
@@ -209,10 +209,12 @@ class Thermoelectric:
         Updates the current capacity of the thermoelectric based on the number of working Boilers.
         """
         working_boilers = self.get_working_boilers()
+        print(working_boilers, "working boilers")
         if working_boilers > 0:
             self.current_capacity = (
                 working_boilers / self.get_total_boilers()
             ) * self.total_capacity
+            print("se acrtulaizo")
         else:
             self.current_capacity = 0
 

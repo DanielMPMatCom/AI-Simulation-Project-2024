@@ -105,6 +105,7 @@ class Block:
 
         self.demand_per_hour: list[float] = []
         self.predicted_demand_per_hour: list[float] = self.predict_demand_per_hour()
+        self.predicted_total_demand = sum(self.predicted_demand_per_hour)
         self.importance = 0
         self.mock_electric_consume = self.get_mock_electric_consume()
 
@@ -162,9 +163,17 @@ class Block:
         return self.citizens.opinion if self.citizens.opinion is not None else 0.8
 
     def get_consumed_energy_today(self) -> float:
-        return sum(self.demand_per_hour[: self.off_hours[0]]) + sum(
-            self.demand_per_hour[self.off_hours[1] :]
+        # real energy consumed in the day
+        return sum(
+            [
+                demand
+                for hour, demand in enumerate(self.demand_per_hour)
+                if not self.off_hours[hour]
+            ]
         )
+
+    def get_predicted_consume_for_today(self) -> float:
+        return self.predicted_total_demand
 
     def last_days_off(self):
         return sum(1 for report in self.history_report if report.time_off > 0)

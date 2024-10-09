@@ -52,7 +52,6 @@
 # )
 
 
-
 # predicted_consumption = myBlock.predicted_demand_per_hour
 
 # plt.plot(predicted_consumption)
@@ -60,9 +59,32 @@
 
 from src.thermoelectrics import Thermoelectric
 
-myThermoelectric = Thermoelectric(
-    "testingID", total_capacity=41 * 1e3
-)
+myThermoelectric = Thermoelectric("testingID", total_capacity=41 * 1e3)
 
+
+days = 10**6
 for p in myThermoelectric.parts:
-    print(p)
+    days = min(p.remaining_life, days)
+
+for i in range(int(days + 2)):
+    print("DAY: ", i)
+    for p in myThermoelectric.parts:
+        print(p)
+        if not p.is_working():
+            p.repair()
+            p.hurry_repair()
+            print("HURRY REPAIR!!!  ---------------------------------------------------------------------->")
+
+    myThermoelectric.update()
+
+
+for i in range(int(5)):
+    print("DAY: ", i)
+    for p in myThermoelectric.parts:
+        print(p)
+        if not p.is_working():
+            p.repair()
+            p.hurry_repair()
+          
+
+    myThermoelectric.update()

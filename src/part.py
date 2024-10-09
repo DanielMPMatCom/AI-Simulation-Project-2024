@@ -1,5 +1,6 @@
 from src.utils.lognormal import LogNormal
 from src.utils.weibull import Weibull
+from src.simulation_constants import RANDOM, HURRY_REPAIR_ALPHA
 
 
 class Part:
@@ -7,7 +8,7 @@ class Part:
     Represents a general part of a thermoelectric plant. Each part has a life expectancy and can be repaired.
     """
 
-    def __init__(self, lognormal: LogNormal, weibull: Weibull) -> None:
+    def __init__(self, lognormal: "LogNormal", weibull: "Weibull") -> None:
         self.lognormal = lognormal
         self.weibull = weibull
 
@@ -48,7 +49,8 @@ class Part:
     def hurry_repair(self):
         if self.is_repairing():
             self.remaining_repair_days = 0
-            self.plan_break_date()  # TODO: Anadir parametros malos
+            self.estimated_repair_days = 0
+            self.plan_break_date(hard=True)
 
         else:
             raise RuntimeError("Hurry repair in part that isn't repairing")
@@ -62,14 +64,39 @@ class Part:
 
         self.set_repairing(True)
         self.remaining_repair_days = self.lognormal.generate()
-        self.estimated_repair_days = self.lognormal.generate()
 
-    def plan_break_date(self):
+        count = 0
+        self.estimated_repair_days = 0
+        for _ in range(1000):
+            count += 1
+            self.estimated_repair_days += self.lognormal.generate()
+        self.estimated_repair_days /= count
+
+    def plan_break_date(self, hard=False):
         """
         Plan the date when the part will break based on its life expectancy.
         """
-        self.remaining_life = self.weibull.generate()
-        self.estimated_remaining_life = self.weibull.generate()
+        self.remaining_life = (
+            self.weibull.generate()
+            if not hard
+            else self.weibull.generate_with_params(
+                alpha=RANDOM.uniform(0, HURRY_REPAIR_ALPHA), scale=self.weibull.scale
+            )
+        )
+
+        count = 0
+        self.estimated_remaining_life = 0
+        for _ in range(1000):
+            count += 1
+            self.estimated_remaining_life += (
+                self.weibull.generate()
+                if not hard
+                else self.weibull.generate_with_params(
+                    alpha=RANDOM.uniform(0, HURRY_REPAIR_ALPHA),
+                    scale=self.weibull.scale,
+                )
+            )
+        self.estimated_remaining_life /= count
 
     def set_repairing(self, value: bool):
         self.repairing = value
