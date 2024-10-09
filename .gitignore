@@ -1,4 +1,7 @@
-testing.py
 .env
 .idea
 ./
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
