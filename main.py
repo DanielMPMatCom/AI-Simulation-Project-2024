@@ -22,7 +22,7 @@ from src.simulation_constants import (
     MAX_DEVIATION_EVENING,
     WEIGHT_MORNING,
     WEIGHT_EVENING,
-    RANDOM_SEED,
+    RANDOM,
     MIN_BLOCKS_PER_CIRCUIT,
     MAX_BLOCKS_PER_CIRCUIT,
     IMPORTANCE_ALPHA,
@@ -49,18 +49,17 @@ graphMap = GraphMap(
 distance_cost_template = graphMap.thermoelectric_generation_cost
 
 # Generate circuits for map
-rng = default_rng(RANDOM_SEED)
 
 ci: list[Circuit] = []
 for i in range(NO_CIRCUITS):
-    citizen_count = rng.integers(MIN_CITIZEN, MAX_CITIZEN)
+    citizen_count = RANDOM.integers(MIN_CITIZEN, MAX_CITIZEN)
     citizen_range = (
         max(citizen_count - MAX_DEVIATION_CITIZEN_IN_BLOCK, 0),
         min(citizen_count + MAX_DEVIATION_CITIZEN_IN_BLOCK, MAX_CITIZEN),
     )
 
     industrialization = (
-        rng.integers(0, DEMAND_INDUSTRIALIZATION) / DEMAND_INDUSTRIALIZATION
+        RANDOM.integers(0, DEMAND_INDUSTRIALIZATION) / DEMAND_INDUSTRIALIZATION
     )
 
     bimodal_consumption = DailyElectricityConsumptionBimodal(
@@ -70,8 +69,8 @@ for i in range(NO_CIRCUITS):
         + VARIABILITY_DEMAND_PER_INDUSTRIALIZATION * industrialization,
         mean_morning=PEAK_CONSUMPTION_MORNING,
         mean_evening=PEAK_CONSUMPTION_EVENING,
-        std_morning=rng.uniform(1.0, MAX_DEVIATION_MORNING),
-        std_evening=rng.uniform(1.0, MAX_DEVIATION_EVENING),
+        std_morning=RANDOM.uniform(1.0, MAX_DEVIATION_MORNING),
+        std_evening=RANDOM.uniform(1.0, MAX_DEVIATION_EVENING),
         weight_morning=WEIGHT_MORNING,
         weight_evening=WEIGHT_EVENING,
     )

@@ -1,4 +1,4 @@
-import random
+from src.simulation_constants import RANDOM
 
 
 def single_point_0(
@@ -18,9 +18,10 @@ def single_point_0(
     Returns:
         None: The function modifies the chromosome in place.
     """
-    index = random.randint(0, len(chromosome) - 1)
-    time = random.randint(0, 23)
-    chromosome[index][time] = random.randint(0, len(capacities) - 1)
+    index = RANDOM.integers(0, len(chromosome) - 1)
+    time = RANDOM.integers(0, 23)
+    thermoelectric = RANDOM.integers(0, len(capacities) - 1)
+    chromosome[index][time] = thermoelectric
 
 
 def single_point_1(
@@ -41,9 +42,10 @@ def single_point_1(
     Returns:
         None: The function modifies the input chromosome in place.
     """
-    index = random.randint(0, len(chromosome) - 1)
+    index = RANDOM.integers(0, len(chromosome) - 1)
     for time in range(24):
-        chromosome[index][time] = random.randint(0, len(capacities) - 1)
+        thermoelectric = RANDOM.integers(0, len(capacities) - 1)
+        chromosome[index][time] = thermoelectric
 
 
 def single_point_2(
@@ -65,8 +67,9 @@ def single_point_2(
         None: The function modifies the chromosome in place.
     """
     for time in range(24):
-        index = random.randint(len(chromosome) - 1)
-        chromosome[index][time] = random.randint(0, len(capacities) - 1)
+        index = RANDOM.integers(0, len(chromosome) - 1)
+        thermoelectric = RANDOM.integers(0, len(capacities) - 1)
+        chromosome[index][time] = thermoelectric
 
 
 def multiple_points(
@@ -76,7 +79,7 @@ def multiple_points(
     """
     Applies multiple point mutations to a given chromosome.
 
-    This function randomly selects a number of points within the chromosome and 
+    This function randomly selects a number of points within the chromosome and
     mutates them by assigning a new random value based on the capacities list.
 
     Parameters:
@@ -86,11 +89,12 @@ def multiple_points(
     Returns:
     None: The function modifies the chromosome in place.
     """
-    index_amount = random.randint(0, len(chromosome) // 2 * random.randint(1, 12))
-    for _ in index_amount:
-        index = random.randint(len(chromosome) - 1)
-        time = random.randint(0, 23)
-        chromosome[index][time] = random.randint(len(capacities) - 1)
+    index_amount = RANDOM.integers(0, len(chromosome) // 2 * RANDOM.integers(1, 12))
+    for _ in range(index_amount):
+        index = RANDOM.integers(0, len(chromosome) - 1)
+        time = RANDOM.integers(0, 23)
+        thermoelectric = RANDOM.integers(0, len(capacities) - 1)
+        chromosome[index][time] = thermoelectric
 
 
 def swap_points(
@@ -105,12 +109,12 @@ def swap_points(
     Returns:
         None: The function modifies the input chromosome in place.
     """
-    index_amount = random.randint(0, len(chromosome) // 2 * random.randint(1, 12))
-    for _ in index_amount:
-        index_1 = random.randint(0, len(chromosome) - 1)
-        index_2 = random.randint(0, len(chromosome) - 1)
-        time_1 = random.randint(0, 23)
-        time_2 = random.randint(0, 23)
+    index_amount = RANDOM.integers(0, len(chromosome) // 2 * RANDOM.integers(1, 12))
+    for _ in range(index_amount):
+        index_1 = RANDOM.integers(0, len(chromosome) - 1)
+        index_2 = RANDOM.integers(0, len(chromosome) - 1)
+        time_1 = RANDOM.integers(0, 23)
+        time_2 = RANDOM.integers(0, 23)
 
         chromosome[index_1][time_1], chromosome[index_2][time_2] = (
             chromosome[index_2][time_2],
@@ -135,8 +139,8 @@ def rotation(
         None: The function modifies the chromosome in place.
     """
     for time in range(24):
-        index = random.randint(1, len(chromosome) - 2)
-        if random.random() <= 0.5:
+        index = RANDOM.integers(1, len(chromosome) - 2)
+        if RANDOM.uniform(0, 1) <= 0.5:
             chromosome = chromosome[index:][time] + chromosome[: index - 1][time]
         else:
             chromosome = chromosome[: index - 1][time] + chromosome[index:][time]
