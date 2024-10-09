@@ -1081,12 +1081,14 @@ class ChiefElectricCompanyAgent(Person):
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index != -1:
                     count +=1
-                    energy, distance_percent += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                    cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
                         hour=hour,
                         return_sum=False,
                     )
+                    energy += cost[0]
+                    distance_percent += cost[1]
                     
         return ( 1 - (distance_percent * DISTANCE_REGULATOR) / count ) if energy >= self.beliefs['general_demand'].value else 0
 
@@ -1100,12 +1102,13 @@ class ChiefElectricCompanyAgent(Person):
         for block_key, distribution in enumerate(complete_distribution):
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index != -1:
-                    energy, _ += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                    cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
                         hour=hour,
                         return_sum=False,
                     )
+                    energy += cost[0]
 
         return 1 - max(self.beliefs['general_demand'].value - energy, 0)  / self.beliefs['general_demand'].value
 
