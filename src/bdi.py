@@ -1,6 +1,6 @@
-from generative_ai import GenAIModel
-from src.people import ThermoelectricAgent, ChiefElectricCompanyAgent
-from part import Coils, SteamTurbine, Generator, Boiler
+# from src.people import ThermoelectricAgent, ChiefElectricCompanyAgent
+from src.generative_ai import GenAIModel
+from src.part import Coils, SteamTurbine, Generator, Boiler
 
 
 class Belief:
@@ -51,7 +51,7 @@ class TAMaxPowerOutputDesire(Desire):
         )
         self.weight = 1
 
-    def evaluate(self, agent: "ThermoelectricAgent"):
+    def evaluate(self, agent):
         if (
             agent.beliefs["general_deficit"].value > 0
             and agent.beliefs["current_capacity"] < agent.beliefs["max_capacity"]
@@ -75,7 +75,7 @@ class TAPreventUnexpectedBreakdownDesire(Desire):
         )
         self.weight = 2
 
-    def evaluate(self, agent: "ThermoelectricAgent"):
+    def evaluate(self, agent):
         if any(
             [(time <= 1) for _, _, time in agent.beliefs["parts_status"].value]
         ) and all(
@@ -103,7 +103,7 @@ class TAMinimizeDowntimeDesire(Desire):
         Desire.__init__(value, "Desire to minimize downtime", "minimize_downtime")
         self.weight = 3
 
-    def evaluate(self, agent: "ThermoelectricAgent"):
+    def evaluate(self, agent):
         if (
             agent.beliefs["plant_is_working"].value == False
             and agent.beliefs["general_deficit"].value > 0
@@ -122,7 +122,7 @@ class TAMeetEnergyDemandDesire(Desire):
         Desire.__init__(value, "Desire to meet energy demand", "meet_energy_demand")
         self.weight = 4
 
-    def evaluate(self, agent: "ThermoelectricAgent"):
+    def evaluate(self, agent):
         if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
             agent.desires["meet_energy_demand"] = True
         else:
@@ -142,7 +142,7 @@ class TAPrioritizeCriticalPartsRepairDesire(Desire):
         )
         self.weight = 5
 
-    def evaluate(self, agent: "ThermoelectricAgent"):
+    def evaluate(self, agent):
 
         broken_boilers = sum(
             1
@@ -177,7 +177,7 @@ class TARepairPartsDesire(Desire):
         )
         self.weight = 6
 
-    def evaluate(self, agent: "ThermoelectricAgent"):
+    def evaluate(self, agent):
         agent.desires["repair_parts"] = [
             (part, part in agent.beliefs["broken_parts"].value)
             for part in agent.thermoelectric.parts
@@ -199,7 +199,7 @@ class CECAMaxStoredEnergyDesire(Desire):
         )
         self.weight = 5
 
-    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+    def evaluate(self, agent):
         if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
             agent.desires["max_stored_energy"] = True
         else:
@@ -220,7 +220,7 @@ class CECAMeetDemandDesire(Desire):
         )
         self.weight = 5
 
-    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+    def evaluate(self, agent):
         if (
             agent.beliefs["general_demand"].value
             >= agent.beliefs["general_offer"].value
@@ -244,7 +244,7 @@ class CECAPrioritizeBlockImportance(Desire):
         )
         self.weight = 2
 
-    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+    def evaluate(self, agent):
         if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
             agent.desires["prioritize_block_importance"] = True
         else:
@@ -266,7 +266,7 @@ class CECAPrioritizeBlockOpinion(Desire):
         )
         self.weight = 2
 
-    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+    def evaluate(self, agent):
         bad_opinions = [
             opinion < 0.5
             for (_, _, opinion) in agent.beliefs["opinion_per_block_in_circuits"].value
@@ -297,7 +297,7 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
         )
         self.weight = 1
 
-    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+    def evaluate(self, agent):
         sequences = agent.beliefs["longest_sequence_off_per_block_in_circuits"].value
         affected_blocks = [days > 3 for days in sequences]
 
@@ -325,7 +325,7 @@ class CECAPrioritizeDaysOff(Desire):
         )
         self.weight = 1
 
-    def evaluate(self, agent: "ChiefElectricCompanyAgent"):
+    def evaluate(self, agent):
         days_off = agent.beliefs["days_off_per_block_in_circuits"].value
         affected_blocks = [days > 7 for days in days_off]
 
@@ -351,7 +351,7 @@ class CECAGeneratedDesire:
         self.desires = desires
         self.conditions = conditions
 
-    def evaluate(self, agent: ChiefElectricCompanyAgent):
+    def evaluate(self, agent):
         for condition in self.conditions:
             if not condition(agent.beliefs):
                 return
@@ -385,7 +385,7 @@ class DesireGenerator:
             conditions = ["fully covered system", "neutral general opinion", "many thermoelectrics working"]
             desires = ["prioritize_block_opinion", "prioritize_block_importance"]
             The desires list is: ["meet_demand", "prioritize_block_importance", "prioritize_block_opinion", "prioritize_consecutive_days_off", "prioritize_days_off"]
-            Here are the desires you should consider and an explination of what each one of them means in this context:
+            Here are the desires you should consider and an explanation of what each one of them means in this context:
             "meet_demand": Desire to meet the demand when there is a generation deficit.
             "prioritize_block_importance": Desire to prioritize supplying energy to blocks of greater importance.
             "prioritize_block_opinion": Desire to prioritize supplying energy to blocks with the worst public opinion.
@@ -399,7 +399,7 @@ class DesireGenerator:
 
     def generate_new_desire(self, conditions: str = "no conditions"):
         if conditions == "no conditions":
-            raise Exception("No conditions have been provided")
+            raise RuntimeError("No conditions have been provided")
 
         query = f"""
         The list of conditions is as follows: {conditions}

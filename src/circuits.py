@@ -171,10 +171,13 @@ class Block:
 
     def longest_sequence_of_days_off(self):
         return max(
-            sum(1 for _ in group)
-            for _, group in groupby(
-                self.history_report, key=lambda report: report.time_off > 0
-            )
+            (
+                sum(1 for _ in group)
+                for _, group in groupby(
+                    self.history_report, key=lambda report: report.time_off > 0
+                )
+            ),
+            default=0,
         )
 
     def set_days_distribution(self, off_hours: list[bool]):
