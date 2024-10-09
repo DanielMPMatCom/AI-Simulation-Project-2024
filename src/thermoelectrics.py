@@ -15,6 +15,23 @@ class Thermoelectric:
         self.stored_energy = 0
         self.update_capacity()
 
+    def __str__(self):
+        properties = f"""{
+            "id": self.id,
+            "total_capacity": self.total_capacity,
+            "current_capacity": self.current_capacity,
+            "stored_energy": self.stored_energy,
+            "parts": [
+                {
+                    "type": type(part).__name__,
+                    "is_working": part.is_working(),
+                    "estimated_remaining_life": part.estimated_remaining_life,
+                }
+                for part in self.parts
+            ],
+        }"""
+        return properties
+
     def update(self):
         """
         Updates the state of all parts in the thermoelectric.

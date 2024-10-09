@@ -395,6 +395,7 @@ def ft(chromosome):
     return result
 
 
+"""EXample
 capacities = [24, 24, 24, 24]
 generations = 5
 pop_size = 1
@@ -409,3 +410,4 @@ print(fitness)
 
 for t in range(len(chromosome) - 1):
     print(f"{t} {chromosome[t]}")
+"""

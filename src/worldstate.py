@@ -7,19 +7,16 @@ class WorldState:
         self,
         circuits: list["Circuit"],
         thermoelectrics: list["Thermoelectric"],
-        distance_template: list[tuple[str, str, list[str]]],
+        distance_matrix: list[list[float]],
         get_circuit_importance: callable,
         get_block_importance: callable,
     ) -> None:
 
         self.circuits = circuits
         self.thermoelectrics = thermoelectrics
-        self.distance_template = [
-            (t_id, c_id, cost) for (t_id, c_id, cost, _) in distance_template
-        ]
+        self.distance_matrix = distance_matrix
         self.get_circuit_importance = get_circuit_importance
         self.get_block_importance = get_block_importance
-
         self.update()
 
     def update(self):
@@ -32,17 +29,6 @@ class WorldState:
             for circuit in self.circuits
             for block_id, block in enumerate(circuit.blocks)
         ]
-
-        self.total_demand_per_circuits = [
-            sum([block.demand_per_hour for block in circuit.blocks])
-            for circuit in self.circuits
-        ]
-
-        self.general_demand = sum(self.total_demand_per_circuits)
-
-        self.general_deficit = self.general_demand - sum(
-            [t.current_capacity for t in self.thermoelectrics]
-        )
 
         self.importance_circuit = [
             self.get_circuit_importance(circuit) for circuit in self.circuits
@@ -80,16 +66,21 @@ class WorldState:
             for block_id, block in enumerate(circuit.blocks)
         ]
 
-        self.total_offer = sum(
+        self.general_offer = sum(
             [thermoelectric.current_capacity for thermoelectric in self.thermoelectrics]
         )
-        self.total_demand = sum(
+
+        # for c in self.circuits:
+        #     print(sum([block.get_consumed_energy_today() for block in c.blocks]))
+
+        self.general_demand = sum(
             [
-                (block.get_consumed_energy_today for block in circuit.blocks)
+                sum(block.get_consumed_energy_today() for block in circuit.blocks)
                 for circuit in self.circuits
             ]
         )
-        self.total_deficit = min(self.total_demand - self.total_offer)
+
+        self.general_deficit = max(self.general_offer - self.general_demand, 0)
         self.general_satisfaction = self.get_general_satisfaction()
 
     def get_general_satisfaction(self):
