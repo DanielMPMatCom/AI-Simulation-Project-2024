@@ -1,26 +1,34 @@
 {
     "cSpell.words": [
         "arange",
+        "bordercolor",
         "cmap",
+        "colorscale",
         "facecolor",
         "funcs",
         "gaussianmixture",
+        "hoverinfo",
         "kmeans",
         "lightgreen",
         "linalg",
         "lognormal",
         "ndarray",
         "networkx",
+        "showlegend",
+        "showscale",
         "skfuzzy",
         "splev",
         "splprep",
+        "textposition",
         "thermoelectrics",
         "TODO",
         "trapmf",
         "trimf",
         "viridis",
         "weibull",
-        "worldstate"
+        "worldstate",
+        "xaxis",
+        "yaxis"
     ],
     "cSpell.language": "en"
 }

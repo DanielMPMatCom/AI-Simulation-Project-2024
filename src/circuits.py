@@ -2,7 +2,7 @@ from src.citizen import Citizen
 from src.simulation_constants import DAYS_OF_MEMORY, K_PREDICT_CONSUMPTION_ITER
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from itertools import groupby
-import random
+from numpy import random
 
 
 class Circuit:
@@ -32,6 +32,7 @@ class Circuit:
 
         # General Data
         self.industrialization = industrialization
+        self.importance = 0
 
     def get_all_block_population(self):
         return sum([block.citizens.amount for block in self.blocks])
@@ -104,7 +105,7 @@ class Block:
 
         self.demand_per_hour: list[float] = []
         self.predicted_demand_per_hour: list[float] = self.predict_demand_per_hour()
-
+        self.importance = 0
         self.mock_electric_consume = self.get_mock_electric_consume()
 
     def predict_demand_per_hour(self):

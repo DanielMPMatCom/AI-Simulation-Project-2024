@@ -4,6 +4,7 @@ from sklearn.cluster import KMeans
 from scipy.interpolate import splprep, splev
 from typing import Tuple, Literal
 import networkx as nx
+import plotly.graph_objects as go
 
 
 def distance(point_a, point_b):
@@ -165,9 +166,9 @@ class Map2D:
 
     def visualize(self):
         """
-        Visualizes the map with different components and their connections.
+        Visualizes the map with different components and their connections using Plotly.
 
-        This method uses matplotlib to create a scatter plot of various components
+        This method uses Plotly to create an interactive scatter plot of various components
         on the map, including circuits, thermoelectrics, and tension towers. It also
         plots the connections between these components.
 
@@ -183,6 +184,7 @@ class Map2D:
         Returns:
             None
         """
+
         self.connections = [
             (self.towers_positions[i], self.towers_positions[i + 1])
             for i in range(len(self.towers_positions) - 1)
@@ -190,40 +192,70 @@ class Map2D:
 
         y_means = self.kmeans.predict(self.circuits_positions)
 
-        plt.scatter(
-            self.circuits_positions[:, 0],
-            self.circuits_positions[:, 1],
-            label="Circuits",
-            s=50,
-            cmap="viridis",
-            marker="o",
-            c=y_means,
-        )
-        plt.scatter(
-            self.thermoelectrics_positions[:, 0],
-            self.thermoelectrics_positions[:, 1],
-            c="red",
-            label="Thermoelectrics",
-            s=200,
-            alpha=0.75,
-            marker="X",
-        )
-        plt.scatter(
-            [t[0] for t in self.towers_positions],
-            [t[1] for t in self.towers_positions],
-            c="black",
-            label="Tension Towers",
-            s=100,
-            alpha=0.75,
-            marker="^",
+        fig = go.Figure()
+
+        # Add circuits
+        fig.add_trace(
+            go.Scatter(
+                x=self.circuits_positions[:, 0],
+                y=self.circuits_positions[:, 1],
+                mode="markers",
+                marker=dict(
+                    size=10, color=y_means, colorscale="Viridis", showscale=True
+                ),
+                name="Circuits",
+            )
         )
 
+        # Add thermoelectrics
+        fig.add_trace(
+            go.Scatter(
+                x=self.thermoelectrics_positions[:, 0],
+                y=self.thermoelectrics_positions[:, 1],
+                mode="markers",
+                marker=dict(size=15, color="red", symbol="x"),
+                name="Thermoelectrics",
+            )
+        )
+
+        # Add tension towers
+        fig.add_trace(
+            go.Scatter(
+                x=[t[0] for t in self.towers_positions],
+                y=[t[1] for t in self.towers_positions],
+                mode="markers",
+                marker=dict(size=12, color="black", symbol="triangle-up"),
+                name="Tension Towers",
+            )
+        )
+
+        # Add connections
         for u, v in self.connections:
-            plt.plot([u[0], v[0]], [u[1], v[1]], c="black")
+            fig.add_trace(
+                go.Scatter(
+                    x=[u[0], v[0]],
+                    y=[u[1], v[1]],
+                    mode="lines",
+                    line=dict(color="black"),
+                    showlegend=False,
+                )
+            )
 
-        plt.legend()
-        plt.gca().set_facecolor("lightgreen")
-        plt.show()
+        fig.update_layout(
+            title="Map Visualization",
+            xaxis_title="X Coordinate",
+            yaxis_title="Y Coordinate",
+            legend=dict(
+                x=0.01,
+                y=0.99,
+                bgcolor="rgba(255, 255, 255, 0.5)",
+                bordercolor="rgba(0, 0, 0, 0.5)",
+            ),
+            height=800,
+            plot_bgcolor="lightgreen",
+        )
+
+        fig.show()
 
 
 class MapObject:
@@ -504,13 +536,13 @@ class GraphMap:
         self.wireConnections: list[WireConnection] = []
 
         for i in range(len(self.towers_nodes) - 1):
-            wireConnection = WireConnection(
+            wire_connection = WireConnection(
                 self.towers_nodes[i], self.towers_nodes[i + 1]
             )
-            self.towers_nodes[i].connect_to_wire(wireConnection)
-            self.towers_nodes[i + 1].connect_to_wire(wireConnection)
+            self.towers_nodes[i].connect_to_wire(wire_connection)
+            self.towers_nodes[i + 1].connect_to_wire(wire_connection)
 
-            self.wireConnections.append(wireConnection)
+            self.wireConnections.append(wire_connection)
 
         for circuit in self.circuits_nodes:
             nearest_wire_index, interception, distance = find_nearest_line_to_a_point(
@@ -611,7 +643,7 @@ class GraphMap:
                         w,
                         (
                             accumulative_cost + distance(last_point, t.position)
-                            if tuple(last_point) != None
+                            if tuple(last_point)
                             else 0
                         ),
                         thermoelectric,
@@ -620,8 +652,6 @@ class GraphMap:
                     )
 
                 towers_dependence.pop()
-
-        return
 
     def visualize_thermoelectric_generation_cost(
         self, filter_thermoelectrics: list[str] = []
@@ -684,7 +714,7 @@ class GraphMap:
         """
         Visualizes the map with thermoelectrics, circuits, towers, and their connections.
 
-        This method creates a plot using matplotlib to visualize the nodes and connections
+        This method creates an interactive plot using Plotly to visualize the nodes and connections
         in the map. It includes the following elements:
 
         - Thermoelectrics nodes: Plotted as red 'X' markers with labels.
@@ -697,102 +727,134 @@ class GraphMap:
         The plot also includes a legend and a light green background color.
 
         Note:
-            This method requires matplotlib to be installed and imported as plt.
+            This method requires Plotly to be installed and imported as go.
         """
-        plt.figure()
+        fig = go.Figure()
 
-        for node in self.thermoelectrics_nodes:
-            plt.scatter(
-                *node.position,
-                c="red",
-                label="Thermoelectric" if node == self.thermoelectrics_nodes[0] else "",
-                s=200,
-                alpha=0.75,
-                marker="X",
+        # Add thermoelectrics nodes
+        fig.add_trace(
+            go.Scatter(
+                x=[node.position[0] for node in self.thermoelectrics_nodes],
+                y=[node.position[1] for node in self.thermoelectrics_nodes],
+                mode="markers+text",
+                marker=dict(size=12, color="red", symbol="x"),
+                text=[node.id for node in self.thermoelectrics_nodes],
+                textposition="top center",
+                name="Thermoelectrics",
             )
-            plt.text(
-                node.position[0], node.position[1], node.id, fontsize=9, ha="right"
-            )
+        )
 
-        for node in self.circuits_nodes:
-            plt.scatter(
-                *node.position,
-                c="blue",
-                label="Circuit" if node == self.circuits_nodes[0] else "",
-                marker="o",
+        # Add circuits nodes
+        fig.add_trace(
+            go.Scatter(
+                x=[node.position[0] for node in self.circuits_nodes],
+                y=[node.position[1] for node in self.circuits_nodes],
+                mode="markers+text",
+                marker=dict(size=10, color="blue", symbol="circle"),
+                text=[node.id for node in self.circuits_nodes],
+                textposition="top center",
+                name="Circuits",
             )
-            plt.text(
-                node.position[0], node.position[1], node.id, fontsize=9, ha="right"
-            )
+        )
 
-        for node in self.towers_nodes:
-            plt.scatter(
-                *node.position,
-                c="green",
-                label="Tower" if node == self.towers_nodes[0] else "",
-                marker="^",
-                s=100,
+        # Add towers nodes
+        fig.add_trace(
+            go.Scatter(
+                x=[node.position[0] for node in self.towers_nodes],
+                y=[node.position[1] for node in self.towers_nodes],
+                mode="markers+text",
+                marker=dict(size=14, color="green", symbol="triangle-up"),
+                text=[node.id for node in self.towers_nodes],
+                textposition="top center",
+                name="Towers",
             )
-            plt.text(
-                node.position[0], node.position[1], node.id, fontsize=9, ha="right"
-            )
+        )
 
+        # Add wire connections between towers
         for wire in self.wireConnections:
             start_pos = wire.towers[0].position
             end_pos = wire.towers[1].position
-            plt.plot(
-                [start_pos[0], end_pos[0]],
-                [start_pos[1], end_pos[1]],
-                "k-",
-                label="Wire Connection" if wire == self.wireConnections[0] else "",
+            fig.add_trace(
+                go.Scatter(
+                    x=[start_pos[0], end_pos[0]],
+                    y=[start_pos[1], end_pos[1]],
+                    mode="lines",
+                    line=dict(color="black"),
+                    name="Wire Connection",
+                    showlegend=False,
+                )
             )
 
+        # Add circuit connections
         for c in self.circuits_nodes:
             start_pos = c.position
             end_pos = c.connection_point
-            plt.plot(
-                [start_pos[0], end_pos[0]],
-                [start_pos[1], end_pos[1]],
-                "k--",
-                label="Circuit Connection" if c == self.circuits_nodes[0] else "",
+            fig.add_trace(
+                go.Scatter(
+                    x=[start_pos[0], end_pos[0]],
+                    y=[start_pos[1], end_pos[1]],
+                    mode="lines",
+                    line=dict(color="black", dash="dash"),
+                    name="Circuit Connection",
+                    showlegend=False,
+                )
             )
             mid_pos = ((start_pos[0] + end_pos[0]) / 2, (start_pos[1] + end_pos[1]) / 2)
-            plt.text(
-                mid_pos[0],
-                mid_pos[1],
-                f"{c.distance:.2f}",
-                fontsize=8,
-                ha="center",
-                va="center",
+            fig.add_trace(
+                go.Scatter(
+                    x=[mid_pos[0]],
+                    y=[mid_pos[1]],
+                    mode="text",
+                    text=[f"{c.distance:.2f}"],
+                    textposition="middle center",
+                    showlegend=False,
+                )
             )
 
+        # Add thermoelectric connections
         for t in self.thermoelectrics_nodes:
             start_pos = t.position
             end_pos = t.connection_point
-            plt.plot(
-                [start_pos[0], end_pos[0]],
-                [start_pos[1], end_pos[1]],
-                "k--",
-                label=(
-                    "Thermoelectrics Connection"
-                    if t == self.thermoelectrics_nodes[0]
-                    else ""
-                ),
+            fig.add_trace(
+                go.Scatter(
+                    x=[start_pos[0], end_pos[0]],
+                    y=[start_pos[1], end_pos[1]],
+                    mode="lines",
+                    line=dict(color="black", dash="dash"),
+                    name="Thermoelectric Connection",
+                    showlegend=False,
+                )
             )
             mid_pos = ((start_pos[0] + end_pos[0]) / 2, (start_pos[1] + end_pos[1]) / 2)
-            plt.text(
-                mid_pos[0],
-                mid_pos[1],
-                f"{t.distance:.2f}",
-                fontsize=8,
-                ha="center",
-                va="center",
+            fig.add_trace(
+                go.Scatter(
+                    x=[mid_pos[0]],
+                    y=[mid_pos[1]],
+                    mode="text",
+                    text=[f"{t.distance:.2f}"],
+                    textposition="middle center",
+                    showlegend=False,
+                )
             )
-        plt.legend()
-        plt.gca().set_facecolor("lightgreen")
-        plt.show()
+
+        fig.update_layout(
+            title="Map Visualization",
+            xaxis_title="X Coordinate",
+            yaxis_title="Y Coordinate",
+            legend=dict(
+                x=0.01,
+                y=0.99,
+                bgcolor="rgba(255, 255, 255, 0.5)",
+                bordercolor="rgba(0, 0, 0, 0.5)",
+            ),
+            plot_bgcolor="lightgreen",
+            height=800,
+        )
+
+        fig.show()
 
 
+"""
 # # Example
 
 # no_circuits = 50
@@ -815,4 +877,4 @@ class GraphMap:
 #     towers_positions=map_2d.towers_positions,
 # )
 
-# graphMap.visualize()
+# graphMap.visualize()"""
