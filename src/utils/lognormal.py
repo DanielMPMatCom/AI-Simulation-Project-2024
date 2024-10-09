@@ -6,6 +6,8 @@ class LogNormal:
         """
         LogNormal Random Variable
         Used to describe time to repair a system
+        mu: MEAN
+        sigma: DEVIATION
         """
         if sigma <= 0:
             raise ValueError("sigma must be greater than 0")
@@ -18,7 +20,7 @@ class LogNormal:
         """
         return rnd.lognormvariate(self.mu, self.sigma)
 
-    def generate_with_params(mu, sigma):
+    def generate_with_params(self, mu, sigma):
         """
         Used to generate a random number from the log normal distribution
         sigma must be greater than 0

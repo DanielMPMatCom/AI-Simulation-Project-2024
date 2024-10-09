@@ -1,4 +1,42 @@
 from src.part import Coils, Boiler, SteamTurbine, Generator, Part
+from src.utils.lognormal import LogNormal
+from src.utils.weibull import Weibull
+from src.simulation_constants import (
+    RANDOM,
+    BOILER_PART_WEIBULL_SCALE_MAX,
+    BOILER_PART_WEIBULL_SCALE_MIN,
+    BOILER_PART_WEIBULL_SHAPE_MAX,
+    BOILER_PART_WEIBULL_SHAPE_MIN,
+    BOILER_PART_LOGNORMAL_MEAN_MAX,
+    BOILER_PART_LOGNORMAL_MEAN_MIN,
+    BOILER_PART_LOGNORMAL_DEVIATION_MAX,
+    BOILER_PART_LOGNORMAL_DEVIATION_MIN,
+    COILS_PART_LOGNORMAL_DEVIATION_MAX,
+    COILS_PART_LOGNORMAL_DEVIATION_MIN,
+    COILS_PART_LOGNORMAL_MEAN_MAX,
+    COILS_PART_LOGNORMAL_MEAN_MIN,
+    COILS_PART_WEIBULL_SCALE_MAX,
+    COILS_PART_WEIBULL_SCALE_MIN,
+    COILS_PART_WEIBULL_SHAPE_MAX,
+    COILS_PART_WEIBULL_SHAPE_MIN,
+    boiler_amount_for_capacity,
+    STEAM_TURBINE_PART_LOGNORMAL_DEVIATION_MAX,
+    STEAM_TURBINE_PART_LOGNORMAL_DEVIATION_MIN,
+    STEAM_TURBINE_PART_LOGNORMAL_MEAN_MAX,
+    STEAM_TURBINE_PART_LOGNORMAL_MEAN_MIN,
+    STEAM_TURBINE_PART_WEIBULL_SCALE_MAX,
+    STEAM_TURBINE_PART_WEIBULL_SCALE_MIN,
+    STEAM_TURBINE_PART_WEIBULL_SHAPE_MAX,
+    STEAM_TURBINE_PART_WEIBULL_SHAPE_MIN,
+    GENERATOR_PART_LOGNORMAL_DEVIATION_MAX,
+    GENERATOR_PART_LOGNORMAL_DEVIATION_MIN,
+    GENERATOR_PART_LOGNORMAL_MEAN_MAX,
+    GENERATOR_PART_LOGNORMAL_MEAN_MIN,
+    GENERATOR_PART_WEIBULL_SCALE_MAX,
+    GENERATOR_PART_WEIBULL_SCALE_MIN,
+    GENERATOR_PART_WEIBULL_SHAPE_MAX,
+    GENERATOR_PART_WEIBULL_SHAPE_MIN,
+)
 
 
 class Thermoelectric:
@@ -7,13 +45,14 @@ class Thermoelectric:
     and provides the electricity generation functionality.
     """
 
-    def __init__(self, id, parts: list["Part"], total_capacity: int) -> None:
+    def __init__(self, id, total_capacity: int) -> None:
         self.id = id
-        self.parts = parts
+        self.parts: list[Part] = []
         self.total_capacity = total_capacity
         self.current_capacity = 0
         self.stored_energy = 0
         self.update_capacity()
+        self.create_parts()
 
     def __str__(self):
         properties = {
@@ -31,6 +70,101 @@ class Thermoelectric:
             ],
         }
         return f"""{properties}"""
+
+    def create_parts(self):
+        boiler_amount = boiler_amount_for_capacity(self.total_capacity)
+
+        created_parts = []
+
+        for _ in range(boiler_amount):
+            created_parts.append(self.create_boiler())
+
+        created_parts.append(self.create_generator())
+        created_parts.append(self.create_coils())
+        created_parts.append(self.create_steam_turbine())
+        self.parts = created_parts
+
+    def create_lognormal_and_weibull(
+        self,
+        mean_min,
+        mean_max,
+        deviation_min,
+        deviation_max,
+        scale_min,
+        scale_max,
+        shape_min,
+        shape_max,
+    ) -> tuple["LogNormal", "Weibull"]:
+        lognormal = LogNormal(
+            mu=RANDOM.uniform(mean_min, mean_max),
+            sigma=RANDOM.uniform(deviation_min, deviation_max),
+        )
+
+        weibull = Weibull(
+            scale=RANDOM.uniform(scale_min, scale_max),
+            shape=RANDOM.uniform(shape_min, shape_max),
+        )
+        return lognormal, weibull
+
+    def create_steam_turbine(self) -> "SteamTurbine":
+        lognormal, weibull = self.create_lognormal_and_weibull(
+            STEAM_TURBINE_PART_LOGNORMAL_MEAN_MIN,
+            STEAM_TURBINE_PART_LOGNORMAL_MEAN_MAX,
+            STEAM_TURBINE_PART_LOGNORMAL_DEVIATION_MIN,
+            STEAM_TURBINE_PART_LOGNORMAL_DEVIATION_MAX,
+            STEAM_TURBINE_PART_WEIBULL_SCALE_MIN,
+            STEAM_TURBINE_PART_WEIBULL_SCALE_MAX,
+            STEAM_TURBINE_PART_WEIBULL_SHAPE_MIN,
+            STEAM_TURBINE_PART_WEIBULL_SHAPE_MAX,
+        )
+        return SteamTurbine(lognormal, weibull)
+
+    def create_generator(self) -> "Generator":
+        lognormal, weibull = self.create_lognormal_and_weibull(
+            GENERATOR_PART_LOGNORMAL_MEAN_MIN,
+            GENERATOR_PART_LOGNORMAL_MEAN_MAX,
+            GENERATOR_PART_LOGNORMAL_DEVIATION_MIN,
+            GENERATOR_PART_LOGNORMAL_DEVIATION_MAX,
+            GENERATOR_PART_WEIBULL_SCALE_MIN,
+            GENERATOR_PART_WEIBULL_SCALE_MAX,
+            GENERATOR_PART_WEIBULL_SHAPE_MIN,
+            GENERATOR_PART_WEIBULL_SHAPE_MAX,
+        )
+        return Generator(lognormal, weibull)
+
+    def create_coils(self) -> "Coils":
+        """
+        Create Coils part for the thermoelectric
+        """
+        lognormal, weibull = self.create_lognormal_and_weibull(
+            COILS_PART_LOGNORMAL_MEAN_MIN,
+            COILS_PART_LOGNORMAL_MEAN_MAX,
+            COILS_PART_LOGNORMAL_DEVIATION_MIN,
+            COILS_PART_LOGNORMAL_DEVIATION_MAX,
+            COILS_PART_WEIBULL_SCALE_MIN,
+            COILS_PART_WEIBULL_SCALE_MAX,
+            COILS_PART_WEIBULL_SHAPE_MIN,
+            COILS_PART_WEIBULL_SHAPE_MAX,
+        )
+
+        return Coils(lognormal, weibull)
+
+    def create_boiler(self) -> "Boiler":
+        """
+        Create a Boiler part for the thermoelectric.
+        """
+        lognormal, weibull = self.create_lognormal_and_weibull(
+            BOILER_PART_LOGNORMAL_MEAN_MIN,
+            BOILER_PART_LOGNORMAL_MEAN_MAX,
+            BOILER_PART_LOGNORMAL_DEVIATION_MIN,
+            BOILER_PART_LOGNORMAL_DEVIATION_MAX,
+            BOILER_PART_WEIBULL_SCALE_MIN,
+            BOILER_PART_WEIBULL_SCALE_MAX,
+            BOILER_PART_WEIBULL_SHAPE_MIN,
+            BOILER_PART_WEIBULL_SHAPE_MAX,
+        )
+
+        return Boiler(lognormal, weibull)
 
     def update(self):
         """
