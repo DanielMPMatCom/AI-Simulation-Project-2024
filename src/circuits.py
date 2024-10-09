@@ -2,7 +2,7 @@ from src.citizen import Citizen
 from src.simulation_constants import DAYS_OF_MEMORY, K_PREDICT_CONSUMPTION_ITER
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from itertools import groupby
-from numpy import random
+from src.simulation_constants import RANDOM
 
 
 class Circuit:
@@ -44,7 +44,7 @@ class Circuit:
 
     def create_blocks(self):
         blocks = []
-        amount_of_blocks = random.randint(self.blocks_range[0], self.blocks_range[1])
+        amount_of_blocks = RANDOM.integers(self.blocks_range[0], self.blocks_range[1])
         for _ in range(amount_of_blocks):
             blocks.append(
                 Block(
@@ -95,7 +95,7 @@ class Block:
         industrialization,
     ) -> None:
         self.citizens: "Citizen" = Citizen(
-            random.randint(citizens_range[0], citizens_range[1])
+            RANDOM.integers(citizens_range[0], citizens_range[1])
         )
         self.history_report: list["BlockReport"] = []
         self.off_hours: list[bool] = [False] * 24

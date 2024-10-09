@@ -82,7 +82,7 @@ class Map2D:
         self.thermoelectrics_positions = []
         self.towers_positions = []
 
-        np.random.seed(random_seed)
+        # np.random.seed(random_seed)
 
         self.circuits_positions = self.generate_circuits_positions(
             no_circuits=no_circuits, scale=scale

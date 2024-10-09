@@ -6,7 +6,7 @@ from src.mutations import (
     multiple_points,
     rotation,
 )
-import random
+from src.simulation_constants import RANDOM
 
 
 def assign_thermoelectric_to_block(
@@ -35,7 +35,7 @@ def assign_thermoelectric_to_block(
     ]
 
     assigned_thermoelectric = (
-        random.choice(valid_thermoelectrics) if valid_thermoelectrics else -1
+        RANDOM.choice(valid_thermoelectrics) if valid_thermoelectrics else -1
     )
 
     chromosome[block][time] = assigned_thermoelectric
@@ -120,7 +120,7 @@ def repair_chromosome(
                     if th == thermoelectric
                 ]
 
-            point = random.randint(0, len(thermoelectric_blocks) - 1)
+            point = RANDOM.integers(0, len(thermoelectric_blocks) - 1)
             block = thermoelectric_blocks[point][0]
             time = thermoelectric_blocks[point][1]
             current_capacity += get_cost_thermoelectric_to_block(
@@ -131,7 +131,7 @@ def repair_chromosome(
 
         current_capacities[thermoelectric] = current_capacity
 
-    random.shuffle(waiting)
+    RANDOM.shuffle(waiting)
 
     for block, time in waiting:
         assign_thermoelectric_to_block(
@@ -140,7 +140,7 @@ def repair_chromosome(
 
     waiting = [(bi, time) for bi in range(len(chromosome[time])) for time in range(24)]
 
-    random.shuffle(waiting)
+    RANDOM.shuffle(waiting)
     for block, time in waiting:
         assign_thermoelectric_to_block(
             block, time, chromosome, capacities, get_cost_thermoelectric_to_block
@@ -172,7 +172,7 @@ def generate_population(
         remaining_capacities = capacities[:]
 
         waiting = [(bi, ti) for bi in range(blocks) for ti in range(24)]
-        random.shuffle(waiting)
+        RANDOM.shuffle(waiting)
 
         for block, time in waiting:
             assign_thermoelectric_to_block(
@@ -206,8 +206,8 @@ def crossover(
 
     chromosome = [[-1] * 24 for _ in range(len(parent_1))]
 
-    parent_time = [random.randint(0, len(parent_1) - 1) for _ in range(24)]
-    first_parent = [random.random() < 0.5 for _ in range(len(parent_1))]
+    parent_time = [RANDOM.integers(0, len(parent_1) - 1) for _ in range(24)]
+    first_parent = [RANDOM.uniform(0, 1) < 0.5 for _ in range(len(parent_1))]
 
     for time in range(24):
         for block in range(len(parent_1)):
@@ -307,7 +307,7 @@ def create_new_population(
     for i in range(pop_size):
         parent_1 = selection[i]
         for _ in range(3):
-            parent_2 = random.choice(selection)
+            parent_2 = RANDOM.choice(selection)
             population.append(
                 crossover(
                     parent_1, parent_2, capacities, get_cost_thermoelectric_to_block
@@ -361,7 +361,7 @@ def genetic_algorithm(
         )
 
         for i in range(len(population)):
-            if random.random() < mutation_rate:
+            if RANDOM.uniform(0, 1) < mutation_rate:
                 mutate(population[i], capacities, get_cost_thermoelectric_to_block)
 
     return best_chromosome, best_fitness
