@@ -116,7 +116,7 @@ class Map2D:
                 interpolation = splprep(
                     [insolate_centroids[:, 0], insolate_centroids[:, 1]], s=0
                 )
-                tck, u = interpolation
+                tck, _ = interpolation
                 x_fine, y_fine = splev(np.linspace(0, 1, no_thermoelectrics * 2), tck)
                 interpolated_points = np.vstack((x_fine, y_fine)).T
 
@@ -304,12 +304,12 @@ class ElectricObject(MapObject):
     Attributes:
         id (str): The unique identifier of the electric object.
         position (Tuple): The position of the electric object on the map.
-        wireConnection: The wire connection associated with the electric object.
+        wire_connection: The wire connection associated with the electric object.
         connection_point: The point at which the electric object is connected to the wire.
         distance (float): The distance from the electric object to the connection point.
 
     Methods:
-        connect_to_wire(wireConnection, connection_point, distance):
+        connect_to_wire(wire_connection, connection_point, distance):
             Connects the electric object to a wire with the specified connection point and distance.
     """
 
@@ -327,30 +327,30 @@ class ElectricObject(MapObject):
         Connects the electric object to a wire.
 
         Args:
-            wireConnection: The wire connection to be associated with the electric object.
+            wire_connection: The wire connection to be associated with the electric object.
             connection_point: The point at which the electric object is connected to the wire.
             distance (float): The distance from the electric object to the connection point.
         """
         MapObject.__init__(self, id, position)
-        self.wireConnection = None
+        self.wire_connection = None
         self.connection_point = None
         self.distance = float("inf")
 
-    def connect_to_wire(self, wireConnection, connection_point, distance):
+    def connect_to_wire(self, wire_connection, connection_point, distance):
         """
         Establishes a connection to a wire.
 
         Args:
-            wireConnection (Wire): The wire to connect to.
+            wire_connection (Wire): The wire to connect to.
             connection_point (Point): The point at which the connection is made.
             distance (float): The distance from the current object to the connection point.
 
         Attributes:
-            wireConnection (Wire): Stores the wire connection.
+            wire_connection (Wire): Stores the wire connection.
             connection_point (Point): Stores the connection point.
             distance (float): Stores the distance to the connection point.
         """
-        self.wireConnection = wireConnection
+        self.wire_connection = wire_connection
         self.connection_point = connection_point
         self.distance = distance
 
@@ -362,10 +362,10 @@ class TowerObject(MapObject):
     Attributes:
         id (str): The unique identifier for the tower.
         position (Tuple): The position of the tower on the map.
-        wireConnection (list): A list of wire connections associated with the tower.
+        wire_connection (list): A list of wire connections associated with the tower.
 
     Methods:
-        connect_to_wire(wireConnection):
+        connect_to_wire(wire_connection):
             Connects a wire to the tower.
 
         wires(remove_any=None):
@@ -374,13 +374,13 @@ class TowerObject(MapObject):
 
     def __init__(self, id: str, position: Tuple) -> None:
         MapObject.__init__(self, id, position)
-        self.wireConnection = []
+        self.wire_connection = []
 
-    def connect_to_wire(self, wireConnection):
-        self.wireConnection.append(wireConnection)
+    def connect_to_wire(self, wire_connection):
+        self.wire_connection.append(wire_connection)
 
     def wires(self, remove_any=None):
-        return [w for w in self.wireConnection if w != remove_any]
+        return [w for w in self.wire_connection if w != remove_any]
 
 
 class WireConnection:
@@ -409,7 +409,7 @@ class WireConnection:
 
     def connect_map_object(
         self,
-        mapObject: MapObject,
+        map_object: MapObject,
         interception_point: Tuple[int, int],
         distance: float,
         type: Literal["Thermoelectric", "Circuit"],
@@ -418,7 +418,7 @@ class WireConnection:
         Connects a map object (either a thermoelectric or a circuit) to the wire connection.
 
         Args:
-            mapObject (MapObject): The map object to connect.
+            map_object (MapObject): The map object to connect.
             interception_point (Tuple[int, int]): The point at which the connection is made.
             distance (float): The distance from the map object to the interception point.
             type (Literal["Thermoelectric", "Circuit"]): The type of the map object being connected.
@@ -428,13 +428,13 @@ class WireConnection:
         """
         if type == "Thermoelectric":
             self.thermoelectrics_connections.append(
-                (mapObject, interception_point, distance)
+                (map_object, interception_point, distance)
             )
 
         elif type == "Circuit":
-            self.circuits_connections.append((mapObject, interception_point, distance))
+            self.circuits_connections.append((map_object, interception_point, distance))
         else:
-            raise Exception(f"{type} is not defined for connect to a wireConnection")
+            raise RuntimeError(f"{type} is not defined for connect to a wire_connection")
 
     def get_all_circuits_connected(self):
         """
@@ -514,7 +514,7 @@ class GraphMap:
             towers_nodes (list[TowerObject]): List of tower nodes.
             thermoelectrics_nodes (list[ElectricObject]): List of thermoelectric nodes.
             circuits_nodes (list[ElectricObject]): List of circuit nodes.
-            wireConnections (list[WireConnection]): List of wire connections between nodes.
+            wire_connections (list[WireConnection]): List of wire connections between nodes.
             thermoelectric_generation_cost (list[Tuple[ElectricObject, ElectricObject, float, list[str]]]):
                 List of tuples containing thermoelectric generation cost details.
         """
@@ -533,7 +533,7 @@ class GraphMap:
             for i in range(len(circuits_labels))
         ]
 
-        self.wireConnections: list[WireConnection] = []
+        self.wire_connections: list[WireConnection] = []
 
         for i in range(len(self.towers_nodes) - 1):
             wire_connection = WireConnection(
@@ -542,22 +542,22 @@ class GraphMap:
             self.towers_nodes[i].connect_to_wire(wire_connection)
             self.towers_nodes[i + 1].connect_to_wire(wire_connection)
 
-            self.wireConnections.append(wire_connection)
+            self.wire_connections.append(wire_connection)
 
         for circuit in self.circuits_nodes:
             nearest_wire_index, interception, distance = find_nearest_line_to_a_point(
                 circuit.position,
                 [
                     (wire.towers[0].position, wire.towers[1].position)
-                    for wire in self.wireConnections
+                    for wire in self.wire_connections
                 ],
             )
 
             circuit.connect_to_wire(
-                self.wireConnections[nearest_wire_index], interception, distance
+                self.wire_connections[nearest_wire_index], interception, distance
             )
 
-            self.wireConnections[nearest_wire_index].connect_map_object(
+            self.wire_connections[nearest_wire_index].connect_map_object(
                 circuit, interception, distance=distance, type="Circuit"
             )
 
@@ -566,15 +566,15 @@ class GraphMap:
                 thermoelectric.position,
                 [
                     (wire.towers[0].position, wire.towers[1].position)
-                    for wire in self.wireConnections
+                    for wire in self.wire_connections
                 ],
             )
 
             thermoelectric.connect_to_wire(
-                self.wireConnections[nearest_wire_index], interception, distance
+                self.wire_connections[nearest_wire_index], interception, distance
             )
 
-            self.wireConnections[nearest_wire_index].connect_map_object(
+            self.wire_connections[nearest_wire_index].connect_map_object(
                 thermoelectric, interception, distance=distance, type="Thermoelectric"
             )
 
@@ -585,7 +585,7 @@ class GraphMap:
         for thermoelectric in self.thermoelectrics_nodes:
             self.dfs(
                 last_point=thermoelectric.connection_point,
-                wire=thermoelectric.wireConnection,
+                wire=thermoelectric.wire_connection,
                 accumulative_cost=thermoelectric.distance,
                 thermoelectric=thermoelectric,
                 mk={},
@@ -771,7 +771,7 @@ class GraphMap:
         )
 
         # Add wire connections between towers
-        for wire in self.wireConnections:
+        for wire in self.wire_connections:
             start_pos = wire.towers[0].position
             end_pos = wire.towers[1].position
             fig.add_trace(
