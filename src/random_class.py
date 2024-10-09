@@ -20,6 +20,9 @@ class RandomGenerator:
 
     def shuffle(self, a):
         return self.random.shuffle(a)
+    
+    def permutation(self,a):
+        return self.random.permutation(a)
 
     def rand(self, *args):
         return self.random.random(tuple(*args))

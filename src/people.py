@@ -131,6 +131,23 @@ class ThermoelectricAgentAction:
         self.prioritize_repair_of_critical_parts = prioritize_repair_of_critical_parts
         self.repair_parts = repair_parts
 
+    def __str__(self):
+        properties = f"""
+            increase_power_output: {self.increase_power_output},
+            operate_at_full_capacity: {self.operate_at_full_capacity},
+            perform_maintenance_on_parts: {[
+            (part.__class__.__name__, status)
+            for part, status in self.perform_maintenance_on_parts
+            ]},
+            reduce_downtime:{self.reduce_downtime},
+            prioritize_repair_of_critical_parts: {self.prioritize_repair_of_critical_parts},
+            repair_parts: {[
+            (part.__class__.__name__, status)
+            for part, status in self.repair_parts
+            ]}
+        """
+        return str(properties)
+
 
 class ThermoelectricAgent(Person):
     """
@@ -296,7 +313,7 @@ class ThermoelectricAgent(Person):
         Filter intentions based on the current beliefs and desires of the agent.
         """
         # If the agent desires to maintain maximum power output, he will intend to increase power output and operate at full capacity
-        if self.desires["max_power_output"]:
+        if self.desires["maintain_maximum_power_output"]:
             self.intentions["operate_at_full_capacity"].value = True
         else:
             self.intentions["operate_at_full_capacity"].value = False
@@ -344,7 +361,7 @@ class ThermoelectricAgent(Person):
     def get_most_important_repair_part(self, condition, time_prior=True):
         most_important_part_index = -1
         reduction_on_fail = 0
-        left_time = int("inf")
+        left_time = int(1e9 + 9)
 
         for i, (_, _, time) in enumerate(self.beliefs["parts_status"].value):
             if condition(i):
@@ -391,7 +408,7 @@ class ThermoelectricAgent(Person):
             ]
 
             most_important_part_index = self.get_most_important_repair_part(
-                lambda i: not self.beliefs["part_status"].value[i][1]
+                lambda i: not self.beliefs["parts_status"].value[i][1]
             )
 
             if most_important_part_index >= 0:
@@ -421,7 +438,7 @@ class ThermoelectricAgent(Person):
             self.intentions["increase_power_output"].value = False
 
             most_important_part_index = self.get_most_important_repair_part(
-                lambda i: not self.beliefs["part_status"].value[i][1]
+                lambda i: not self.beliefs["parts_status"].value[i][1]
             )
 
             if most_important_part_index >= 0:
@@ -451,7 +468,7 @@ class ThermoelectricAgent(Person):
             self.intentions["operate_at_full_capacity"].value = False
 
             most_important_part_index = self.get_most_important_repair_part(
-                lambda i: not self.beliefs["part_status"].value[i][1], False
+                lambda i: not self.beliefs["parts_status"].value[i][1], False
             )
 
             if most_important_part_index >= 0:
@@ -691,10 +708,29 @@ class ChiefElectricCompanyAgentPerception:
 
         self.working_thermoelectrics_amount = sum(self.thermoelectrics_state)
 
-    def generate_desires(self) -> None:
-        """
-        Generates desires based on the current beliefs of the agent.
-        """
+    def __str__(self):
+        properties = f"""{{
+            "thermoelectrics_id": {self.thermoelectrics_id},
+            "circuits_id": {self.circuits_id},
+            "generation_per_thermoelectric": {self.generation_per_thermoelectric},
+            "distance_matrix": {self.distance_matrix},
+            "demand_per_block_in_circuits": {self.demand_per_block_in_circuits},
+            "total_demand_per_circuit": {self.total_demand_per_circuit},
+            "general_demand": {self.general_demand},
+            "general_offer": {self.general_offer},
+            "general_deficit": {self.general_deficit},
+            "circuits_importance": {self.circuits_importance},
+            "importance_per_block_in_circuits": {self.importance_per_block_in_circuits},
+            "opinion_per_block_in_circuits": {self.opinion_per_block_in_circuits},
+            "satisfaction_per_circuit": {self.satisfaction_per_circuit},
+            "general_opinion": {self.general_opinion},
+            "industrialization_per_circuit": {self.industrialization_per_circuit},
+            "last_days_off_per_block_in_circuits": {self.last_days_off_per_block_in_circuits},
+            "longest_sequence_off_per_block_in_circuits": {self.longest_sequence_off_per_block_in_circuits},
+            "working_thermoelectrics_amount": {self.working_thermoelectrics_amount},
+            "thermoelectric_state": {self.thermoelectrics_state},
+        }}"""
+        return properties
 
 
 class ChiefElectricCompanyAction:

@@ -65,6 +65,12 @@ class WorldState:
             for block_id, block in enumerate(circuit.blocks)
         ]
 
+        self.predicted_demand_per_block_in_circuits = [
+            (circuit.id, block_id, block.predicted_demand_per_hour)
+            for circuit in self.circuits
+            for block_id, block in enumerate(circuit.blocks)
+        ]
+
         self.circuits_importance = [
             self.get_circuit_importance(circuit) for circuit in self.circuits
         ]
@@ -118,6 +124,8 @@ class WorldState:
                 for circuit in self.circuits
             ]
         )
+
+        
 
         self.general_deficit = max(self.general_demand - self.general_offer, 0)
         self.general_satisfaction = self.get_general_satisfaction()
