@@ -26,7 +26,28 @@ class WorldState:
         #         representation = f"""Generation Per Thermoelectric: {}
         # """
 
-        return
+        tab = " " * 4
+
+        representation = ""
+
+        representation += f"General offer: {self.general_offer}\n"
+        representation += f"General demand: {self.general_demand}\n"
+        representation += f"General deficit: {self.general_deficit}\n"
+        representation += f"General satisfaction: {self.general_satisfaction}\n"
+
+        for ti, thermoelectric in enumerate(self.thermoelectrics):
+            representation += f"Thermoelectric: {thermoelectric.id}, Generation: {self.generation_per_thermoelectric[ti]}MW\n"
+
+        base = 0
+        for ci, circuit in enumerate(self.circuits):
+            representation += "\n"
+            representation += f"Circuit: {circuit.id}, Satisfaction: {self.satisfaction_per_circuit[ci]}, Importance: {self.importance_circuit[ci]}, Industrialization: {self.industrialization_per_circuit[ci]}\n"
+            for bi, block in enumerate(circuit.blocks):
+                representation += f"{tab}Block: {bi}, Satisfaction: {self.opinion_per_block_in_circuits[base + bi]}, Importance: {self.importance_per_block_in_circuits[base + bi]}, Demand: {self.demand_per_block_in_circuits[base + bi]}\n"
+                representation += f"{tab}Last day off: {self.last_days_off_per_block_in_circuits[base + bi]}, Longest sequence off: {self.longest_sequence_off_per_block_in_circuits[base + bi]}\n"
+            base += len(circuit.blocks)
+
+        return representation
 
     def update(self):
         self.generation_per_thermoelectric = [
@@ -114,6 +135,6 @@ class WorldState:
 
         circuits_satisfaction = {}
         for circuit in self.circuits:
-            circuit[circuit.id] = circuit.circuit_satisfaction
+            circuits_satisfaction[circuit.id] = circuit.circuit_satisfaction
 
         return circuits_satisfaction
