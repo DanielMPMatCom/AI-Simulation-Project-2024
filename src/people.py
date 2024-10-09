@@ -92,22 +92,26 @@ class ThermoelectricAgentPerception:
         self.general_offer = general_offer
 
     def __str__(self):
-        properties =  f"""{{
+        power_output = [
+            (str(part), reduction)
+            for part, reduction in self.power_output_reduction_on_part_failure
+        ]
+        print(self.thermoelectric.parts)
+        print(self.power_output_reduction_on_part_failure)
+        properties = f"""{{
             "thermoelectric: {self.thermoelectric},
             "plant_status": {self.plant_status},
             "parts_status": {self.parts_status},
             "broken_parts": {[str(part) for part in self.broken_parts]},
             "max_capacity": {self.max_capacity},
             "current_capacity": {self.current_capacity},
-            "power_output_reduction_on_part_failure": [
-                {{"part": str(part), "reduction": reduction}}
-                for part, reduction in self.power_output_reduction_on_part_failure
-            ],
+            "power_output_reduction_on_part_failure": {power_output},
             "general_deficit": {self.general_deficit},
             "general_demand": {self.general_demand},
             "general_offer": {self.general_offer},
         }}"""
         return properties
+
 
 class ThermoelectricAgentAction:
     def __init__(

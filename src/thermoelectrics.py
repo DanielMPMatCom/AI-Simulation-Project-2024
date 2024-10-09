@@ -16,7 +16,7 @@ class Thermoelectric:
         self.update_capacity()
 
     def __str__(self):
-        properties = f"""{
+        properties = {
             "id": self.id,
             "total_capacity": self.total_capacity,
             "current_capacity": self.current_capacity,
@@ -29,8 +29,8 @@ class Thermoelectric:
                 }
                 for part in self.parts
             ],
-        }"""
-        return properties
+        }
+        return f"""{properties}"""
 
     def update(self):
         """

@@ -18,13 +18,12 @@ class Desire:
     Desire class represents a goal or objective that an agent aims to achieve.
     """
 
-    def __init__(self, value, description: str, id: str) -> None:
-        self.value = value
+    def __init__(self, description: str, id: str) -> None:
         self.description = description
         self.id = id
 
     def evaluate(self, agent):
-        return self.value
+        raise NotImplementedError("This function must be implemented on a subclass")
 
 
 class Intention:
@@ -45,9 +44,10 @@ class TAMaxPowerOutputDesire(Desire):
     Represents a desire for a thermoelectric agent to maintain maximum power output.
     """
 
-    def __init__(self, value: bool) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
-            value, "Desire to maintain maximum power output", "max_power_output"
+            self,
+            "Desire to maintain maximum power output", "max_power_output"
         )
         self.weight = 1
 
@@ -67,9 +67,9 @@ class TAPreventUnexpectedBreakdownDesire(Desire):
     desire to prevent unexpected breakdowns in a thermoelectric agent.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
-            value,
+            self,
             "Desire to prevent unexpected breakdowns",
             "prevent_unexpected_breakdowns",
         )
@@ -99,8 +99,8 @@ class TAMinimizeDowntimeDesire(Desire):
     Represents a desire to minimize downtime in a thermoelectric plant.
     """
 
-    def __init__(self, value) -> None:
-        Desire.__init__(value, "Desire to minimize downtime", "minimize_downtime")
+    def __init__(self) -> None:
+        Desire.__init__(self, "Desire to minimize downtime", "minimize_downtime")
         self.weight = 3
 
     def evaluate(self, agent):
@@ -118,8 +118,8 @@ class TAMeetEnergyDemandDesire(Desire):
     A class representing the desire to meet energy demand for a thermoelectric agent.
     """
 
-    def __init__(self, value) -> None:
-        Desire.__init__(value, "Desire to meet energy demand", "meet_energy_demand")
+    def __init__(self) -> None:
+        Desire.__init__(self, "Desire to meet energy demand", "meet_energy_demand")
         self.weight = 4
 
     def evaluate(self, agent):
@@ -134,9 +134,9 @@ class TAPrioritizeCriticalPartsRepairDesire(Desire):
     A desire class that prioritizes the repair of critical parts in a thermoelectric agent.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
-            value,
+            self,
             "Desire to prioritize critical part repair",
             "prioritize_critical_parts_repair",
         )
@@ -168,9 +168,9 @@ class TARepairPartsDesire(Desire):
     TARepairPartsDesire is a class that represents the desire of a thermoelectric agent to repair parts if necessary.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
-            value,
+            self,
             "Desire to repair parts if necessary. \
             A List of Tuples where the left side is the Part and the right side is True if the Part needs repair",
             "repair_parts",
@@ -190,10 +190,9 @@ class CECAMaxStoredEnergyDesire(Desire):
     CECAMaxStoredEnergyDesire is a subclass of Desire that represents the desire to maximize stored energy.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
             self,
-            value,
             description="Desire to maximize stored energy",
             id="max_stored_energy",
         )
@@ -211,10 +210,9 @@ class CECAMeetDemandDesire(Desire):
     CECAMeetDemandDesire is a subclass of Desire that represents the desire to meet the overall energy demand.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
             self,
-            value,
             description="Desire to meet the overall energy demand",
             id="meet_demand",
         )
@@ -235,10 +233,9 @@ class CECAPrioritizeBlockImportance(Desire):
     CECAPrioritizeBlockImportance is a class that represents the desire to prioritize energy supply for the most critical blocks.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
             self,
-            value,
             description="Desire to prioritize energy supply for the most critical blocks",
             id="prioritize_block_importance",
         )
@@ -257,10 +254,9 @@ class CECAPrioritizeBlockOpinion(Desire):
     to blocks with the most negative public opinions.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
             self,
-            value,
             description="Desire to prioritize energy supply for blocks with the most influential public opinions",
             id="prioritize_block_opinion",
         )
@@ -288,10 +284,9 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
     A desire class that prioritizes energy supply for blocks with a significant number of consecutive off days.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
             self,
-            value,
             description="Desire to prioritize energy supply for blocks with a significant number of consecutive off days",
             id="prioritize_consecutive_days_off",
         )
@@ -316,10 +311,9 @@ class CECAPrioritizeDaysOff(Desire):
     A class representing the desire to prioritize energy supply for blocks with a significant number of off days.
     """
 
-    def __init__(self, value) -> None:
+    def __init__(self) -> None:
         Desire.__init__(
             self,
-            value,
             description="Desire to prioritize energy supply for blocks with a significant number of off days",
             id="prioritize_days_off",
         )
