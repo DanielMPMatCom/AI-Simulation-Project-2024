@@ -5,6 +5,8 @@ from scipy.interpolate import splprep, splev
 from typing import Tuple, Literal
 import networkx as nx
 import plotly.graph_objects as go
+from src.simulation_constants import RANDOM_SEED, RANDOM
+from numpy import random
 
 
 def distance(point_a, point_b):
@@ -59,7 +61,6 @@ class Map2D:
         no_thermoelectrics: int,
         scale=100,
         max_distance_from_tower=10,
-        random_seed: int = 4806545,
     ) -> None:
         """
         Initializes the map with circuits, thermoelectrics, and towers.
@@ -69,7 +70,6 @@ class Map2D:
             no_thermoelectrics (int): Number of thermoelectrics to generate.
             scale (int, optional): Scale factor for the map. Defaults to 100.
             max_distance_from_tower (int, optional): Maximum distance a tower can be from a thermoelectric. Defaults to 10.
-            random_seed (int, optional): Seed for random number generation. Defaults to 4806545.
 
         Attributes:
             thermoelectrics_positions (list): List of positions for thermoelectrics.
@@ -82,19 +82,15 @@ class Map2D:
         self.thermoelectrics_positions = []
         self.towers_positions = []
 
-        np.random.seed(random_seed)
-
         self.circuits_positions = self.generate_circuits_positions(
             no_circuits=no_circuits, scale=scale
         )
-
-        state = np.random.RandomState(seed=random_seed)
 
         self.thermoelectrics_positions, self.kmeans = (
             self.generate_thermoelectrics_positions(
                 no_thermoelectrics=no_thermoelectrics,
                 circuits_positions=self.circuits_positions,
-                random_state=state,
+                random_state=RANDOM_SEED,
             )
         )
 
@@ -138,14 +134,14 @@ class Map2D:
         Returns:
             np.ndarray: An array of shape (no_circuits, 2) containing the generated positions.
         """
-
-        return np.random.rand(no_circuits, 2) * scale
+        random_state = np.random.RandomState(RANDOM_SEED)
+        return random_state.rand(no_circuits, 2) * scale
 
     def generate_thermoelectrics_positions(
         self,
         no_thermoelectrics: int,
         circuits_positions: list[tuple[int, int]],
-        random_state: np.random.RandomState,
+        random_state: np.random.RandomState | int,
     ) -> Tuple[np.ndarray, KMeans]:
         """
         Generates positions for thermoelectrics using KMeans clustering.
@@ -434,7 +430,9 @@ class WireConnection:
         elif type == "Circuit":
             self.circuits_connections.append((map_object, interception_point, distance))
         else:
-            raise RuntimeError(f"{type} is not defined for connect to a wire_connection")
+            raise RuntimeError(
+                f"{type} is not defined for connect to a wire_connection"
+            )
 
     def get_all_circuits_connected(self):
         """
