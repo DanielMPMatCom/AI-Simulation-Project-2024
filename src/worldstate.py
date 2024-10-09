@@ -21,6 +21,11 @@ class WorldState:
         self.update()
 
         self.thermoelectrics_id = [t.id for t in self.thermoelectrics]
+        self.circuits_id = [c.id for c in self.circuits]
+        self.predicted_total_demand_per_circuit = [
+            sum([block.predicted_total_demand for block in circuit.blocks])
+            for circuit in self.circuits
+        ]
 
     def __str__(self):  # TODO
         #         representation = f"""Generation Per Thermoelectric: {}
@@ -60,7 +65,7 @@ class WorldState:
             for block_id, block in enumerate(circuit.blocks)
         ]
 
-        self.importance_circuit = [
+        self.circuits_importance = [
             self.get_circuit_importance(circuit) for circuit in self.circuits
         ]
 
@@ -75,6 +80,13 @@ class WorldState:
             for circuit in self.circuits
             for block_id, block in enumerate(circuit.blocks)
         ]
+
+        self.citizens_per_block_in_circuit = [
+            (circuit.id, block_id, block.citizens.amount)
+            for circuit in self.circuits
+            for block_id, block in enumerate(circuit.blocks)
+        ]
+
 
         self.satisfaction_per_circuit = [
             circuit.circuit_satisfaction for circuit in self.circuits

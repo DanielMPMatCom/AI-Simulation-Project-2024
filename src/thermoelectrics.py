@@ -209,12 +209,12 @@ class Thermoelectric:
         Updates the current capacity of the thermoelectric based on the number of working Boilers.
         """
         working_boilers = self.get_working_boilers()
-        print(working_boilers, "working boilers")
+        
         if working_boilers > 0:
             self.current_capacity = (
                 working_boilers / self.get_total_boilers()
             ) * self.total_capacity
-            print("se acrtulaizo")
+          
         else:
             self.current_capacity = 0
 

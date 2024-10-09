@@ -97,7 +97,7 @@ class ThermoelectricAgentPerception:
             for part, reduction in self.power_output_reduction_on_part_failure
         ]
 
-        parts_status = [( p.__class__.__name__ , s, c ) for p,s,c in self.parts_status]
+        parts_status = [(p.__class__.__name__, s, c) for p, s, c in self.parts_status]
 
         properties = f"""{{
             "thermoelectric: {self.thermoelectric},
@@ -228,7 +228,7 @@ class ThermoelectricAgent(Person):
             ),
             "repair_parts": Intention(
                 [(part, False) for part in self.thermoelectric.parts],
-                "A list of tuples where the left side is a Part and the right side is True if there is an intention of repairi the part and False otherwise",
+                "A list of tuples where the left side is a Part and the right side is True if there is an intention of repair the part and False otherwise",
             ),
             # "meet_demand": Intention(False, "Intention to meet demand"),
             # "inspect_critical_parts": Intention(
@@ -640,14 +640,14 @@ class ChiefElectricCompanyAgentPerception:
         generation_per_thermoelectric: list[float],
         distance_matrix: list[tuple[str, str, float]],
         demand_per_block_in_circuit: list[tuple[int, int, list[float]]],
-        total_demand_per_circuits: list[float],
+        total_demand_per_circuit: list[float],
         circuits_importance: list[float],
-        importance_per_block_in_circuits: list[str, int, float],
-        opinion_per_block_in_circuits: list[str, int, float],
+        importance_per_block_in_circuits: list[tuple[str, int, float]],
+        opinion_per_block_in_circuits: list[tuple[str, int, float]],
         satisfaction_per_circuit: list[float],
         industrialization_per_circuit: list[float],
-        last_days_off_per_block_in_circuits: list[str, int, int],
-        longest_sequence_off_per_block_in_circuits: list[str, int, int],
+        last_days_off_per_block_in_circuits: list[tuple[str, int, float]],
+        longest_sequence_off_per_block_in_circuits: list[tuple[str, int, float]],
         general_satisfaction: float,
     ) -> None:
 
@@ -661,9 +661,9 @@ class ChiefElectricCompanyAgentPerception:
 
         self.demand_per_block_in_circuits = demand_per_block_in_circuit
 
-        self.total_demand_per_circuits = total_demand_per_circuits
+        self.total_demand_per_circuit = total_demand_per_circuit
 
-        self.general_demand = sum(self.total_demand_per_circuits)
+        self.general_demand = sum(self.total_demand_per_circuit)
 
         self.general_offer = sum(generation_per_thermoelectric)
 
@@ -758,7 +758,7 @@ class ChiefElectricCompanyAgent(Person):
                 [],
                 description="The hourly demand for each block within the circuits. The tuple includes the circuit ID, block ID, and demand value.",
             ),
-            "total_demand_per_circuits": Belief(
+            "total_demand_per_circuit": Belief(
                 [], description="The total hourly demand for each circuit."
             ),
             "general_demand": Belief(
@@ -902,8 +902,8 @@ class ChiefElectricCompanyAgent(Person):
         )
 
         # 6. Update belief about the total demand for circuits
-        self.beliefs["total_demand_per_circuits"].value = (
-            self.perception.total_demand_per_circuits
+        self.beliefs["total_demand_per_circuit"].value = (
+            self.perception.total_demand_per_circuit
         )
 
         # 7. Update belief about the general demand, offer, and deficit

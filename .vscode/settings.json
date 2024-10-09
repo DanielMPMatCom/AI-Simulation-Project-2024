@@ -8,6 +8,7 @@
         "funcs",
         "gaussianmixture",
         "hoverinfo",
+        "hoverlabel",
         "kmeans",
         "lightgreen",
         "linalg",
