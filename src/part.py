@@ -21,6 +21,15 @@ class Part:
 
         self.plan_break_date()  # Initialize the part's lifespan
 
+    def __str__(self):
+        return f"""Part: {self.__class__.__name__},
+            Repairing: {self.is_repairing()},
+            Working: {self.is_working()},
+            Remaining life: {self.remaining_life},
+            Remaining repair days: {self.remaining_repair_days},
+            Estimated remaining life: {self.estimated_remaining_life},
+            Estimated repair days: {self.estimated_repair_days}"""
+
     def update(self):
         """
         Update the part's status, decrementing life or repair days.

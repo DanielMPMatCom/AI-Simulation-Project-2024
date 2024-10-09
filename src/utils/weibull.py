@@ -10,17 +10,17 @@ class Weibull:
     alpha is the scale parameter and beta is the shape parameter.
     """
 
-    def __init__(self, alpha: float, lambd: float):
+    def __init__(self, scale: float, shape: float):
         """
-        alpha: scale parameter
-        lambd: shape parameter
-        alpha > 0, lambd > 0
+        scale: scale parameter
+        shape: shape parameter
+        scale > 0, shape > 0
         """
-        if alpha <= 0 or lambd <= 0:
-            raise ValueError("alpha and lambd must be greater than 0")
+        if scale <= 0 or shape <= 0:
+            raise ValueError("scale and shape must be greater than 0")
 
-        self.scale = alpha
-        self.shape = lambd
+        self.scale = scale
+        self.shape = shape
 
     def generate(self):
         """
@@ -28,13 +28,13 @@ class Weibull:
         """
         return rnd.weibullvariate(self.scale, self.shape)
 
-    def generate_with_params(alpha, lambd):
+    def generate_with_params(self, alpha, scale):
         """
         Used to generate a random number from the Weibull distribution
         """
-        if alpha <= 0 or lambd <= 0:
-            raise ValueError("alpha and lambd must be greater than 0")
-        return rnd.weibullvariate(alpha, lambd)
+        if alpha <= 0 or scale <= 0:
+            raise ValueError("alpha and scale must be greater than 0")
+        return rnd.weibullvariate(alpha, scale)
 
     def get_shape(self):
         """
