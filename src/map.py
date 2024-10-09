@@ -134,7 +134,7 @@ class Map2D:
         Returns:
             np.ndarray: An array of shape (no_circuits, 2) containing the generated positions.
         """
-        random_state = np.random.RandomState(RANDOM_SEED)
+        random_state = np.random.RandomState(RANDOM.map_generator_seed)
         return random_state.rand(no_circuits, 2) * scale
 
     def generate_thermoelectrics_positions(
@@ -155,7 +155,7 @@ class Map2D:
             Tuple[np.ndarray, KMeans]: A tuple containing the positions of the thermoelectrics and the KMeans object.
         """
 
-        kmeans = KMeans(n_clusters=no_thermoelectrics, random_state=random_state)
+        kmeans = KMeans(n_clusters=no_thermoelectrics, random_state=RANDOM.map_generator_seed)
         kmeans.fit(circuits_positions)
         centroids = kmeans.cluster_centers_
         return centroids, kmeans

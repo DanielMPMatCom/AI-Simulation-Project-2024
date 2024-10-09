@@ -1,4 +1,6 @@
-from numpy import random
+from random import Random
+
+from src.random_class import RandomGenerator
 
 DISTANCE_REGULATOR = 100
 DAYS_OF_MEMORY = 20
@@ -29,7 +31,7 @@ WEIGHT_EVENING = 20
 # RANDOM_SEED = 4806545
 
 RANDOM_SEED = 13
-RANDOM = random.default_rng(RANDOM_SEED)
+RANDOM = RandomGenerator(13, 45)
 
 MIN_BLOCKS_PER_CIRCUIT = 1
 MAX_BLOCKS_PER_CIRCUIT = 5
