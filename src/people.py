@@ -484,7 +484,7 @@ class ThermoelectricAgent(Person):
                     )
 
                 most_important_part_index = self.get_most_important_repair_part(
-                    lambda i: is_solution(index=i)
+                    lambda i: is_solution(index=i) and self.beliefs["part_status"].value[i][1]
                 )
 
                 if most_important_part_index >= 0:
