@@ -145,12 +145,12 @@ class Block:
         if time_off > 0:
             last_day_off = 0
 
-        self.citizens.set_opinion(
-            input_general_satisfaction=general_satisfaction,
-            input_industrialization=self.industrialization,
-            input_days_off_relation=days_off / days_amount,
-            input_last_day_off=last_day_off,
-        )
+        # self.citizens.set_opinion(
+        #     input_general_satisfaction=general_satisfaction,
+        #     input_industrialization=self.industrialization,
+        #     input_days_off_relation=days_off / days_amount,
+        #     input_last_day_off=last_day_off,
+        # )
 
         daily_report = BlockReport(
             time_off=time_off,

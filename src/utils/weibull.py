@@ -1,5 +1,4 @@
-import random as rnd
-
+from scipy.stats import weibull_min
 import numpy as np
 
 
@@ -26,15 +25,15 @@ class Weibull:
         """
         Used to generate a random number from the Weibull distribution for class instances
         """
-        return rnd.weibullvariate(self.scale, self.shape)
+        return self.generate_with_params(scale=self.scale, shape=self.shape)
 
-    def generate_with_params(self, alpha, scale):
+    def generate_with_params(self, scale, shape):
         """
         Used to generate a random number from the Weibull distribution
         """
-        if alpha <= 0 or scale <= 0:
+        if shape <= 0 or scale <= 0:
             raise ValueError("alpha and scale must be greater than 0")
-        return rnd.weibullvariate(alpha, scale)
+        return weibull_min.rvs(self.shape, scale=self.scale)
 
     def get_shape(self):
         """
@@ -52,12 +51,69 @@ class Weibull:
         """
         return self.scale
 
+    @staticmethod
+    def fit(data):
+        """
+        Fit the Weibull distribution to the data and return the estimated shape and scale parameters.
+        """
+        shape, loc, scale = weibull_min.fit(data, floc=0)
+        return scale, shape
 
-"""
-Random Lib Code:
+    @staticmethod
+    def from_data(data):
+        """
+        Create a Weibull instance by fitting the distribution to the provided data.
+        """
+        scale, shape = Weibull.fit(data)
+        return Weibull(scale, shape)
 
- def weibullvariate(self, alpha, beta):
-        # Jain, pg. 499; bug fix courtesy Bill Arms
-        u = 1.0 - self.random()
-        return alpha * (-_log(u)) ** (1.0 / beta)
-"""
+
+if __name__ == "__main__":
+
+    data = np.array([40, 100])
+    weibull_instance = Weibull.from_data(data)
+    print(f"Estimated scale: {weibull_instance.get_scale()}")
+    print(f"Estimated shape: {weibull_instance.get_shape()}")
+    random_value = weibull_instance.generate()
+    print(f"Generated random value from Weibull distribution: {random_value}")
+
+    # import matplotlib.pyplot as plt
+
+    # # Generate a range of values
+    # x = np.linspace(0, 200, 1000)
+
+    # # Generate the Weibull probability density function (PDF) for the estimated parameters
+    # pdf = weibull_min.pdf(
+    #     x, weibull_instance.get_shape(), scale=weibull_instance.get_scale()
+    # )
+
+    # # Plot the PDF
+    # plt.plot(x, pdf, label="Weibull PDF")
+
+    # # Plot the data points
+    # plt.scatter(data, [0, 0], color="red", label="Data points")
+
+    # # Add labels and legend
+    # plt.xlabel("Value")
+    # plt.ylabel("Probability Density")
+    # plt.title("Weibull Distribution Fit")
+    # plt.legend()
+
+    # # Show the plot
+    # plt.show()
+
+    cont = 0
+    ceil = 0
+    floor = 0
+    instance = Weibull(79.3324187138614, 2.618558429048514)
+    for _ in range(100000):
+        value = instance.generate()
+        if value > 100:
+            ceil += 1
+
+        elif value < 40:
+            floor += 1
+    cont = ceil + floor
+    print(
+        f"Percentage of values outside the range: {cont/100000}%, with {cont} values, where {ceil} are greater({ceil/100000}%) than 100 and {floor} are less than 40({floor/100000}%)"
+    )

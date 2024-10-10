@@ -55,21 +55,16 @@ class Thermoelectric:
         self.update_capacity()
 
     def __str__(self):
-        properties = {
-            "id": self.id,
-            "total_capacity": self.total_capacity,
-            "current_capacity": self.current_capacity,
-            "stored_energy": self.stored_energy,
-            "parts": [
-                {
-                    "type": type(part).__name__,
-                    "is_working": part.is_working(),
-                    "estimated_remaining_life": part.estimated_remaining_life,
-                }
-                for part in self.parts
+        properties = f"""
+            id: {self.id},
+            total_capacity: {self.total_capacity},
+            current_capacity: {self.current_capacity},
+            stored_energy: {self.stored_energy},
+            parts: [
+            {chr(10).join(str(part) for part in self.parts)}
             ],
-        }
-        return f"""{properties}"""
+        """
+        return properties
 
     def create_parts(self):
         boiler_amount = boiler_amount_for_capacity(self.total_capacity)
@@ -212,12 +207,12 @@ class Thermoelectric:
         Updates the current capacity of the thermoelectric based on the number of working Boilers.
         """
         working_boilers = self.get_working_boilers()
-        
+
         if working_boilers > 0:
             self.current_capacity = (
                 working_boilers / self.get_total_boilers()
             ) * self.total_capacity
-          
+
         else:
             self.current_capacity = 0
 
@@ -304,7 +299,7 @@ class Thermoelectric:
                 return i
         return -1
 
-    def get_criticals_part(self) -> list:
+    def get_criticals_part(self) -> list[bool]:
         """
         Array of len N where ith is true if the part is critical
         """
@@ -312,12 +307,15 @@ class Thermoelectric:
         if self.get_total_broken_boilers() == self.get_total_boilers():
             boilers_are_critical = True
 
-        is_critical_part_map = []
+        critical_part_map: list[bool] = []
         for part in self.parts:
-            if self.is_default_critical_part(part) or (
-                boilers_are_critical and isinstance(part, Boiler)
-            ):
-                is_critical_part_map.append(part)
+
+            critical_part_map.append(
+                self.is_default_critical_part(part)
+                or (boilers_are_critical and isinstance(part, Boiler))
+            )
+
+        return critical_part_map
 
     def consume_energy(self, amount):
         if amount > self.current_capacity:

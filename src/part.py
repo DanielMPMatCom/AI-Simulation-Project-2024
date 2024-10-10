@@ -1,6 +1,12 @@
 from src.utils.lognormal import LogNormal
 from src.utils.weibull import Weibull
-from src.simulation_constants import RANDOM, HURRY_REPAIR_ALPHA
+from src.simulation_constants import (
+    RANDOM,
+    HURRY_REPAIR_SHAPE_MAX,
+    HURRY_REPAIR_SCALE_MIN,
+    HURRY_REPAIR_SCALE_MAX,
+    HURRY_REPAIR_SHAPE_MIN,
+)
 
 
 class Part:
@@ -21,7 +27,7 @@ class Part:
         self.maintenance_process = False
         self.repairing = False
 
-        self.plan_break_date()  # Initialize the part's lifespan
+        self.plan_break_date()
 
     def __str__(self):
         return f"""Part: {self.__class__.__name__},
@@ -50,9 +56,7 @@ class Part:
 
     def hurry_repair(self):
         if self.is_repairing():
-            self.remaining_repair_days = 0
-            self.estimated_repair_days = 0
-            self.plan_break_date(hard=True)
+            self.finish_repair(hard=True)
 
         else:
             raise RuntimeError("Hurry repair in part that isn't repairing")
@@ -61,7 +65,9 @@ class Part:
         """
         Start the maintenance process by setting the repair days.
         """
-        if self.remaining_repair_days >= 0 or not self.is_working():
+        if (
+            self.remaining_repair_days and self.remaining_repair_days >= 0
+        ) or not self.is_working():
             raise RuntimeError(
                 "Maintenance process, but the part was in repair process"
             )
@@ -101,34 +107,44 @@ class Part:
             self.estimated_repair_days += self.lognormal.generate()
         self.estimated_repair_days /= count
 
-    def plan_break_date(self, hard=False):
+    def plan_break_date(self, hard=False, was_a_maintenance=False):
         """
         Plan the date when the part will break based on its life expectancy.
         """
-        self.remaining_life = (
-            self.weibull.generate()
-            if not hard
-            else self.weibull.generate_with_params(
-                alpha=RANDOM.uniform(0, HURRY_REPAIR_ALPHA), scale=self.weibull.scale
+        shape = 0
+        scale = 0
+
+        if hard:
+            shape = RANDOM.uniform(HURRY_REPAIR_SHAPE_MIN, HURRY_REPAIR_SHAPE_MAX)
+            scale = self.weibull.scale + RANDOM.uniform(
+                HURRY_REPAIR_SCALE_MIN, HURRY_REPAIR_SCALE_MAX
             )
+
+        elif was_a_maintenance:
+            shape = self.weibull.shape + 1
+            scale = self.weibull.scale
+
+        else:
+            shape = self.weibull.shape
+            scale = self.weibull.scale
+
+        self.remaining_life = self.weibull.generate_with_params(
+            scale=scale, shape=shape
         )
 
         count = 0
         self.estimated_remaining_life = 0
         for _ in range(1000):
             count += 1
-            self.estimated_remaining_life += (
-                self.weibull.generate()
-                if not hard
-                else self.weibull.generate_with_params(
-                    alpha=RANDOM.uniform(0, HURRY_REPAIR_ALPHA),
-                    scale=self.weibull.scale,
-                )
+            self.estimated_remaining_life += self.weibull.generate_with_params(
+                scale=scale, shape=shape
             )
         self.estimated_remaining_life /= count
 
     def set_repairing(self, value: bool):
-        if value and self.remaining_repair_days <= 0:
+        if value and (
+            not self.remaining_repair_days or self.remaining_repair_days <= 0
+        ):
             self.repair()
         self.repairing = value
 
@@ -150,13 +166,18 @@ class Part:
         """
         return self.remaining_life is not None and self.remaining_life > 0
 
-    def finish_repair(self):
+    def finish_repair(self, hard=False):
         """
         Finishes the repair process and reinitialize the part's lifespan.
         """
+        self.remaining_repair_days = 0
+        self.estimated_repair_days = 0
+
+        was_maintenance_process = self.maintenance_process
         self.maintenance_process = False
+
         self.set_repairing(False)
-        self.plan_break_date()
+        self.plan_break_date(was_a_maintenance=was_maintenance_process, hard=hard)
 
     def get_estimate_remaining_life(self):
         """

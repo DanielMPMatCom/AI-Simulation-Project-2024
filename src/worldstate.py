@@ -1,6 +1,7 @@
 from src.circuits import Circuit
 from src.thermoelectrics import Thermoelectric
 
+
 class WorldState:
     def __init__(
         self,
@@ -25,6 +26,16 @@ class WorldState:
             for circuit in self.circuits
         ]
 
+    def basic_info_str(self):
+        properties = f""" 
+        General Demand: {self.general_demand},
+        General Offer: {self.general_offer},
+        General Deficit: {self.general_deficit},
+        General Satisfaction: {self.general_satisfaction},
+        """
+
+        return properties
+
     def __str__(self):
 
         tab = " " * 4
@@ -42,7 +53,7 @@ class WorldState:
         base = 0
         for ci, circuit in enumerate(self.circuits):
             representation += "\n"
-            representation += f"Circuit: {circuit.id}, Satisfaction: {self.satisfaction_per_circuit[ci]}, Importance: {self.importance_circuit[ci]}, Industrialization: {self.industrialization_per_circuit[ci]}\n"
+            representation += f"Circuit: {circuit.id}, Satisfaction: {self.satisfaction_per_circuit[ci]}, Importance: {self.circuits_importance[ci]}, Industrialization: {self.industrialization_per_circuit[ci]}\n"
             for bi, block in enumerate(circuit.blocks):
                 representation += f"{tab}Block: {bi}, Satisfaction: {self.opinion_per_block_in_circuits[base + bi]}, Importance: {self.importance_per_block_in_circuits[base + bi]}, Demand: {self.demand_per_block_in_circuits[base + bi]}\n"
                 representation += f"{tab}Last day off: {self.last_days_off_per_block_in_circuits[base + bi]}, Longest sequence off: {self.longest_sequence_off_per_block_in_circuits[base + bi]}\n"

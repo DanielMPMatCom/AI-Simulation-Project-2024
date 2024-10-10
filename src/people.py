@@ -377,6 +377,7 @@ class ThermoelectricAgent(Person):
 
             most_important_part_index = self.get_most_important_repair_part(
                 lambda i: critical_parts_map[i]
+                and not self.beliefs["parts_status"].value[i][1]
             )
 
             if most_important_part_index >= 0:
@@ -434,6 +435,7 @@ class ThermoelectricAgent(Person):
 
             most_important_part_index = self.get_most_important_repair_part(
                 lambda i: critical_parts_map[i]
+                and not self.beliefs["parts_status"].value[i][1]
             )
 
             if most_important_part_index >= 0:
@@ -462,30 +464,40 @@ class ThermoelectricAgent(Person):
 
             self.intentions["perform_maintenance_on_parts"].value = False
 
-            def is_solution(index: int):
-                _, _, time = self.beliefs["parts_status"].value[index]
-                return (
-                    time <= MIN_DAYS_TO_NEED_REPAIR
-                    and self.beliefs["general_offer"].value
-                    - self.beliefs["power_output_reduction_on_part_failure"].value[
-                        index
-                    ][1]
-                    > self.beliefs["general_demand"].value * 3 / 4
+            currently_maintenance = False
+            for part, _, _ in self.beliefs["parts_status"].value:
+                part: Part
+                if part.is_currently_receiving_maintenance():
+                    currently_maintenance = True
+
+            if not currently_maintenance:
+
+                def is_solution(index: int):
+                    _, _, time = self.beliefs["parts_status"].value[index]
+                    return (
+                        time <= MIN_DAYS_TO_NEED_REPAIR
+                        and self.beliefs["general_offer"].value
+                        - self.beliefs["power_output_reduction_on_part_failure"].value[
+                            index
+                        ][1]
+                        > self.beliefs["general_demand"].value * 3 / 4
+                    )
+
+                most_important_part_index = self.get_most_important_repair_part(
+                    lambda i: is_solution(index=i)
                 )
 
-            most_important_part_index = self.get_most_important_repair_part(
-                lambda i: is_solution(index=i)
-            )
+                if most_important_part_index >= 0:
+                    current_repair_index = (
+                        self.thermoelectric.get_current_repair_part_index()
+                    )
 
-            if most_important_part_index >= 0:
-                current_repair_index = (
-                    self.thermoelectric.get_current_repair_part_index()
-                )
+                    if current_repair_index >= 0:
+                        self.thermoelectric.parts[current_repair_index].set_repairing(
+                            False
+                        )
 
-                if current_repair_index >= 0:
-                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
-
-                self.thermoelectric.parts[most_important_part_index].maintenance()
+                    self.thermoelectric.parts[most_important_part_index].maintenance()
 
             return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
@@ -523,6 +535,15 @@ class ThermoelectricAgent(Person):
                 prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
                 repair_parts=repair_parts,
             )
+
+        return ThermoelectricAgentAction(
+            increase_power_output=increase_power_output,
+            operate_at_full_capacity=operate_at_full_capacity,
+            perform_maintenance_on_parts=perform_maintenance_on_parts,
+            reduce_downtime=reduce_downtime,
+            prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+            repair_parts=repair_parts,
+        )
 
     def action(
         self, perception: "ThermoelectricAgentPerception"
