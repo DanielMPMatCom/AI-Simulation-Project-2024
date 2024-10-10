@@ -1,0 +1,630 @@
+\documentclass[twocolumn, fontsize=10pt]{article}
+\usepackage[margin=0.70in]{geometry}
+\usepackage{lipsum,mwe,abstract}
+\usepackage[english]{babel} 
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} 
+\fancyfoot[C]{\thepage} % Page numbering for right footer
+\setlength\parindent{0pt} 
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{comment}
+\usepackage{enumitem}
+\usepackage{makeidx}
+\makeindex
+\usepackage{cuted}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{xcolor} % For colored text
+\usepackage{hyperref} % Package for links
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    }
+\allsectionsfont{\normalfont \normalsize \scshape} % Section names in small caps and normal fonts
+
+\addto\captionsenglish{\renewcommand{\contentsname}{Índice}}
+
+\renewenvironment{abstract} % Change how the abstract look to remove margins
+ {\small
+  \begin{center}
+  \bfseries Resumen \vspace{-.5em}\vspace{0pt}
+  \end{center}
+  \list{}{%
+    \setlength{\leftmargin}{0mm}
+    \setlength{\rightmargin}{\leftmargin}%
+  }
+  \item\relax}
+ {\endlist}
+
+ \newenvironment{englishabstract} % Abstract en inglés
+ {\small
+  \begin{center}
+  \bfseries Abstract \vspace{-.5em}\vspace{0pt}
+  \end{center}
+  \list{}{%
+    \setlength{\leftmargin}{0mm}
+    \setlength{\rightmargin}{\leftmargin}%
+  }
+  \item\relax}
+ {\endlist}
+ 
+\makeatletter
+\renewcommand{\maketitle}{\bgroup\setlength{\parindent}{0pt} % Change how the title looks like
+\begin{flushleft}
+  \begin{center}
+    {\color{black} \Large Facultad de Matemática y Computación. Universidad de La Habana. \\
+    \color{black} Inteligencia Artificial y Simulación. \\ \vspace{10pt}}
+    \href{https://github.com/DanielMPMatCom/AI-Simulation-Project-2024.git}{Repositorio del Proyecto en GitHub} % Add GitHub link here
+    \vspace{10pt}
+  \end{center}
+  \textbf{\@title}
+  \@author \\ 
+  \@date
+\end{flushleft}\egroup
+}
+\makeatother
+
+%% ------------------------------------------------------------------- 
+
+\title{
+
+\Large Simulación de un Sistema Eléctrico basado en Plantas Termoeléctricas.  \\
+[10pt] 
+}
+\date{\today}
+\author{Daniel Machado Pérez - daniel.machado.0206@gmail.com \\
+Daniel Toledo Martínez - daniel020126@gmail.com \\
+Osvaldo R. Moreno Prieto - osvaldo020213@gmail.com}
+
+\begin{document}
+
+\twocolumn[ \maketitle ]
+
+
+
+% --------------- ABSTRACT
+\begin{abstract}
+    Este proyecto se centra en la simulación de un sistema de plantas termoeléctricas
+    que abastecen de energía a varios circuitos distribuidos en una región geográfica.
+    Se implementa un generador de un mapa del sistema, ubicando circuitos, termoeléctricas
+    y una línea principal a la que se conectan todos los componentes y por la que pasa toda
+    la energía producida. Cada termoeléctrica cuenta con varias partes o piezas que garantizan
+    su funcionamiento, y un agente planificador con arquitectura BDI que se encarga de tomar decisiones
+    sobre el régimen de mantenimientos y reparaciones a las piezas. Cada circuito consta de uno o más bloques 
+    que lo dividen y reciben electricidad por separado. Por último existe un agente superior que simula
+    al Jefe de la Empresa Eléctrica y toma decisiones con respecto a la distribución óptima de electricidad, 
+    también con arquitectura BDI. Para garantizar la efectividad de las decisiones se utiliazn
+    componentes de Búsqueda, Conocimiento y Procesamiento de Lenguaje Natural.
+
+\end{abstract}
+
+\begin{englishabstract}
+  This project focuses on the simulation of a system of thermoelectric plants that supply energy to various circuits distributed across a geographical region. A system map generator is implemented, placing circuits, thermoelectric plants, and a main power line connecting all components, through which all produced energy flows. Each thermoelectric plant consists of several parts that ensure its proper functioning, and a BDI (Belief-Desire-Intention) architecture planning agent is responsible for making decisions regarding the maintenance and repair schedule of these parts. Each circuit is divided into one or more blocks, which receive electricity separately. Additionally, there is a higher-level agent simulating the Chief of the Electric Company, who makes decisions regarding the optimal distribution of electricity, also based on a BDI architecture. To ensure the effectiveness of decision-making, components from the fields of Search, Knowledge Representation, and Natural Language Processing, within Artificial Intelligence, are utilized.
+\end{englishabstract}
+
+\rule{\linewidth}{0.5pt}
+
+% --------------- KEYWORDS
+\noindent \textbf{Palabras Clave}: Termoeléctrica, Circuito, Bloque, Caldera, Generador, 
+Turbina de vapor, Serpentines, Agente, BDI, Belief, Desire, Intention, Algoritmo Genético (GA), 
+Lógica Difusa, Modelo Extenso de Lenguaje (LLM)
+
+
+
+% --------------- MAIN CONTENT
+
+\tableofcontents
+
+\section{Introducción}
+
+En esta sección estaremos definiendo el problema en cuestión, 
+sus componentes (que serán abordadas a detalle más adelante),
+los objetivos planteados y algunas cuestiones técnicas que
+forman parte del marco teórico sobre el que se sustenta la investigación.
+
+\subsection{Descripción del Proyecto}
+
+El \textbf{Sistema Eléctrico} que se consideró consta de un conjunto de \textbf{Plantas Termoeléctricas}
+situadas relativamente cercanas a un conjunto de circuitos distribuidos en un mapa 2D.
+Se asume que cada termoeléctrica consta de 4 tipos de piezas principales:
+\textbf{Calderas}, \textbf{Turbina de Vapor}, \textbf{Serpentines}, \textbf{Generador} \cite{parts}.
+En este proyecto se decidió abstraerse de la función que cumple cada una de estas piezas
+en una verdadera Planta Termoeléctrica. En cambio se otorgó relevancia a la implicación de
+una rotura de cada una de ellas en el rendimiento de la termoeléctrica. Se asumió que una planta
+ puede tener una o más calderas, y que la generación de la planta está dividida en cada una de sus calderas,
+ es decir, al romperse una caldera se pierde la generación que corresponde a la capacidad máxima entre el total
+ de calderas. Eso quiere decir que si dejan de funcionar todas las calderas al mismo tiempo la planta no producirá energía.
+ En cuanto a las demás partes, cada planta posee una sola de cada una de ellas y su rotura implica la salida de circulación
+ de la termoeléctrica del sistema eléctrico. Cada termoeléctrica tendrá una generación máxima, una ubicación en el mapa,
+ una planilla del costo de suministrar energía a cada circuito, una energía almacenada y un \textbf{Agente} planificador de
+ mantenimientos y reparaciones a sus partes. Además constan de la capacidad de almacenar la energía sobrante de la distribución, la cual pueden poner en circulación en la distribución de un próximo día.\\
+ Los \textbf{Circuitos} fueron modelados como un conjunto de \textbf{Bloques}, un consumo eléctrico por hora, 
+ un nivel de industrialización y una cantidad de ciudadanos. Cada uno tiene una ubicación en el mapa inicial y está conectado 
+ a la línea principal de la red eléctrica. Cada bloque consta de una demanda energética, un registro de los horarios de corte 
+ eléctrico, y una opinión general de sus habitantes sobre el servicio de la Empresa Eléctrica, obtenido con la ayuda de la \textbf{Lógica Difusa}. 
+ Además tienen un consumo diario por hora, una cantidad de ciudadanos y un nivel de industrialización igual
+ al del circuito al que pertenece. La suma de los consumos de los bloques conforman el consumo del circuito. 
+ Lo mismo pasa con la cantidad de ciudadanos. Como cada circuito y cada termoeléctrica
+ está conectada al sistema energético de toda la región, se cumple que desde cualquier planta se puede suministrar
+ energía a cualquier circuito, teniendo en cuenta el costo por la distancia.\\
+ Para decidir la distribución de energía en el sistema existe el \textbf{Jefe de la Empresa Eléctrica}, modelado con otro agente
+ con arquitectura \textbf{BDI}, que recibe información del estado de las termoeléctricas y los circuitos, dígase generación, demanda, estado de opinión,
+ impacto económico, etc, y con la asistencia de componentes de \textbf{Inteligencia Artifical} optimiza la el abastecimiento. Este agente
+ tiene la potestad de dejar de suministrar energía a un bloque en determinados horarios, cosa que estará obligado a hacer en el caso de la 
+ existencia de déficit.
+
+\subsection{Objetivos}
+Se simula el comportamiento del sistema y las interacciones de los agentes buscando una planificación eficiente de la distribución de energía.
+Se pretende crear un método que dado cualquier configuración geográfica inicial de un sistema eléctrico, sea capaz de modelar
+escenarios donde se manejen los recursos de manera efectiva y se muestre un buen rendimiento relativo a las condiciones con las que se cuentan.  
+
+\subsection{Variables que describen el problema}
+
+Para describir el problema, se necesitan variables que nos permitan representar los siguientes fenómenos:
+\begin{itemize}
+
+    \item Tiempo entre roturas de una pieza de una planta termoeléctrica.
+    \item Tiempo de reparación de una pieza de una planta termoeléctrica.
+    \item Demanda diaria por hora de energía de un circuito.
+\end{itemize}
+\subsubsection{Tiempo entre roturas de una pieza de una planta termoeléctrica.}
+    
+Según la literatura, \( Weibull(\alpha, \lambda) \) es una distribución comúnmente utilizada para modelar la distribución de fallos (en sistemas) cuando la tasa de fallos es proporcional a una potencia del tiempo, donde \( \alpha \) es el parámetro de forma y \( \lambda \) es el parámetro de escala de la distribución.
+\begin{itemize}
+    \item Un valor \( \alpha < 1 \) indica que la tasa de fallos disminuye con el tiempo.
+    \item Cuando \( \alpha = 1 \), la tasa de fallos es constante en el tiempo.
+    \item Un valor \( \alpha > 1 \) indica que la tasa de fallos aumenta con el tiempo.
+\end{itemize}
+
+El parámetro \( \lambda \) es un factor de escala que estira o comprime la distribución. Proporciona una estimación de la "vida característica" del producto, que es el tiempo en el cual el 63.2\% del equipo habrá fallado.
+
+El análisis de Weibull ayuda a predecir el comportamiento futuro de fallos de un componente o sistema. Esta capacidad predictiva ayuda en la planificación de actividades de mantenimiento, reduciendo tiempos de inactividad no planificados y aumentando la eficiencia general del sistema.\\
+
+\textbf{Función de Distribución Acumulada:}\\
+$ F(x) = 1 - e^{-(\lambda x)^\alpha} $, para $x > 0 $
+
+Para generar valores con una distribución Weibull, se utilizó su implementación de la biblioteca \textbf{random} de Python.
+
+\subsubsection{Tiempo de reparación de una planta termoeléctrica}
+
+
+Una distribución log-normal es una distribución de probabilidad de una variable aleatoria cuyo logaritmo está distribuido normalmente. En otras palabras, si una variable \( X \) sigue una distribución log-normal, entonces \( \ln(X) \) sigue una distribución normal. La distribución log-normal es útil para modelar datos positivos que son asimétricos y tienen una cola larga a la derecha, lo que significa que los valores extremos altos son más comunes. \\
+
+Debido a esta característica, dicha distribución se ajusta bien en esta parte del problema, ya que los tiempos de reparación tienden a concentrarse hacia el extremo derecho (mayor) de los datos. \\
+
+\textbf{Propiedades de la Distribución Log-normal:}
+
+\textbf{Definición Matemática:}
+Si \( X \) es una variable aleatoria distribuida log-normal, entonces:
+\[ X \sim \text{Lognormal}(\mu, \sigma^2) \Rightarrow \ln(X) \sim N(\mu, \sigma^2) \]
+
+Aquí, \( \mu \) y \( \sigma \) son los parámetros de la distribución normal de \( \ln(X) \), donde \( \mu \) es la media y \( \sigma^2 \) es la varianza. \\
+
+\textbf{Función de Densidad de Probabilidad (PDF):}\\
+La función de densidad de probabilidad de una distribución log-normal se define como:\\
+$ f_X(x) = \frac{1}{x \sigma \sqrt{2 \pi}} e^{\left(-\frac{(\ln(x) - \mu)^2}{2 \sigma^2}\right)} $,  para $x > 0$
+
+\subsubsection{Demanda diaria por hora de energía de un circuito}
+El consumo diario de energía de un circuito puede ser modelado con una mezcla de distribuciones 
+normales (\textit{Gaussian Mixture}), puesto que en un día común se experimentan 2 picos de consumo 
+energético, uno en la mañana aproximadamente de 5:00am a 9:00am y otro mayor en la noche de 5:00pm 
+a 9:00pm.
+Partiendo de un consumo base y proporcionando como parámetros la variabilidad, desviación estándar, media y peso de cada pico puede obtenerse una distribución del consumo en las 24 horas de un día.\\
+
+
+\section{Generación del Mapa Inicial}
+
+Para la creación del mapa se implementó un generador que primeramente coloca circuitos en posiciones aleatorias 
+de una matriz 2D. Luego utilizando clusterización ubica las $n$ termoeléctricas en los $n$ centroides calculados.
+A continuación, utilizando intermpolación primeramente por las termoeléctricas y hasta que no existan puntos aislados se generan las 
+\textbf{Torres de Alta Tensión}, que están unidas por segmentos que conforman la línea principal del Sistema Energético. 
+Finalmente a través de geometría básica se genera el `cableado' con la menor distancia de cada termoeléctrica y circuito a la línea principal, calculando y guardando dichas distancias en el proceso.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/map_example.png}
+  \caption{Ejemplo de mapa.}
+  \label{fig:ejemplo}
+\end{figure}
+
+\section{Agentes con Arquitectura BDI}
+
+La arquitectura BDI (Beliefs-Desires-Intentions) en la simulación mediante agentes
+les permite modificar su conocimiento del medio o creencias a través del recibimiento
+de una percepción, generar nuevas opciones para reformular sus deseos y filtrar las intenciones
+que debe tener para llevarlos a cabo, para de esta manera actuar e interactuar para lograr sus objetivos. \cite{book}
+En este proyecto fueron utilizados dos tipos de agentes con arquitectura BDI:
+\begin{itemize}
+  \item \textbf{Agente de Termoeléctrica}: Existe uno en cada Termoeléctrica y sus objetivo es mantenerla funcionando para aportar el mejor rendimiento posible al Sistema Eléctrico.
+  \item \textbf{Jefe de la Empresa Eléctrica}: Existe solo uno y se encarga de encontrar y ejecutar la mejor planificación posible de la distribución de energía en dependencia de sus circunstancias en cada momento.
+\end{itemize}
+
+\subsection{Agente de Termoeléctrica}
+Su percepción se basa en el conocimiento del estado de su 
+termoeléctrica y de algunos datos del estado general del 
+sistema como la demanda y la oferta del día anterior. 
+También puede conocer un tiempo estimado de rotura de las 
+piezas de la termoeléctrica, lo cual serviría para planificar 
+posibles mantenimientos, su máxima generación posible, su generación actual y
+la pérdida de capacidad de generación ante la rotura de una pieza.\\
+\textbf{Beliefs}
+
+\begin{itemize}
+  \item \textbf{plant\_is\_working}: True si la Planta Termoeléctrica del Agente está funcionando, False en caso contrario.
+  \item \textbf{parts\_status}: Una lista de tuplas con 3 elementos, donde el primer elemento es la instancia de la parte, el segundo es True si la parte está funcionando y False en caso contrario, y el tercer elemento indica el tiempo de vida útil estimado restante.
+  \item \textbf{broken\_parts}: Una lista de partes que están actualmente rotas.
+  \item \textbf{max\_capacity}: La capacidad máxima de la Planta Termoeléctrica.
+  \item \textbf{current\_capacity}: La capacidad actual de la Planta Termoeléctrica.
+  \item \textbf{power\_output\_reduction\_on\_part\_failure}: Una lista de tuplas donde el primer elemento es la Parte y el segundo es la reducción de producción de energía cuando falla.
+  \item \textbf{general\_deficit}: El déficit general del Sistema Eléctrico.
+  \item \textbf{general\_demand}: La demanda general del Sistema Eléctrico.
+  \item \textbf{general\_offer}: La oferta general del Sistema Eléctrico.
+  \item \textbf{all\_desires}: Todos los deseos posibles del Agente.
+  \item \textbf{current\_desires}: Los deseos actuales del Agente.
+\end{itemize}
+\textbf{Desires}
+\begin{itemize}
+  
+  \item \textbf{maintain\_maximum\_power\_output}: Deseo de mantener la máxima producción de energía. (True o False)
+  \item \textbf{minimize\_downtime}: Deseo de minimizar el tiempo de inactividad. (True o False)
+  \item \textbf{meet\_energy\_demand}: Deseo de satisfacer la demanda de energía. (True o False)
+  \item \textbf{prioritize\_critical\_part\_repair}: Deseo de priorizar la reparación de partes críticas. (True o False)
+  \item \textbf{prevent\_unexpected\_breakdowns}: Deseo de prevenir fallos inesperados. (True o False)
+  \item \textbf{repair\_parts}: Deseo de reparar las partes dañadas. (True o False).
+
+\end{itemize}
+
+\textbf{Intentions}
+
+\begin{itemize}
+  \item \textbf{operate\_at\_full\_capacity}: Intención de operar a plena capacidad.
+  \item \textbf{reduce\_downtime}: Intención de reducir el tiempo de inactividad.
+  \item \textbf{increase\_power\_output}: Intención de aumentar la producción de energía.
+  \item \textbf{prioritize\_repair\_of\_critical\_parts}: Intención de priorizar la reparación de partes críticas.
+  \item \textbf{perform\_maintenance\_on\_parts}: Intención de brindar mantenimiento.
+  \item \textbf{repair\_parts}: Intención de realizar reparaciones.
+
+\end{itemize}
+
+\subsection{Jefe de la Empresa Eléctrica}
+
+Su percepción está  dada por una lista de todas las termoeléctricas, todos los circuitos, la matriz de las dictancias entre objetos del mapa, la demanda po bloque, la generación por termoeléctrica, el coeficiente de importancia, industralización y estado de opinión por circuito, un registro de los cortes de electricidad que han ocurrido y los datos generales del sistema como el déficit. \\
+
+\textbf{Beliefs}
+
+\begin{itemize}
+    \item thermoelectrics\_id: El identificador único de cada termoeléctrica.
+            \item circuits\_id: El identificador único de cada circuito.
+            \item generation\_per\_thermoelectric: La electricidad generda por cada termoeléctrica.
+            \item distance\_matrix: El costo de transmitir energía de cada termoelétrica a cada circuito.
+            \item demand\_per\_block\_in\_circuits: La demanda por hora de cada bloque en cada circuito.
+            \item total\_demand\_per\_circuits: La demanda total por hora por cada circuito.
+            \item general\_demand: La demanda general del sistema.
+            \item general\_offer: La generación total del sistemma.
+            \item general\_deficit: El déficit total del sistema.
+            \item circuits\_importance: El coeficiente de importanccia de cada circuito.
+            \item importance\_per\_block\_in\_circuits: El coeficiente de importancia de cada bloquee.
+            \item opinion\_per\_block\_in\_circuits: El estado de opinión de los ciudadanos de cada bloque.
+            \item opinion\_per\_circuit: El estado de opinión de los ciudadanos de cada bloque.
+            \item industrialization\_per\_circuit: El coeficiente de industrialización de cada circuito.
+            \item last\_days\_off\_per\_block\_in\_circuits: El número de días con corte de electricidad por cada bloque.
+            \item longest\_sequence\_off\_per\_block\_in\_circuits: El número de días consecutivos con cortes de electricidad por cada bloque.
+            \item working\_thermoelectrics\_amount: El número de termoeléctricas que se encuentran funcionando.
+            \item thermoelectric\_state: El estado operacional de cada termoeléctrica.
+            \item general\_opinion:  El estado de opinió general de los ciudadanos del sistema.
+            \item all\_desires: El conjunto de todos los posibles deseos.
+            \item current\_desires: El conjunto de deseos actualmente activos.
+\end{itemize}
+
+\textbf{Desires}
+
+\begin{itemize}
+  \item \textbf{meet\_demand}: Satisfacer la demanda en situaciones de déficit de generación
+  \item \textbf{prioritize\_block\_importance}: Priorizar el abastecimiento a los bloques más importantes
+  \item \textbf{prioritize\_block\_opinion}: Priorizar el abastecimiento a los bloques con peor opinión ciudadana
+  \item \textbf{prioritize\_consecutive\_days\_off}: Priorizar el abastecimiento a los bloques con más días consecutivos sin energía
+  \item \textbf{prioritize\_days\_off}: Priorizar el abastecimiento a los bloques que han tenido más cortes de electricidad
+  \item \textbf{max\_stored\_energy}: Maximizar la energía almacenada en caso de estar sobrecubierta la demanda
+\end{itemize}
+\textbf{Intentions}
+
+\begin{itemize}
+  \item \textbf{meet\_demand}: Intención de satisfacer la demanda incrementando la capacidad actual.
+  \item \textbf{prioritize\_block\_importance}: Intención de priorizar bloques con mayor importancia.
+  \item \textbf{prioritize\_block\_opinion}: Intención de priorizar bloques basándose en las opiniones de sus ciudadanos.
+  \item \textbf{prioritize\_consecutive\_days\_off}: Intención de priorizar los bloques con más días consecutivos con cortes de electricidad.
+  \item \textbf{prioritize\_days\_off}: Intención de priorizar los bloques con más días con cortes de electricidad.
+  \item \textbf{max\_stored\_energy}:  Intención de maximizar la energía almacenada en el sistema.
+\end{itemize}
+
+Este agente tiene la peculiaridad de poseer dinamismo en cuanto a la elección de sus opciones
+para generar los \textit{desires}. Ello se logra mediante la comunicación con un \textbf{LLM}, al que se le proporciona una instrucción inicial con una lista de los
+posibles \textit{desires} y ciertas condiciones y su tarea es proporcionar la lista de condiciones seleccionadas y la lista de \textit{desires} que considera que deberían ser activados
+bajo esas condiciones. De esta forma se logra generar desires de una forma más dinámica y flexible. En próximas secciones se abordará más sobre el \textbf{LLM}.
+
+
+\section{Algoritmo Genético}
+
+Para que el agente \textbf{Jefe de la Empresa Eléctrica} sea capaz de resolver el problema de búsqueda de decidir una buena planificación
+de la dstribución de electricidad se decidió implemnetar un \textbf{Algoritmo Genético}. Para ellos se siguieron los siguientes pasos:
+\textbf{inicialización}, \textbf{evaluación}, \textbf{selección}, 
+\textbf{cruce (\textit{crossover})}, \textbf{mutación}, y \textbf{repetición a través de 
+generaciones}.\\
+
+\textbf{Inicialización}
+
+El algoritmo empieza creando una población 
+inicial de soluciones aleatorias (cromosomas), cada una de 
+ellas representando una posible asignación de termoeléctricas a bloques. 
+El tamaño de la población es definido por el parámetro \textbf{pop\_size}. 
+En nuestra población cada cromosoma es una matriz (lista de listas), donde cada fila 
+representa un bloque, cada columna el momento del día (24 horas en total) y la casilla significa la termoeléctrica que provee energía al bloque de la fila en la hora de la columna. \\
+
+\textbf{Evaluación}
+
+Cada cromosoma es evaluado usando una función de aptitud (\textit{fitness function}), 
+que mide cuán buena es la asignación, teniendo en 
+cuenta las intenciones del \textbf{Jefe de la Empresa Eléctrica}. \\
+
+Esta función no es más que la suma ponderada de los coeficientes que se calculan para cuantificar 
+la calidad de la asignación de termoeléctricas a bloques atendiendo a los criterios de las intenciones del agente. La ponderación se utiliza para 
+establecer una prioridadd del criterio de la intención que se va a ejecutar por encima de los demás criterios.\\
+
+\textbf{Selección}
+
+Después de evaluar a la población, se seleccionan los mejores 
+cromosomas (las soluciones más aptas) para servir de modelos de 
+la siguiente generación. \\
+
+\textbf{Cruce}
+
+Se combina la información genética de 
+los cromosomas seleccionados (padres) para crear nuevos 
+cromosomas (hijos). Este paso introduce diversidad en la 
+población y permite que las características de ambos padres se 
+transmitan a los hijos. La selección de las parejas a combinar 
+se realiza de forma aleatoria. \\
+
+\textbf{Mutación}
+
+Después del cruce, se introduce 
+una probabilidad de mutación en los cromosomas para mantener la 
+diversidad genética y evitar la convergencia prematura. 
+Un cromosoma puede experimentar una pequeña alteración 
+(como reasignar una termoeléctrica a un bloque diferente). 
+La tasa de mutación controla la frecuencia con 
+la que ocurre este proceso. \\
+
+
+\textbf{Repetición a través de generaciones}
+
+El algoritmo continúa repitiendo 
+los pasos de evaluación, selección, cruce y mutación por un 
+número definido de generaciones. En cada generación se crea 
+una nueva población que reemplaza a la anterior, con la 
+esperanza de que las soluciones mejoren con el tiempo. El 
+algoritmo compara los cromosomas generados con el mejor 
+cromosoma encontrado hasta el momento y lo actualiza si 
+encuentra uno con mejor aptitud. Al finalizar el número de 
+generaciones, el algoritmo devuelve el mejor cromosoma 
+encontrado y su valor de aptitud
+
+\section{Lógica Difusa}
+
+Para evaluar el nivel de satisfacción personal de los ciudadanos de un bloque y con ello generar el estado de opinión,
+se utiliza un sistema de \textbf{Lógica Difusa}. Este se encarga de procesar entradas 
+imprecisas o subjetivas y generar una salida que representa 
+la satisfacción personal. Los factores que influyen en la 
+satisfacción personal del ciudadano son los siguientes: 
+\begin{itemize}
+  \item \textbf{last\_day\_off}: Representa el tiempo transcurrido desde el último día sin electricidad.
+  \item \textbf{days\_off\_relation}: Relación entre los días con y sin servicio eléctrico.
+  \item \textbf{industrialization}: Refleja el nivel de industrialización del circuito en el que viven los ciudadanos, lo que influye en la necesidad de la energía eléctrica en la prestación de servicios.
+  \item \textbf{general\_satisfaction}: Representa la satisfacción general, lo que puede afectar la satisfacción personal.
+\end{itemize}
+
+Estas variables se definen de forma difusa en categorías como: reciente, moderado, 
+distante, bajo, medio y alto. Luego se 
+establecen las reglas difusas que determinan cómo la combinación 
+de factores de la entrada afectan la satisfacción personal. 
+Por ejemplo una regla podría ser que si el último día sin corriente fue reciente, 
+la relación de días sin servicio es alta, entonces la satisfacción personal será baja. 
+Después de 
+definir las reglas, se crea un sistema de control difuso que se 
+utiliza para realizar simulaciones. Se proporcionan los valores 
+de entrada al sistema de simulación, que representan las 
+percepciones actuales del ciudadano. Después de proporcionar 
+las entradas y aplicar las reglas, el sistema calcula el nivel 
+de satisfacción personal. La el atributo \textbf{opinion} de la clase \textbf{Citizen} 
+almacena el resultado final, que representa el nivel de satisfacción 
+personal del ciudadano basado en las percepciones difusas y 
+las reglas.
+
+\section{Modelo Extenso de Lenguaje}
+
+Para agregar dinamismo al comportamiento del agente \textbf{Jefe de la Empresa Eléctrica}
+se decidió utilizar un \textbf{Modelo Extenso de Lenguaje} (LLM). Ello se logra proporcionando 
+una instrucción al sistema con las especificaciones de lo que se quiere obtener, aclarando 
+el formato de la entrada y de la salida. En dicha instrucción se refleja el conjunto total de deseos
+del agente, para que al ser proporcionada una lista de condiciones basadas en las percepciones, el modelo decida 
+qué deseos deberían ser activados por algún subconjunto de dichas condiciones y de esa forma se genere una nueva regla.
+Las consultas al modelo se realizarán en algunos momentos de la simulación.
+
+Se utilizó la API de \textbf{Gemini} de Google, específicamente el modelo \textbf{gemini-1.5-flash}.
+
+\section{Ejecución de la Simulación}
+
+Para comenzar se importan los parámetros globales y se genera el mapa. 
+Esto nos brinda una disposición geográfica de todos los elementos de la simulación, 
+pudiendo calcular a través de ella los costos de abastecimiento de energía
+desde cada termoeléctrica hasta cada circuito. Como cada objeto está conectado al sistema 
+eléctrico principal, es posible llevar la energía de cualquier termoeléctrica a cualquier circuito.
+El resultado se vería como en la figura \ref{fig:ejemplo}.\\ 
+
+Por cada circuito se genera una cantidad de bloques, que a su vez generan una cantidad de ciudadanos, de lo que depende 
+el consumo energético que tendrá cada uno. En la figura \ref{fig:citizens} se observa un ejemplo de la cantidad de ciudadanos por circuito.
+Además se genera para cada circuito un nivel de industrialización que también será el de los bloques contenidos en él.
+Con el dato de la cantidad de ciudadanos y el nivel de industrialización se calcula un coeficiente de importancia. En la figura \ref{importance} podemos ver un ejemplo.\\
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/citizenPercircuit.png}
+  \caption{Ejemplo de distribución de ciudadanos por circuito.}
+  \label{fig:citizens}
+  \end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/importancePerCircuit.png}
+  \caption{Ejemplo de distribución de importancia por circuito.}
+  \label{fig:importance}
+  \end{figure}
+
+\subsection{Predicción de Consumo por Circuito e Inicialización de la Generación por Termoeléctrica}
+
+El cálculo del consumo de cada circuito y la generación de cada termoeléctrica se realiza de la siguiente forma:\\
+
+\textbf{Consumo de los Bloques}\\
+ Para cada bloque, se calcula y almacena una predicción 
+  de su consumo diario. Esto se logra generando varias 
+  \textit{Gaussian Mixtures}, cada una proporcionando una 
+  distribución de consumo por hora en un día. A partir de 
+  estas distribuciones, se construye una estimación máxima 
+  tomando el consumo máximo predicho para cada hora. 
+  Este resultado constituye la predicción del consumo para 
+  cada bloque, sobre la cual los agentes basarán sus decisiones. 
+  El consumo real del bloque se calcula diariamente durante 
+  la simulación mediante la generación de una \textit{Gaussian Mixture}.\\
+
+\textbf{Consumo de los Circuitos}\\
+Una vez generada la predicción del consumo por bloque, la predicción del consumo
+   de un circuito se calcula como la suma de las predicciones de sus bloques. En la figura \ref{fig:consumoBloques} 
+   se muestra un ejemplo de predicciones de consumo para unos bloques y en la figura \ref{fig:consumoCircuito} la
+   predicción resultante para el circuito correspondiente. Luego en la figura \ref{fig:consumePerCircuits} se muestra un ejemplo de distribución de consumo diario predicho por cada circuito.\\
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{assets/hourlydemandperblock.png}
+\caption{Ejemplo de predicción de consumo por hora de los bloques de un circuito.}
+\label{fig:consumoBloques}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{assets/demandc0.png}
+\caption{Ejemplo de predicción de consumo por hora del circuito correspondiente.}
+\label{fig:consumoCircuito}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/consume per circuit.png}
+  \caption{Ejemplo de distribución de las predicciones de consumos diarios por circuitos.}
+  \label{fig:consumePerCircuits}
+  \end{figure}
+  
+
+\textbf{Asignación de Circuitos a Termoeléctricas}\\
+ Para cada circuito, se determina cuál es su termoeléctrica más cercana en el sistema
+  para de esta forma confeccionar una estructura donde se tenga para cada 
+  termoeléctrica cuáles son los circuitos que en teoría dependen de ella. Quedaría algo como lo que se muestra en la figura \ref{fig:circuitToTherm}\\
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/newplot (2).png}
+    \caption{Ejemplo de asignación de circuitos a termoeléctricas para calcular la generación de cada termoeléctrica.}
+    \label{fig:circuitToTherm}
+    \end{figure}
+
+\textbf{Generación de Termoeléctricas}\\
+ Luego se establece la generación de una termoeléctrica como la suma de los consumos 
+  predichos de los circuitos más cercanos, teniendo en cuenta el costo de las distancias y con
+  un excedente de 1000kWh. Esto se realiza de esta forma siguiendo la premisa de que el sistema debe
+  estar construido de forma tal que al presentar condiciones óptimas sea capaz de abastecer a todos los circuitos. En la figura \ref{fig:generation} se 
+  muestra un ejemplo.\\
+  
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/total_capacities.png}
+    \caption{Ejemplo de distribución de la generación diaria por termoeléctrica.}
+    \label{fig:generation}
+    \end{figure}
+
+\subsection{Simulación}
+
+Para manejar los parámetros globales, actualizarlos, etc, existe una clase llamada \textbf{WorldState}. 
+Por cada termoeléctrica se creará un agente con arquitectura BDI representado por la clase \textbf{ThermoelectricAgent}
+que es el que se encargará de decidir el régimen de reparaciones y mantenimientos en la termoeléctrica que se le asigne. 
+Para actualizar sus \textit{Beliefs} se nutrirá de la información recopilada en un objeto de tipo \textbf{ThermoelectricAgentPerception} que se actualizará en cada \textit{step} de la simulación. También se creará un único agente Jefe de la Empresa Eléctrica, representado por la clase
+\textbf{ChiefElectricCompanyAgent} cuya percepción se almacena en un objeto de tipo \textbf{ChiefElectricCompanyAgentPerception} que también se actualizará en cada \textit{step} de la simulación. Antes de iniciar
+ se declararán las reglas que determinarán la actualiazción de los deseos de cada agente. Una vez hecho esto comenzará la simulación.\\
+ 
+ 
+ En cada \textit{step} (cada día en este caso) se hará lo siguiente:\\
+
+ \textbf{Acción de Agentes de Termoeléctrica}:\\
+
+Primero se crea una permutación de los agentes para variar el orden de su ejecución por cada día.
+Esto es necesario pues la acción de uno de estos agentes depende del estado del sistema en el momento
+en el que se ejecuta, y este puede ser variado por la acción de los agente que se ejecutaron previamente. 
+Luego, por cada agente se crea su percepción y se ejecuta su método \textbf{action()}, que es el que ejecuta el \textit{pipeline} del agente. 
+Ahí se llama al método \textbf{brf()} o \textit{Belief Revision Function} que actualiza los \textit{Beliefs} basándose en la percepción actual. 
+Después se llama al método \textbf{generate\_desires()} que ordena y evalúa las reglas definidas para el agente en dependencia de su peso. El resultado
+es una lista de \textit{Desires} que se activan y que luego determinan la \textit{Intention} que va a ser ejecutada mediante el método \textbf{filter\_intentions()}. Finalmente con el 
+método \textbf{execute()} se garantiza la aplicación de la \textit{Intention} seleccionada. La acción que realiza el agente se registra en un objeto de tipo \textbf{ThermoelectricAgentAction} y se guarda en el historial de acciones.
+Inmediatamente se actualiza, tanto en la termoeléctrica como en el \textbf{WorldState}, la capacidad de generación de la termoeléctrica a la que pertenece el agente y que puede haber cambiado por la acción ejecutada.\\
+
+Una vez terminado el ciclo de ejecución de los Agentes de Termoeléctrica, se procede con el Agente Jefe de la Empresa Eléctrica de manera similar. Este agente tiene la particularidad de ser el 
+encargado de decidir la distribución energética óptima para las condiciones actuales a las que se enfrenta y que recibe de su percepción. Para ello utiliza un \textbf{Algoritmo Genético}, cuya función objetivo se determina por las \textit{Intentions}
+que se ejecuten. Es decir, cada \textit{Intention} de este agente representa priorizar un aspecto diferente en la repartición. Todos los aspectos de las \textit{Intentions} filtradas tendrán mayor peso que las demás a la hora de encontrar la distribución óptima.
+Además el Jefe de la Empresa Eléctrica destaca por su dinamismo a la hora de generar sus \textit{Desires}, efecto que se logra mediante la comunicación con un \textbf{LLM} en algunos momentos de la simulación. La comunicación consiste en brindarle una lista de posibles
+\textit{Desires} y una lista de condiciones y que el Modelo de Lenguaje devuelva la lista del subconjunto de \textit{Desires} que entiende que deberían ser activados por algún subconjunto de las condiciones, y la las condiciones que los activan. De esta manera el agente aprende nuevas 
+reglas que dependen del estado actual de la simulación. Las acciones realizadas también se guardan, ahora en un objeto de tipo \textbf{ChiefElectricCompanyAction}.\\
+
+Luego de todo lo anterior y para finalizar la simulación de un día, se actualizan los estados de los circuitos, las termoeléctricas y el \textbf{WorldState}. Durante la actualización de los circuitos
+también se actualizan los bloques, donde, entre otras cosas, cada 30 días se actualiza el estado de opinión de los ciudadanos. En esta parte es donde se utiliza la \textbf{Lógica Difusa}, que mediante un conjunto de reglas establece las condiciones con las que cambia la opinión. La opinión general de los ciudadanos cada
+circuito depende directamente de las opiniones de cada bloque, y de la misma forma la opinión general de los ciudadanos del sistema depende de las de los circuitos. Diariamente se calculan los consumos reales de los bloques y circuitos, lo que se utiliza para determinar la efectividad de las decisiones tomadas teniendo en cuenta las predicciones realizadas
+y el estado actual.\\
+
+Finalmente se pasa de día y se repite el ciclo hasta el fin de la simulación.
+
+\subsection{Hipótesis Realizadas}
+
+Teniendo en cuenta que cuando un agente de una termoeléctrica planifica un mantenimiento a una pieza, lo hace basándose en la predicción que tiene del
+tiempo de rotura de dicha pieza y en comparación con una reparación un mantenimiento demora menos tiempo y prolonga el tiempo de vida de la pieza después
+de ser suministrado se plantearon las siguientes hipótesis.
+
+\begin{itemize}
+  \item En un escenario positivo, donde se satisface cómodamente la demanda, el sistema muestra un mejor rendimiento cuando se aplican mantenimientos a las piezas que según la predicción están a punto de romperse.
+  \item En un escenario negativo, donde difícilmente se satisface la demanda, el sistema muestra un mejor rendimiento cuando no se aplican mantenimientos y siempre se espera a que una pieza se rompa para llevar a cabo una reparación.
+\end{itemize}
+
+
+
+\section{Resultados y Estadísticas}
+
+\section{Conclusiones}
+
+
+\renewcommand\refname{Referencias}
+
+\begin{thebibliography}{}
+
+  \sloppypar
+  \bibitem{parts} Fundación Endesa. (s.f.). Central térmica convencional. Fundación Endesa. \url{https://www.fundacionendesa.org/es/educacion/endesa-educa/recursos/centrales-electricas-convencionales/central-termica-convencional}
+
+
+  \bibitem{book} García Garrido, L., Martí Orosa \& L., Pérez Sánchez, L. (n.d.) Temas de Simulación. [Publisher not identified]
+
+\end{thebibliography}
+    
+    
+
+\end{document}
