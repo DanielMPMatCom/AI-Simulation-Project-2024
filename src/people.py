@@ -155,13 +155,16 @@ class ThermoelectricAgent(Person):
         self,
         name: str,
         thermoelectric: "Thermoelectric",
+        rules,
+        current_rules,
         perception: "ThermoelectricAgentPerception" = None,
     ) -> None:
 
         Person.__init__(self, name=name)
         self.thermoelectric = thermoelectric
         self.perception = perception
-
+        self.rules = rules
+        self.current_rules = current_rules
         self.beliefs = {
             "plant_is_working": Belief(
                 False,
@@ -187,28 +190,8 @@ class ThermoelectricAgent(Person):
             "general_deficit": Belief(0, "The general deficit of the Electric System"),
             "general_demand": Belief(0, "The general demand of the Electric System"),
             "general_offer": Belief(0, "The general offer of the Electric System"),
-            "all_desires": Belief(
-                {
-                    "max_power_output": TAMaxPowerOutputDesire(),
-                    "minimize_downtime": TAMinimizeDowntimeDesire(),
-                    "prevent_unexpected_breakdowns": TAPreventUnexpectedBreakdownDesire(),
-                    "meet_energy_demand": TAMeetEnergyDemandDesire(),
-                    "prioritize_critical_parts_repair": TAPrioritizeCriticalPartsRepairDesire(),
-                    "repair_parts": TARepairPartsDesire(),
-                },
-                "All possible desires of the Agent",
-            ),
-            "current_desires": Belief(
-                [
-                    "max_power_output",
-                    "minimize_downtime",
-                    "prevent_unexpected_breakdowns",
-                    "meet_energy_demand",
-                    "prioritize_critical_parts_repair",
-                    "repair_parts",
-                ],
-                "The current desires of the Agent",
-            ),
+            "all_desires": Belief(self.rules, "All possible desires"),
+            "current_desires": Belief(self.current_rules, "The current active desires"),
         }
 
         self.desires = {
@@ -754,24 +737,6 @@ class ChiefElectricCompanyAgent(Person):
             "general_opinion": Belief(0, description="The overall public opinion."),
             "all_desires": Belief(self.rules, "All possible desires"),
             "current_desires": Belief(self.current_rules, "The current active desires"),
-            # "all_desires": Belief(
-            #     {
-            #         "meet_demand": CECAMeetDemandDesire(),
-            #         "prioritize_block_importance": CECAPrioritizeBlockImportance(),
-            #         "prioritize_block_opinion": CECAPrioritizeBlockOpinion(),
-            #         "prioritize_consecutive_days_off": CECAPrioritizeConsecutiveDaysOff(),
-            #         "prioritize_days_off": CECAPrioritizeDaysOff(),
-            #     }, "All possible desires"
-            # ),
-            # "current_desires": Belief(
-            # [
-            #     "meet_demand",
-            #     "prioritize_block_importance",
-            #     "prioritize_block_opinion",
-            #     "prioritize_consecutive_days_off",
-            #     "prioritize_days_off",
-            #     ], "The current active desires"
-            # )
         }
 
         self.desires = {
