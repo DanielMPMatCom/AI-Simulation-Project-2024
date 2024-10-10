@@ -37,9 +37,9 @@ class Circuit:
     def get_all_block_population(self):
         return sum([block.citizens.amount for block in self.blocks])
 
-    def update(self, general_satisfaction):
+    def update(self, general_satisfaction:float, opinion_day:bool):
         for block in self.blocks:
-            block.update(general_satisfaction=general_satisfaction)
+            block.update(general_satisfaction=general_satisfaction, opinion_day=opinion_day)
         self.set_circuit_satisfaction()
 
     def create_blocks(self):
@@ -121,7 +121,7 @@ class Block:
 
         return predicted_demand_per_hour
 
-    def update(self, general_satisfaction: float):
+    def update(self, general_satisfaction: float, opinion_day: bool):
 
         self.demand_per_hour = self.gaussian_mixture.generate()
 
@@ -145,12 +145,13 @@ class Block:
         if time_off > 0:
             last_day_off = 0
 
-        self.citizens.set_opinion(
-            input_general_satisfaction=general_satisfaction,
-            input_industrialization=self.industrialization,
-            input_days_off_relation=days_off / days_amount,
-            input_last_day_off=last_day_off,
-        )
+        if opinion_day:
+            self.citizens.set_opinion(
+                input_general_satisfaction=general_satisfaction,
+                input_industrialization=self.industrialization,
+                input_days_off_relation=days_off / days_amount,
+                input_last_day_off=last_day_off,
+            )
 
         daily_report = BlockReport(
             time_off=time_off,

@@ -95,6 +95,9 @@ def repair_chromosome(
         None: The function modifies the chromosome in place to ensure valid assignments.
     """
 
+    print("*"*20)
+    print(capacities)
+
     current_capacities = capacities[:]
 
     for time in range(24):
@@ -108,10 +111,12 @@ def repair_chromosome(
 
     for thermoelectric, capacity in enumerate(current_capacities):
 
+        print("============"*5)
+        print(thermoelectric, " ", capacity)
+
         current_capacity = capacity
 
-        while current_capacity < 0:
-
+        if current_capacity < 0:
             thermoelectric_blocks = []
             for bi in range(len(chromosome)):
                 thermoelectric_blocks += [
@@ -120,14 +125,25 @@ def repair_chromosome(
                     if th == thermoelectric
                 ]
 
-            point = RANDOM.integers(0, len(thermoelectric_blocks) - 1)
-            block = thermoelectric_blocks[point][0]
-            time = thermoelectric_blocks[point][1]
-            current_capacity += get_cost_thermoelectric_to_block(
-                thermoelectric, block, time
-            )
-            chromosome[block][time] = -1
-            waiting.append((block, time))
+            RANDOM.shuffle(thermoelectric_blocks)
+
+            for block, time in thermoelectric_blocks:
+
+                if current_capacity >= 0:
+                    break
+
+                print(">"*10)
+                print(current_capacity)
+
+                current_capacity += get_cost_thermoelectric_to_block(
+                    thermoelectric, block, time
+                )
+
+                chromosome[block][time] = -1
+                
+                waiting.append((block, time))
+
+        print("============"*5)
 
         current_capacities[thermoelectric] = current_capacity
 
@@ -290,6 +306,7 @@ def mutate(
 def create_new_population(
     get_cost_thermoelectric_to_block: callable,
     selection: list[list[list[int]]],
+    capacities: list[int],
     pop_size: int,
 ):
     """
@@ -357,7 +374,7 @@ def genetic_algorithm(
         selection = select_chromosomes(fitness_scores, pop_size)
 
         population = create_new_population(
-            get_cost_thermoelectric_to_block, selection, pop_size
+            get_cost_thermoelectric_to_block, selection, capacities, pop_size
         )
 
         for i in range(len(population)):

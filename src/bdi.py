@@ -295,7 +295,7 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
 
     def evaluate(self, agent):
         sequences = agent.beliefs["longest_sequence_off_per_block_in_circuits"].value
-        affected_blocks = [days > 3 for days in sequences]
+        affected_blocks = [days > 3 for cid, bid, days in sequences]
 
         if (
             any(affected_blocks)
@@ -321,8 +321,8 @@ class CECAPrioritizeDaysOff(Desire):
         self.weight = 1
 
     def evaluate(self, agent):
-        days_off = agent.beliefs["days_off_per_block_in_circuits"].value
-        affected_blocks = [days > 7 for days in days_off]
+        days_off = agent.beliefs["last_days_off_per_block_in_circuits"].value
+        affected_blocks = [days > 7 for cid, blockId, days in days_off]
 
         if (
             any(affected_blocks)

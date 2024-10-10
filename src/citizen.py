@@ -59,14 +59,9 @@ class Citizen:
         )
 
         # Membership functions for general_satisfaction
-        general_satisfaction["lowest"] = fuzz.trapmf(
-            general_satisfaction.universe, [0, 0, 3, 4]
-        )
-        general_satisfaction["lower"] = fuzz.trimf(
-            general_satisfaction.universe, [3, 4, 6]
-        )
-        general_satisfaction["low"] = fuzz.trimf(
-            general_satisfaction.universe, [5, 6, 7]
+        # TODO: Change values to original
+        general_satisfaction["low"] = fuzz.trapmf(
+            general_satisfaction.universe, [0, 0, 6, 7]
         )
         general_satisfaction["medium"] = fuzz.trimf(
             general_satisfaction.universe, [7, 8, 9]
@@ -76,14 +71,9 @@ class Citizen:
         )
 
         # Membership functions for personal_satisfaction
-        personal_satisfaction["lowest"] = fuzz.trapmf(
-            personal_satisfaction.universe, [0, 0, 3, 4]
-        )
-        personal_satisfaction["lower"] = fuzz.trimf(
-            personal_satisfaction.universe, [3, 4, 6]
-        )
-        personal_satisfaction["low"] = fuzz.trimf(
-            personal_satisfaction.universe, [5, 6, 7]
+        # TODO: Change values to original
+        personal_satisfaction["low"] = fuzz.trapmf(
+            personal_satisfaction.universe, [0, 0, 6, 7]
         )
         personal_satisfaction["medium"] = fuzz.trimf(
             personal_satisfaction.universe, [7, 8, 9]

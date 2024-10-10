@@ -484,7 +484,8 @@ class ThermoelectricAgent(Person):
                     )
 
                 most_important_part_index = self.get_most_important_repair_part(
-                    lambda i: is_solution(index=i) and self.beliefs["part_status"].value[i][1]
+                    lambda i: is_solution(index=i)
+                    and self.beliefs["parts_status"].value[i][1]
                 )
 
                 if most_important_part_index >= 0:
@@ -879,22 +880,22 @@ class ChiefElectricCompanyAgent(Person):
         )
 
         # 13. Update belief about last days off per block in circuits
-        self.beliefs["last_days_off_per_block_in_circuits"] = (
+        self.beliefs["last_days_off_per_block_in_circuits"].value = (
             self.perception.last_days_off_per_block_in_circuits
         )
 
         # 14. Update belief about longest sequence  off per block in circuits
-        self.beliefs["longest_sequence_off_per_block_in_circuits"] = (
+        self.beliefs["longest_sequence_off_per_block_in_circuits"].value = (
             self.perception.longest_sequence_off_per_block_in_circuits
         )
 
         # 15. Update belief about longest sequence  off per block in circuits
-        self.beliefs["working_thermoelectrics_amount"] = (
+        self.beliefs["working_thermoelectrics_amount"].value = (
             self.perception.longest_sequence_off_per_block_in_circuits
         )
 
         # 16. Update belief about longest sequence  off per block in circuits
-        self.beliefs["general_opinion"] = (
+        self.beliefs["general_opinion"].value = (
             self.perception.longest_sequence_off_per_block_in_circuits
         )
 
@@ -917,37 +918,21 @@ class ChiefElectricCompanyAgent(Person):
         """
         Filter intentions based on the current beliefs and desires of the agent.
         """
-        if self.desires["meet_demand"]:
-            self.intentions["meet_demand"].value = True
-        else:
-            self.intentions["meet_demand"].value = False
 
-        if self.desires["max_stored_energy"]:
-            self.intentions["max_stored_energy"].value = True
-        else:
-            self.intentions["max_stored_energy"].value = False
-
-        if self.desires["prioritize_block_importance"]:
-            self.intentions["prioritize_block_importance"].value = True
-        else:
-            self.intentions["prioritize_block_importance"].value = False
-
-        if self.desires["prioritize_block_opinion"]:
-            self.intentions["prioritize_block_opinion"].value = True
-        else:
-            self.intentions["prioritize_block_opinion"].value = False
-
-        if self.desires["prioritize_consecutive_days_off"]:
-            self.intentions["prioritize_consecutive_days_off"] = True
-
-        else:
-            self.intentions["prioritize_consecutive_days_off"] = False
-
-        if self.desires["prioritize_days_off"]:
-            self.intentions["prioritize_days_off"] = True
-
-        else:
-            self.intentions["prioritize_days_off"] = False
+        self.intentions["meet_demand"].value = self.desires["meet_demand"]
+        self.intentions["max_stored_energy"].value = self.desires["max_stored_energy"]
+        self.intentions["prioritize_block_importance"].value = self.desires[
+            "prioritize_block_importance"
+        ]
+        self.intentions["prioritize_block_opinion"].value = self.desires[
+            "prioritize_block_opinion"
+        ]
+        self.intentions["prioritize_consecutive_days_off"].value = self.desires[
+            "prioritize_consecutive_days_off"
+        ]
+        self.intentions["prioritize_days_off"].value = self.desires[
+            "prioritize_days_off"
+        ]
 
     def make_mapper_block_and_circuits(self, circuits: list["Circuit"]):
         mapper = {}
@@ -1183,11 +1168,11 @@ class ChiefElectricCompanyAgent(Person):
                     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT
                 )
 
-        final_distribution, _ = genetic_algorithm(
+        final_distribution, score = genetic_algorithm(
             get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
-            capacities=self.beliefs["generation_per_thermoelectric"],
+            capacities=self.beliefs["generation_per_thermoelectric"].value,
             generations=50,
-            pop_size=1,
+            pop_size=20,
             blocks=len(self.mapper_key_to_circuit_block),
             mutation_rate=0,
             ft=lambda distribution: self.generic_objective_function(
@@ -1197,8 +1182,14 @@ class ChiefElectricCompanyAgent(Person):
             ),
         )
 
+        print(
+            ">>>>>>>>>>>>>>>>>>>>>>>>>>> FINAL DISTRIBUTION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+        )
+
+        print("it is", final_distribution, " with score ", score)
+
         self.distribute_energy_to_blocks_from_thermoelectrics(
-            final_distribution,
+            complete_distribution=final_distribution,
             thermoelectrics=self.thermoelectrics,
             circuits=self.circuits,
         )
