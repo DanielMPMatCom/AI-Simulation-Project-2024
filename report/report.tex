@@ -226,7 +226,7 @@ A continuación, utilizando intermpolación primeramente por las termoeléctrica
 \textbf{Torres de Alta Tensión}, que están unidas por segmentos que conforman la línea principal del Sistema Energético. 
 Finalmente a través de geometría básica se genera el `cableado' con la menor distancia de cada termoeléctrica y circuito a la línea principal, calculando y guardando dichas distancias en el proceso.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\columnwidth]{assets/map_example.png}
   \caption{Ejemplo de mapa.}
@@ -459,6 +459,154 @@ Las consultas al modelo se realizarán en algunos momentos de la simulación.
 Se utilizó la API de \textbf{Gemini} de Google, específicamente el modelo \textbf{gemini-1.5-flash}.
 
 \section{Ejecución de la Simulación}
+
+Para comenzar se importan los parámetros globales y se genera el mapa. 
+Esto nos brinda una disposición geográfica de todos los elementos de la simulación, 
+pudiendo calcular a través de ella los costos de abastecimiento de energía
+desde cada termoeléctrica hasta cada circuito. Como cada objeto está conectado al sistema 
+eléctrico principal, es posible llevar la energía de cualquier termoeléctrica a cualquier circuito.
+El resultado se vería como en la figura \ref{fig:ejemplo}.\\ 
+
+Por cada circuito se genera una cantidad de bloques, que a su vez generan una cantidad de ciudadanos, de lo que depende 
+el consumo energético que tendrá cada uno. En la figura \ref{fig:citizens} se observa un ejemplo de la cantidad de ciudadanos por circuito.
+Además se genera para cada circuito un nivel de industrialización que también será el de los bloques contenidos en él.
+Con el dato de la cantidad de ciudadanos y el nivel de industrialización se calcula un coeficiente de importancia. En la figura \ref{importance} podemos ver un ejemplo.\\
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/citizenPercircuit.png}
+  \caption{Ejemplo de distribución de ciudadanos por circuito.}
+  \label{fig:citizens}
+  \end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/importancePerCircuit.png}
+  \caption{Ejemplo de distribución de importancia por circuito.}
+  \label{fig:importance}
+  \end{figure}
+
+\subsection{Predicción de Consumo por Circuito e Inicialización de la Generación por Termoeléctrica}
+
+El cálculo del consumo de cada circuito y la generación de cada termoeléctrica se realiza de la siguiente forma:\\
+
+\textbf{Consumo de los Bloques}\\
+ Para cada bloque, se calcula y almacena una predicción 
+  de su consumo diario. Esto se logra generando varias 
+  \textit{Gaussian Mixtures}, cada una proporcionando una 
+  distribución de consumo por hora en un día. A partir de 
+  estas distribuciones, se construye una estimación máxima 
+  tomando el consumo máximo predicho para cada hora. 
+  Este resultado constituye la predicción del consumo para 
+  cada bloque, sobre la cual los agentes basarán sus decisiones. 
+  El consumo real del bloque se calcula diariamente durante 
+  la simulación mediante la generación de una \textit{Gaussian Mixture}.\\
+
+\textbf{Consumo de los Circuitos}\\
+Una vez generada la predicción del consumo por bloque, la predicción del consumo
+   de un circuito se calcula como la suma de las predicciones de sus bloques. En la figura \ref{fig:consumoBloques} 
+   se muestra un ejemplo de predicciones de consumo para unos bloques y en la figura \ref{fig:consumoCircuito} la
+   predicción resultante para el circuito correspondiente. Luego en la figura \ref{fig:consumePerCircuits} se muestra un ejemplo de distribución de consumo diario predicho por cada circuito.\\
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{assets/hourlydemandperblock.png}
+\caption{Ejemplo de predicción de consumo por hora de los bloques de un circuito.}
+\label{fig:consumoBloques}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{assets/demandc0.png}
+\caption{Ejemplo de predicción de consumo por hora del circuito correspondiente.}
+\label{fig:consumoCircuito}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/consume per circuit.png}
+  \caption{Ejemplo de distribución de las predicciones de consumos diarios por circuitos.}
+  \label{fig:consumePerCircuits}
+  \end{figure}
+  
+
+\textbf{Asignación de Circuitos a Termoeléctricas}\\
+ Para cada circuito, se determina cuál es su termoeléctrica más cercana en el sistema
+  para de esta forma confeccionar una estructura donde se tenga para cada 
+  termoeléctrica cuáles son los circuitos que en teoría dependen de ella. Quedaría algo como lo que se muestra en la figura \ref{fig:circuitToTherm}\\
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/newplot (2).png}
+    \caption{Ejemplo de asignación de circuitos a termoeléctricas para calcular la generación de cada termoeléctrica.}
+    \label{fig:circuitToTherm}
+    \end{figure}
+
+\textbf{Generación de Termoeléctricas}\\
+ Luego se establece la generación de una termoeléctrica como la suma de los consumos 
+  predichos de los circuitos más cercanos, teniendo en cuenta el costo de las distancias y con
+  un excedente de 1000kWh. Esto se realiza de esta forma siguiendo la premisa de que el sistema debe
+  estar construido de forma tal que al presentar condiciones óptimas sea capaz de abastecer a todos los circuitos. En la figura \ref{fig:generation} se 
+  muestra un ejemplo.\\
+  
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/total_capacities.png}
+    \caption{Ejemplo de distribución de la generación diaria por termoeléctrica.}
+    \label{fig:generation}
+    \end{figure}
+
+\subsection{Simulación}
+
+Para manejar los parámetros globales, actualizarlos, etc, existe una clase llamada \textbf{WorldState}. 
+Por cada termoeléctrica se creará un agente con arquitectura BDI representado por la clase \textbf{ThermoelectricAgent}
+que es el que se encargará de decidir el régimen de reparaciones y mantenimientos en la termoeléctrica que se le asigne. 
+Para actualizar sus \textit{Beliefs} se nutrirá de la información recopilada en un objeto de tipo \textbf{ThermoelectricAgentPerception} que se actualizará en cada \textit{step} de la simulación. También se creará un único agente Jefe de la Empresa Eléctrica, representado por la clase
+\textbf{ChiefElectricCompanyAgent} cuya percepción se almacena en un objeto de tipo \textbf{ChiefElectricCompanyAgentPerception} que también se actualizará en cada \textit{step} de la simulación. Antes de iniciar
+ se declararán las reglas que determinarán la actualiazción de los deseos de cada agente. Una vez hecho esto comenzará la simulación.\\
+ 
+ 
+ En cada \textit{step} (cada día en este caso) se hará lo siguiente:\\
+
+ \textbf{Acción de Agentes de Termoeléctrica}:\\
+
+Primero se crea una permutación de los agentes para variar el orden de su ejecución por cada día.
+Esto es necesario pues la acción de uno de estos agentes depende del estado del sistema en el momento
+en el que se ejecuta, y este puede ser variado por la acción de los agente que se ejecutaron previamente. 
+Luego, por cada agente se crea su percepción y se ejecuta su método \textbf{action()}, que es el que ejecuta el \textit{pipeline} del agente. 
+Ahí se llama al método \textbf{brf()} o \textit{Belief Revision Function} que actualiza los \textit{Beliefs} basándose en la percepción actual. 
+Después se llama al método \textbf{generate\_desires()} que ordena y evalúa las reglas definidas para el agente en dependencia de su peso. El resultado
+es una lista de \textit{Desires} que se activan y que luego determinan la \textit{Intention} que va a ser ejecutada mediante el método \textbf{filter\_intentions()}. Finalmente con el 
+método \textbf{execute()} se garantiza la aplicación de la \textit{Intention} seleccionada. La acción que realiza el agente se registra en un objeto de tipo \textbf{ThermoelectricAgentAction} y se guarda en el historial de acciones.
+Inmediatamente se actualiza, tanto en la termoeléctrica como en el \textbf{WorldState}, la capacidad de generación de la termoeléctrica a la que pertenece el agente y que puede haber cambiado por la acción ejecutada.\\
+
+Una vez terminado el ciclo de ejecución de los Agentes de Termoeléctrica, se procede con el Agente Jefe de la Empresa Eléctrica de manera similar. Este agente tiene la particularidad de ser el 
+encargado de decidir la distribución energética óptima para las condiciones actuales a las que se enfrenta y que recibe de su percepción. Para ello utiliza un \textbf{Algoritmo Genético}, cuya función objetivo se determina por las \textit{Intentions}
+que se ejecuten. Es decir, cada \textit{Intention} de este agente representa priorizar un aspecto diferente en la repartición. Todos los aspectos de las \textit{Intentions} filtradas tendrán mayor peso que las demás a la hora de encontrar la distribución óptima.
+Además el Jefe de la Empresa Eléctrica destaca por su dinamismo a la hora de generar sus \textit{Desires}, efecto que se logra mediante la comunicación con un \textbf{LLM} en algunos momentos de la simulación. La comunicación consiste en brindarle una lista de posibles
+\textit{Desires} y una lista de condiciones y que el Modelo de Lenguaje devuelva la lista del subconjunto de \textit{Desires} que entiende que deberían ser activados por algún subconjunto de las condiciones, y la las condiciones que los activan. De esta manera el agente aprende nuevas 
+reglas que dependen del estado actual de la simulación. Las acciones realizadas también se guardan, ahora en un objeto de tipo \textbf{ChiefElectricCompanyAction}.\\
+
+Luego de todo lo anterior y para finalizar la simulación de un día, se actualizan los estados de los circuitos, las termoeléctricas y el \textbf{WorldState}. Durante la actualización de los circuitos
+también se actualizan los bloques, donde, entre otras cosas, cada 30 días se actualiza el estado de opinión de los ciudadanos. En esta parte es donde se utiliza la \textbf{Lógica Difusa}, que mediante un conjunto de reglas establece las condiciones con las que cambia la opinión. La opinión general de los ciudadanos cada
+circuito depende directamente de las opiniones de cada bloque, y de la misma forma la opinión general de los ciudadanos del sistema depende de las de los circuitos. Diariamente se calculan los consumos reales de los bloques y circuitos, lo que se utiliza para determinar la efectividad de las decisiones tomadas teniendo en cuenta las predicciones realizadas
+y el estado actual.\\
+
+Finalmente se pasa de día y se repite el ciclo hasta el fin de la simulación.
+
+\subsection{Hipótesis Realizadas}
+
+Teniendo en cuenta que cuando un agente de una termoeléctrica planifica un mantenimiento a una pieza, lo hace basándose en la predicción que tiene del
+tiempo de rotura de dicha pieza y en comparación con una reparación un mantenimiento demora menos tiempo y prolonga el tiempo de vida de la pieza después
+de ser suministrado se plantearon las siguientes hipótesis.
+
+\begin{itemize}
+  \item En un escenario positivo, donde se satisface cómodamente la demanda, el sistema muestra un mejor rendimiento cuando se aplican mantenimientos a las piezas que según la predicción están a punto de romperse.
+  \item En un escenario negativo, donde difícilmente se satisface la demanda, el sistema muestra un mejor rendimiento cuando no se aplican mantenimientos y siempre se espera a que una pieza se rompa para llevar a cabo una reparación.
+\end{itemize}
+
+
 
 \section{Resultados y Estadísticas}
 
