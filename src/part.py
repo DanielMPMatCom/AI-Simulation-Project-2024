@@ -49,12 +49,6 @@ class Part:
 
         if self.is_repairing():
 
-            if self.remaining_repair_days <= -1:
-                raise RuntimeError("Remaining repair days should be greater than 0" + str(self.remaining_repair_days))
-
-            if self.estimated_repair_days <= -1:
-                raise RuntimeError("Estimated repair days should be greater than 0" + str(self.estimated_repair_days))
-
             self.remaining_repair_days -= 1
             self.estimated_repair_days -= 1
 
