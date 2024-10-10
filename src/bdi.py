@@ -1,6 +1,7 @@
 # from src.people import ThermoelectricAgent, ChiefElectricCompanyAgent
 from src.generative_ai import GenAIModel
 from src.part import Coils, SteamTurbine, Generator, Boiler
+from src.simulation_constants import MIN_DAYS_TO_NEED_REPAIR
 
 
 class Belief:
@@ -46,19 +47,85 @@ class TAMaxPowerOutputDesire(Desire):
 
     def __init__(self) -> None:
         Desire.__init__(
-            self,
-            "Desire to maintain maximum power output", "max_power_output"
+            self, "Desire to maintain maximum power output", "max_power_output"
         )
         self.weight = 1
 
     def evaluate(self, agent):
-        if (
+
+        agent.desires["maintain_maximum_power_output"] = (
+            agent.beliefs["general_deficit"].value <= 0
+            and agent.beliefs["max_capacity"].value
+            - agent.beliefs["current_capacity"].value
+            <= 1e-8
+        )
+
+
+class TAMinimizeDowntimeDesire(Desire):
+    """
+    Represents a desire to minimize downtime in a thermoelectric plant.
+    """
+
+    def __init__(self) -> None:
+        Desire.__init__(self, "Desire to minimize downtime", "minimize_downtime")
+        self.weight = 2
+
+    def evaluate(self, agent):
+
+        agent.desires["minimize_downtime"] = (
+            not agent.beliefs["plant_is_working"].value
+            and agent.beliefs["general_deficit"].value > 0
+        )
+
+
+class TAMeetEnergyDemandDesire(Desire):  # increase power output
+    """
+    A class representing the desire to meet energy demand for a thermoelectric agent.
+    """
+
+    def __init__(self) -> None:
+        Desire.__init__(self, "Desire to meet energy demand", "meet_energy_demand")
+        self.weight = 3
+
+    def evaluate(self, agent):
+
+        agent.desires["meet_energy_demand"] = (
             agent.beliefs["general_deficit"].value > 0
-            and agent.beliefs["current_capacity"] < agent.beliefs["max_capacity"]
-        ):
-            agent.desires["maintain_maximum_power_output"] = True
+            and len(agent.beliefs["broken_parts"].value) > 0
+        )
+
+
+class TAPrioritizeCriticalPartsRepairDesire(Desire):
+    """
+    A desire class that prioritizes the repair of critical parts in a thermoelectric agent.
+    """
+
+    def __init__(self) -> None:
+        Desire.__init__(
+            self,
+            "Desire to prioritize critical part repair",
+            "prioritize_critical_parts_repair",
+        )
+        self.weight = 4
+
+    def evaluate(self, agent):
+
+        broken_boilers = sum(
+            1
+            for part in agent.beliefs["broken_parts"].value
+            if isinstance(part, Boiler)
+        )
+
+        if broken_boilers == agent.thermoelectric.get_total_boilers():
+            agent.desires["prioritize_critical_parts_repair"] = False
+
         else:
-            agent.desires["maintain_maximum_power_output"] = False
+            agent.desires["prioritize_critical_parts_repair"] = any(
+                [
+                    (isinstance(part, (Coils, SteamTurbine, Generator)))
+                    for part in agent.beliefs["broken_parts"].value
+                ]
+            )
 
 
 class TAPreventUnexpectedBreakdownDesire(Desire):
@@ -73,94 +140,25 @@ class TAPreventUnexpectedBreakdownDesire(Desire):
             "Desire to prevent unexpected breakdowns",
             "prevent_unexpected_breakdowns",
         )
-        self.weight = 2
-
-    def evaluate(self, agent):
-        if any(
-            [(time <= 1) for _, _, time in agent.beliefs["parts_status"].value]
-        ) and all(
-            [
-                (
-                    (agent.beliefs["general_offer"].value - reduction)
-                    > agent.beliefs["general_demand"].value * 3 / 4
-                )
-                for _, reduction in agent.beliefs[
-                    "power_output_reduction_on_part_failure"
-                ].value
-            ]
-        ):
-            agent.desires["prevent_unexpected_breakdowns"] = True
-        else:
-            agent.desires["prevent_unexpected_breakdowns"] = False
-
-
-class TAMinimizeDowntimeDesire(Desire):
-    """
-    Represents a desire to minimize downtime in a thermoelectric plant.
-    """
-
-    def __init__(self) -> None:
-        Desire.__init__(self, "Desire to minimize downtime", "minimize_downtime")
-        self.weight = 3
-
-    def evaluate(self, agent):
-        if (
-            agent.beliefs["plant_is_working"].value == False
-            and agent.beliefs["general_deficit"].value > 0
-        ):
-            agent.desires["minimize_downtime"] = True
-        else:
-            agent.desires["minimize_downtime"] = False
-
-
-class TAMeetEnergyDemandDesire(Desire):
-    """
-    A class representing the desire to meet energy demand for a thermoelectric agent.
-    """
-
-    def __init__(self) -> None:
-        Desire.__init__(self, "Desire to meet energy demand", "meet_energy_demand")
-        self.weight = 4
-
-    def evaluate(self, agent):
-        if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
-            agent.desires["meet_energy_demand"] = True
-        else:
-            agent.desires["meet_energy_demand"] = False
-
-
-class TAPrioritizeCriticalPartsRepairDesire(Desire):
-    """
-    A desire class that prioritizes the repair of critical parts in a thermoelectric agent.
-    """
-
-    def __init__(self) -> None:
-        Desire.__init__(
-            self,
-            "Desire to prioritize critical part repair",
-            "prioritize_critical_parts_repair",
-        )
         self.weight = 5
 
     def evaluate(self, agent):
 
-        broken_boilers = sum(
-            1
-            for part in agent.beliefs["broken_parts"].value
-            if isinstance(part, Boiler)
-        )
-
-        if broken_boilers == agent.thermoelectric.get_total_boilers():
-            agent.desires["prioritize_critical_parts_repair"] = False
-        elif any(
+        agent.desires["prevent_unexpected_breakdowns"] = any(
             [
-                (isinstance(part, (Coils, SteamTurbine, Generator)))
-                for part in agent.beliefs["broken_parts"].value
+                (
+                    time <= MIN_DAYS_TO_NEED_REPAIR
+                    and agent.beliefs["general_offer"].value
+                    - agent.beliefs["power_output_reduction_on_part_failure"].value[
+                        index
+                    ][1]
+                    > agent.beliefs["general_demand"].value * 3 / 4
+                )
+                for index, (_, is_working, time) in enumerate(
+                    agent.beliefs["parts_status"].value
+                )
             ]
-        ):
-            agent.desires["prioritize_critical_parts_repair"] = True
-        else:
-            agent.desires["prioritize_critical_parts_repair"] = False
+        )
 
 
 class TARepairPartsDesire(Desire):
@@ -178,10 +176,13 @@ class TARepairPartsDesire(Desire):
         self.weight = 6
 
     def evaluate(self, agent):
-        agent.desires["repair_parts"] = [
-            (part, part in agent.beliefs["broken_parts"].value)
-            for part in agent.thermoelectric.parts
-        ]
+
+        agent.desires["repair_parts"] = any(
+            [
+                (not is_working)
+                for _, is_working, time in agent.beliefs["parts_status"].value
+            ]
+        )
 
 
 # region Chief of Electric Company Agent Desires

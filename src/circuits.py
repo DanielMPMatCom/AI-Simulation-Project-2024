@@ -37,9 +37,9 @@ class Circuit:
     def get_all_block_population(self):
         return sum([block.citizens.amount for block in self.blocks])
 
-    def update(self):
+    def update(self, general_satisfaction):
         for block in self.blocks:
-            block.update()
+            block.update(general_satisfaction=general_satisfaction)
         self.set_circuit_satisfaction()
 
     def create_blocks(self):

@@ -1,7 +1,5 @@
 from src.circuits import Circuit
 from src.thermoelectrics import Thermoelectric
-import json
-
 
 class WorldState:
     def __init__(
@@ -27,9 +25,7 @@ class WorldState:
             for circuit in self.circuits
         ]
 
-    def __str__(self):  # TODO
-        #         representation = f"""Generation Per Thermoelectric: {}
-        # """
+    def __str__(self):
 
         tab = " " * 4
 
@@ -53,6 +49,15 @@ class WorldState:
             base += len(circuit.blocks)
 
         return representation
+
+    def update_only_thermoelectric_stats(self, thermoelectric_index):
+        old_generation = self.generation_per_thermoelectric[thermoelectric_index]
+        self.generation_per_thermoelectric[thermoelectric_index] = self.thermoelectrics[
+            thermoelectric_index
+        ].current_capacity
+        self.general_offer += (
+            self.generation_per_thermoelectric[thermoelectric_index] - old_generation
+        )
 
     def update(self):
         self.generation_per_thermoelectric = [
@@ -93,7 +98,6 @@ class WorldState:
             for block_id, block in enumerate(circuit.blocks)
         ]
 
-
         self.satisfaction_per_circuit = [
             circuit.circuit_satisfaction for circuit in self.circuits
         ]
@@ -124,8 +128,6 @@ class WorldState:
                 for circuit in self.circuits
             ]
         )
-
-        
 
         self.general_deficit = max(self.general_demand - self.general_offer, 0)
         self.general_satisfaction = self.get_general_satisfaction()

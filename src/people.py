@@ -24,6 +24,7 @@ from src.simulation_constants import (
     DISTANCE_REGULATOR,
     OBJECTIVE_FUNCTION_INTENTION_PARAMS_WEIGHT,
     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT,
+    MIN_DAYS_TO_NEED_REPAIR,
 )
 
 
@@ -135,16 +136,10 @@ class ThermoelectricAgentAction:
         properties = f"""
             increase_power_output: {self.increase_power_output},
             operate_at_full_capacity: {self.operate_at_full_capacity},
-            perform_maintenance_on_parts: {[
-            (part.__class__.__name__, status)
-            for part, status in self.perform_maintenance_on_parts
-            ]},
+            perform_maintenance_on_parts: {self.perform_maintenance_on_parts},
             reduce_downtime:{self.reduce_downtime},
             prioritize_repair_of_critical_parts: {self.prioritize_repair_of_critical_parts},
-            repair_parts: {[
-            (part.__class__.__name__, status)
-            for part, status in self.repair_parts
-            ]}
+            repair_parts: {self.repair_parts}
         """
         return str(properties)
 
@@ -195,8 +190,8 @@ class ThermoelectricAgent(Person):
             "all_desires": Belief(
                 {
                     "max_power_output": TAMaxPowerOutputDesire(),
-                    "prevent_unexpected_breakdowns": TAPreventUnexpectedBreakdownDesire(),
                     "minimize_downtime": TAMinimizeDowntimeDesire(),
+                    "prevent_unexpected_breakdowns": TAPreventUnexpectedBreakdownDesire(),
                     "meet_energy_demand": TAMeetEnergyDemandDesire(),
                     "prioritize_critical_parts_repair": TAPrioritizeCriticalPartsRepairDesire(),
                     "repair_parts": TARepairPartsDesire(),
@@ -206,8 +201,8 @@ class ThermoelectricAgent(Person):
             "current_desires": Belief(
                 [
                     "max_power_output",
-                    "prevent_unexpected_breakdowns",
                     "minimize_downtime",
+                    "prevent_unexpected_breakdowns",
                     "meet_energy_demand",
                     "prioritize_critical_parts_repair",
                     "repair_parts",
@@ -218,46 +213,32 @@ class ThermoelectricAgent(Person):
 
         self.desires = {
             "maintain_maximum_power_output": False,
-            "prevent_unexpected_breakdowns": False,
             "minimize_downtime": False,
             "meet_energy_demand": False,
             "prioritize_critical_part_repair": False,
+            "prevent_unexpected_breakdowns": False,
             "repair_parts": [(part, False) for part in self.thermoelectric.parts],
-            # "schedule_repairs_during_low_demand": Desire(
-            #     False, "Desire of schedule repairs during low demand"
-            # ),  # TODO
         }
 
         self.intentions = {
-            "increase_power_output": Intention(
-                False, "Intention to increase power output"
-            ),
             "operate_at_full_capacity": Intention(
-                False, "Intention to operate at full capacity"
+                False, "Intention to operate the plant at full capacity"
+            ),
+            "reduce_downtime": Intention(False, "Intention to minimize plant downtime"),
+            "increase_power_output": Intention(
+                False, "Intention to boost power output"
+            ),
+            "prioritize_repair_of_critical_parts": Intention(
+                False, "Intention to prioritize the repair of critical parts"
             ),
             "perform_maintenance_on_parts": Intention(
-                [(part, False) for part in self.thermoelectric.parts],
-                "A List of Tuples where the left side is the Part and the right side is True if the Part needs maintenance",
-            ),
-            "reduce_downtime": Intention(False, "Intention to reduce downtime"),
-            "prioritize_repair_of_critical_parts": Intention(
-                False, "Intention to prioritize repair of critical parts"
+                False,
+                "Intention to perform maintenance on parts that need maintenance",
             ),
             "repair_parts": Intention(
-                [(part, False) for part in self.thermoelectric.parts],
-                "A list of tuples where the left side is a Part and the right side is True if there is an intention of repair the part and False otherwise",
+                False,
+                "Intention to repair parts that need repair",
             ),
-            # "meet_demand": Intention(False, "Intention to meet demand"),
-            # "inspect_critical_parts": Intention(
-            #     False, "Intention to inspect critical parts"
-            # ),  # TODO
-            # "schedule_maintenance": Intention(
-            #     [(part, False) for part in self.thermoelectric.parts],
-            #     "A List of Tuples where the left side is the Part and the right side is True if the Part needs maintenance",
-            # ),
-            # "repair_during_low_demand": Intention(
-            #     False, "Intention to repair during low demand"
-            # ),  # TODO
         }
 
     def brf(self) -> None:
@@ -313,48 +294,30 @@ class ThermoelectricAgent(Person):
         Filter intentions based on the current beliefs and desires of the agent.
         """
         # If the agent desires to maintain maximum power output, he will intend to increase power output and operate at full capacity
-        if self.desires["maintain_maximum_power_output"]:
-            self.intentions["operate_at_full_capacity"].value = True
-        else:
-            self.intentions["operate_at_full_capacity"].value = False
+        self.intentions["operate_at_full_capacity"].value = self.desires[
+            "maintain_maximum_power_output"
+        ]
 
         # If the agent desires to prevent unexpected breakdowns, he will intend to inspect critical parts and perform maintenance on parts
-        if self.desires["prevent_unexpected_breakdowns"]:
-            # self.intentions["inspect_critical_parts"].value = True
-            self.intentions["perform_maintenance_on_parts"].value = [
-                (part, time <= 1)
-                for part, _, time in self.beliefs["parts_status"].value
-            ]
-        else:
-            # self.intentions["inspect_critical_parts"].value = False
-            self.intentions["perform_maintenance_on_parts"].value = [
-                (part, False) for part, _, _ in self.beliefs["parts_status"].value
-            ]
+        self.intentions["perform_maintenance_on_parts"].value = self.desires[
+            "prevent_unexpected_breakdowns"
+        ]
 
         # If the agent desires to minimize downtime, he will intend to repair during low demand and reduce downtime
-        if self.desires["minimize_downtime"]:
-            # self.intentions["repair_during_low_demand"].value = True
-            self.intentions["reduce_downtime"].value = True
-        else:
-            # self.intentions["repair_during_low_demand"].value = False
-            self.intentions["reduce_downtime"].value = False
+        self.intentions["reduce_downtime"].value = self.desires["minimize_downtime"]
 
         # If the agent desires to meet energy demand, he will intend to meet demand
-        if self.desires["meet_energy_demand"]:
-            self.intentions["increase_power_output"].value = True
-        else:
-            self.intentions["increase_power_output"].value = False
+        self.intentions["increase_power_output"].value = self.desires[
+            "meet_energy_demand"
+        ]
 
         # If the agent desires to prioritize repair of critical parts, he will intend to prioritize repair of critical parts
-        if self.desires["prioritize_critical_part_repair"]:
-            self.intentions["prioritize_repair_of_critical_parts"].value = True
-        else:
-            self.intentions["prioritize_repair_of_critical_parts"].value = False
+        self.intentions["prioritize_repair_of_critical_parts"].value = self.desires[
+            "prioritize_critical_part_repair"
+        ]
 
         # The agent will intend to repair parts that need repair
-        self.intentions["repair_parts"].value = [
-            (part, need_repair) for part, need_repair in self.desires["repair_parts"]
-        ]
+        self.intentions["repair_parts"].value = self.desires["repair_parts"]
 
         # print(f"Generated intentions: {self.intentions}")
 
@@ -388,100 +351,15 @@ class ThermoelectricAgent(Person):
 
         increase_power_output = False
         operate_at_full_capacity = False
-        perform_maintenance_on_parts = [
-            (part, False) for part in self.thermoelectric.parts
-        ]
+        perform_maintenance_on_parts = False
         reduce_downtime = False
         prioritize_repair_of_critical_parts = False
-        repair_parts = [
-            (part, part.is_repairing()) for part in self.thermoelectric.parts
-        ]
-        # meet_demand = False
-        # repair_during_low_demand = False
-        # inspect_critical_parts = False
-
-        if self.intentions["repair_parts"].value:
-
-            repair_parts = self.intentions["repair_parts"].value
-            self.intentions["repair_parts"].value = [
-                (part, False) for part in self.thermoelectric.parts
-            ]
-
-            most_important_part_index = self.get_most_important_repair_part(
-                lambda i: not self.beliefs["parts_status"].value[i][1]
-            )
-
-            if most_important_part_index >= 0:
-                current_repair_index = (
-                    self.thermoelectric.get_current_repair_part_index()
-                )
-
-                if current_repair_index >= 0:
-                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
-
-                self.thermoelectric.parts[most_important_part_index].set_repairing(True)
-
-            return ThermoelectricAgentAction(
-                increase_power_output=increase_power_output,
-                operate_at_full_capacity=operate_at_full_capacity,
-                perform_maintenance_on_parts=perform_maintenance_on_parts,
-                reduce_downtime=reduce_downtime,
-                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-                repair_parts=repair_parts,
-                # meet_demand=meet_demand,
-                # repair_during_low_demand=repair_during_low_demand,
-                # inspect_critical_parts=inspect_critical_parts,
-            )
-
-        if self.intentions["increase_power_output"].value:
-            increase_power_output = True
-            self.intentions["increase_power_output"].value = False
-
-            most_important_part_index = self.get_most_important_repair_part(
-                lambda i: not self.beliefs["parts_status"].value[i][1]
-            )
-
-            if most_important_part_index >= 0:
-                current_repair_index = (
-                    self.thermoelectric.get_current_repair_part_index()
-                )
-
-                if current_repair_index >= 0:
-                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
-
-                self.thermoelectric.parts[most_important_part_index].set_repairing(True)
-
-            return ThermoelectricAgentAction(
-                increase_power_output=increase_power_output,
-                operate_at_full_capacity=operate_at_full_capacity,
-                perform_maintenance_on_parts=perform_maintenance_on_parts,
-                reduce_downtime=reduce_downtime,
-                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-                repair_parts=repair_parts,
-                # meet_demand=meet_demand,
-                # repair_during_low_demand=repair_during_low_demand,
-                # inspect_critical_parts=inspect_critical_parts,
-            )
+        repair_parts = False
 
         if self.intentions["operate_at_full_capacity"].value:
             operate_at_full_capacity = True
             self.intentions["operate_at_full_capacity"].value = False
 
-            most_important_part_index = self.get_most_important_repair_part(
-                lambda i: not self.beliefs["parts_status"].value[i][1], False
-            )
-
-            if most_important_part_index >= 0:
-                current_repair_index = (
-                    self.thermoelectric.get_current_repair_part_index()
-                )
-
-                if current_repair_index >= 0:
-                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
-
-                self.thermoelectric.parts[most_important_part_index].set_repairing(True)
-                self.thermoelectric.parts[most_important_part_index].hurry_repair()
-
             return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
                 operate_at_full_capacity=operate_at_full_capacity,
@@ -489,33 +367,6 @@ class ThermoelectricAgent(Person):
                 reduce_downtime=reduce_downtime,
                 prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
                 repair_parts=repair_parts,
-                # meet_demand=meet_demand,
-                # repair_during_low_demand=repair_during_low_demand,
-                # inspect_critical_parts=inspect_critical_parts,
-            )
-
-        if self.intentions["perform_maintenance_on_parts"].value:
-            perform_maintenance_on_parts = self.intentions[
-                "perform_maintenance_on_parts"
-            ].value
-
-            self.intentions["perform_maintenance_on_parts"].value = [
-                (part, False) for part in self.thermoelectric.parts
-            ]
-
-            part: "Part" = perform_maintenance_on_parts[0][0]
-            part.repair()
-
-            return ThermoelectricAgentAction(
-                increase_power_output=increase_power_output,
-                operate_at_full_capacity=operate_at_full_capacity,
-                perform_maintenance_on_parts=perform_maintenance_on_parts,
-                reduce_downtime=reduce_downtime,
-                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-                repair_parts=repair_parts,
-                # meet_demand=meet_demand,
-                # repair_during_low_demand=repair_during_low_demand,
-                # inspect_critical_parts=inspect_critical_parts,
             )
 
         if self.intentions["reduce_downtime"].value:
@@ -546,9 +397,33 @@ class ThermoelectricAgent(Person):
                 reduce_downtime=reduce_downtime,
                 prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
                 repair_parts=repair_parts,
-                # meet_demand=meet_demand,
-                # repair_during_low_demand=repair_during_low_demand,
-                # inspect_critical_parts=inspect_critical_parts,
+            )
+
+        if self.intentions["increase_power_output"].value:
+            increase_power_output = True
+            self.intentions["increase_power_output"].value = False
+
+            most_important_part_index = self.get_most_important_repair_part(
+                lambda i: not self.beliefs["parts_status"].value[i][1]
+            )
+
+            if most_important_part_index >= 0:
+                current_repair_index = (
+                    self.thermoelectric.get_current_repair_part_index()
+                )
+
+                if current_repair_index >= 0:
+                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
+
+                self.thermoelectric.parts[most_important_part_index].set_repairing(True)
+
+            return ThermoelectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                reduce_downtime=reduce_downtime,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
             )
 
         if self.intentions["prioritize_repair_of_critical_parts"].value:
@@ -570,7 +445,6 @@ class ThermoelectricAgent(Person):
                     self.thermoelectric.parts[current_repair_index].set_repairing(False)
 
                 self.thermoelectric.parts[most_important_part_index].set_repairing(True)
-                self.thermoelectric.parts[most_important_part_index].repair()
 
             return ThermoelectricAgentAction(
                 increase_power_output=increase_power_output,
@@ -579,63 +453,76 @@ class ThermoelectricAgent(Person):
                 reduce_downtime=reduce_downtime,
                 prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
                 repair_parts=repair_parts,
-                # meet_demand=meet_demand,
-                # repair_during_low_demand=repair_during_low_demand,
-                # inspect_critical_parts=inspect_critical_parts,
             )
 
-        # if self.intentions["repair_during_low_demand"].value:
-        #     repair_during_low_demand = True
-        #     self.intentions["repair_during_low_demand"].value = False
-        #     # Placeholder for repairing during low demand
+        if self.intentions["perform_maintenance_on_parts"].value:
+            perform_maintenance_on_parts = self.intentions[
+                "perform_maintenance_on_parts"
+            ].value
 
-        #     return ThermoelectricAgentAction(
-        #         increase_power_output=increase_power_output,
-        #         operate_at_full_capacity=operate_at_full_capacity,
-        #         inspect_critical_parts=inspect_critical_parts,
-        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
-        #         repair_during_low_demand=repair_during_low_demand,
-        #         reduce_downtime=reduce_downtime,
-        #         meet_demand=meet_demand,
-        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-        #         repair_parts=repair_parts,
-        #     )
+            self.intentions["perform_maintenance_on_parts"].value = False
 
-        # if self.intentions["meet_demand"].value:
-        #     meet_demand = True
-        #     self.intentions["meet_demand"].value = False
-        #     # Placeholder for meeting demand
+            def is_solution(index: int):
+                _, _, time = self.beliefs["parts_status"].value[index]
+                return (
+                    time <= MIN_DAYS_TO_NEED_REPAIR
+                    and self.beliefs["general_offer"].value
+                    - self.beliefs["power_output_reduction_on_part_failure"].value[
+                        index
+                    ][1]
+                    > self.beliefs["general_demand"].value * 3 / 4
+                )
 
-        #     return ThermoelectricAgentAction(
-        #         increase_power_output=increase_power_output,
-        #         operate_at_full_capacity=operate_at_full_capacity,
-        #         inspect_critical_parts=inspect_critical_parts,
-        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
-        #         repair_during_low_demand=repair_during_low_demand,
-        #         reduce_downtime=reduce_downtime,
-        #         meet_demand=meet_demand,
-        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-        #         repair_parts=repair_parts,
-        #     )
+            most_important_part_index = self.get_most_important_repair_part(
+                lambda i: is_solution(index=i)
+            )
 
-        # if self.intentions["inspect_critical_parts"].value:
-        #     inspect_critical_parts = True
-        #     self.intentions["inspect_critical_parts"].value = False
-        #     # Placeholder for inspecting critical parts
+            if most_important_part_index >= 0:
+                current_repair_index = (
+                    self.thermoelectric.get_current_repair_part_index()
+                )
 
-        #     return ThermoelectricAgentAction(
-        #         increase_power_output=increase_power_output,
-        #         operate_at_full_capacity=operate_at_full_capacity,
-        #         inspect_critical_parts=inspect_critical_parts,
-        #         perform_maintenance_on_parts=perform_maintenance_on_parts,
-        #         repair_during_low_demand=repair_during_low_demand,
-        #         reduce_downtime=reduce_downtime,
-        #         meet_demand=meet_demand,
-        #         prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
-        #         repair_parts=repair_parts,
-        #     )
+                if current_repair_index >= 0:
+                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
 
-        # print(f"{self.name} is executing intentions.")
+                self.thermoelectric.parts[most_important_part_index].maintenance()
+
+            return ThermoelectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                reduce_downtime=reduce_downtime,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
+
+        if self.intentions["repair_parts"].value:
+
+            repair_parts = self.intentions["repair_parts"].value
+            self.intentions["repair_parts"].value = False
+
+            most_important_part_index = self.get_most_important_repair_part(
+                lambda i: not self.beliefs["parts_status"].value[i][1]
+            )
+
+            if most_important_part_index >= 0:
+                current_repair_index = (
+                    self.thermoelectric.get_current_repair_part_index()
+                )
+
+                if current_repair_index >= 0:
+                    self.thermoelectric.parts[current_repair_index].set_repairing(False)
+
+                self.thermoelectric.parts[most_important_part_index].set_repairing(True)
+
+            return ThermoelectricAgentAction(
+                increase_power_output=increase_power_output,
+                operate_at_full_capacity=operate_at_full_capacity,
+                perform_maintenance_on_parts=perform_maintenance_on_parts,
+                reduce_downtime=reduce_downtime,
+                prioritize_repair_of_critical_parts=prioritize_repair_of_critical_parts,
+                repair_parts=repair_parts,
+            )
 
     def action(
         self, perception: "ThermoelectricAgentPerception"

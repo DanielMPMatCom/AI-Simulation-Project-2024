@@ -171,9 +171,12 @@ class Thermoelectric:
         Updates the state of all parts in the thermoelectric.
         """
         self.stored_energy = max(self.current_capacity, 0)
+
         for part in self.parts:
             part.update()
+
         self.update_capacity()
+
         self.current_capacity += self.stored_energy
 
     def get_total_broken_boilers(self) -> int:

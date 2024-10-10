@@ -18,6 +18,7 @@ class Part:
         self.estimated_remaining_life = None
         self.estimated_repair_days = None
 
+        self.maintenance_process = False
         self.repairing = False
 
         self.plan_break_date()  # Initialize the part's lifespan
@@ -26,6 +27,7 @@ class Part:
         return f"""Part: {self.__class__.__name__},
             Repairing: {self.is_repairing()},
             Working: {self.is_working()},
+            Maintenance: {self.maintenance_process_was_started()},
             Remaining life: {self.remaining_life},
             Remaining repair days: {self.remaining_repair_days},
             Estimated remaining life: {self.estimated_remaining_life},
@@ -55,6 +57,34 @@ class Part:
         else:
             raise RuntimeError("Hurry repair in part that isn't repairing")
 
+    def maintenance(self):
+        """
+        Start the maintenance process by setting the repair days.
+        """
+        if self.remaining_repair_days >= 0 or not self.is_working():
+            raise RuntimeError(
+                "Maintenance process, but the part was in repair process"
+            )
+
+        self.remaining_life = 0
+        self.estimated_remaining_life = 0
+
+        self.set_repairing(True)
+        self.maintenance_process = True
+
+        self.remaining_repair_days = self.lognormal.generate_with_params(
+            mu=self.lognormal.mu * 4 / 5, sigma=self.lognormal.sigma * 4 / 5
+        )
+
+        count = 0
+        self.estimated_repair_days = 0
+        for _ in range(1000):
+            count += 1
+            self.estimated_repair_days += self.lognormal.generate_with_params(
+                mu=self.lognormal.mu * 4 / 5, sigma=self.lognormal.sigma * 4 / 5
+            )
+        self.estimated_repair_days /= count
+
     def repair(self):
         """
         Start the repair process by setting the repair days.
@@ -62,7 +92,6 @@ class Part:
         if self.is_working():
             raise RuntimeError("Repair process, but the part is working")
 
-        self.set_repairing(True)
         self.remaining_repair_days = self.lognormal.generate()
 
         count = 0
@@ -99,6 +128,8 @@ class Part:
         self.estimated_remaining_life /= count
 
     def set_repairing(self, value: bool):
+        if value and self.remaining_repair_days <= 0:
+            self.repair()
         self.repairing = value
 
     def is_repairing(self) -> bool:
@@ -106,6 +137,12 @@ class Part:
         Check if the part is currently under repair.
         """
         return self.repairing
+
+    def is_currently_receiving_maintenance(self):
+        return self.is_repairing() and self.maintenance_process
+
+    def maintenance_process_was_started(self) -> bool:
+        return self.maintenance_process
 
     def is_working(self) -> bool:
         """
@@ -117,6 +154,7 @@ class Part:
         """
         Finishes the repair process and reinitialize the part's lifespan.
         """
+        self.maintenance_process = False
         self.set_repairing(False)
         self.plan_break_date()
 
