@@ -656,6 +656,7 @@ class ChiefElectricCompanyAgent(Person):
         perception: "ChiefElectricCompanyAgentPerception",
         rules,
         current_rules,
+        mapper_key_to_circuit_block,
         learn=False,
     ):
         Person.__init__(self, name=name)
@@ -774,14 +775,12 @@ class ChiefElectricCompanyAgent(Person):
             ),
         }
 
-        self.mapper_key_to_circuit_block = self.make_mapper_block_and_circuits(
-            self.circuits
-        )
+        self.mapper_key_to_circuit_block = mapper_key_to_circuit_block
 
         self.max_importance_of_all_circuits = sum(
             sum(block.importance for block in circuit.blocks)
             for circuit in self.circuits
-        )  # TODO : Implement circuit importance
+        )
 
         self.learn = learn
 
@@ -897,17 +896,6 @@ class ChiefElectricCompanyAgent(Person):
             "prioritize_days_off"
         ]
 
-    def make_mapper_block_and_circuits(self, circuits: list["Circuit"]):
-        mapper = {}
-        key = 0
-
-        for ci, c in enumerate(circuits):
-            for block_id in range(len(c.blocks)):
-                mapper[key] = (ci, block_id)
-                key += 1
-
-        return mapper
-
     def get_cost_to_meet_demand_from_thermoelectric_to_block(
         self, thermoelectric_index, block_key, hour, return_sum=True, predicted=True
     ) -> float | tuple[int, int]:
@@ -977,9 +965,10 @@ class ChiefElectricCompanyAgent(Person):
             (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
             for hour, thermoelectric_index in enumerate(distribution):
                 if thermoelectric_index == -1:
-                    days_off.append(False)
-                else:
                     days_off.append(True)
+                else:
+                    days_off.append(False)
+
                     cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
@@ -1142,7 +1131,7 @@ class ChiefElectricCompanyAgent(Person):
                     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT
                 )
 
-        final_distribution, score = genetic_algorithm(
+        final_distribution, _ = genetic_algorithm(
             get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
             capacities=self.beliefs["generation_per_thermoelectric"].value,
             generations=50,

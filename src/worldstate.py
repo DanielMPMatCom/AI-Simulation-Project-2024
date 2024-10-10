@@ -26,6 +26,10 @@ class WorldState:
             for circuit in self.circuits
         ]
 
+        self.mapper_key_to_circuit_block = self.make_mapper_block_and_circuits(
+            self.circuits
+        )
+
     def basic_info_str(self):
         properties = f""" 
         General Demand: {self.general_demand},
@@ -143,7 +147,7 @@ class WorldState:
         self.general_deficit = max(self.general_demand - self.general_offer, 0)
         self.general_satisfaction = self.get_general_satisfaction()
 
-    def get_general_satisfaction(self): # TODO : TOLEDO MUST REVIEW THIS
+    def get_general_satisfaction(self):  # TODO : TOLEDO MUST REVIEW THIS
 
         total_importance: float = 0
         total_satisfaction: float = 0
@@ -171,3 +175,14 @@ class WorldState:
             circuits_satisfaction[circuit.id] = circuit.circuit_satisfaction
 
         return circuits_satisfaction
+
+    def make_mapper_block_and_circuits(self, circuits: list["Circuit"]):
+        mapper = {}
+        key = 0
+
+        for ci, c in enumerate(circuits):
+            for block_id in range(len(c.blocks)):
+                mapper[key] = (ci, block_id)
+                key += 1
+
+        return mapper

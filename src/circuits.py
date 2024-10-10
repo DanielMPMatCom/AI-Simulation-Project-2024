@@ -134,10 +134,12 @@ class BlockReport:
     def __init__(
         self,
         time_off: int,
+        total_consumed: float,
         total_demand: float,
         citizens_opinion_state: float,
     ):
         self.time_off = time_off
+        self.total_consumed = total_consumed
         self.total_demand = total_demand
         self.citizens_opinion = citizens_opinion_state
 
@@ -215,10 +217,11 @@ class Block:
             opinion_day (bool): A flag indicating if it is an opinion day, affecting how citizens' opinions are updated.
         """
 
+        total_demand = sum(self.demand_per_hour)
         self.demand_per_hour = self.gaussian_mixture.generate()
 
         time_off = sum(self.off_hours)
-        total_demand = self.get_consumed_energy_today()
+        total_consumed = self.get_consumed_energy_today()
 
         history_report = self.history_report[:DAYS_OF_MEMORY:-1]
 
@@ -249,6 +252,7 @@ class Block:
 
         daily_report = BlockReport(
             time_off=time_off,
+            total_consumed=total_consumed,
             total_demand=total_demand,
             citizens_opinion_state=self.citizens.opinion,
         )
