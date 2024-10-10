@@ -96,21 +96,14 @@ class Citizen:
         rules = [
             # Complex rules
             ctrl.Rule(
-                last_day_off["moderate"]
+                days_off_relation["medium"]
                 & industrialization["high"],
                 personal_satisfaction["medium"],
             ),
             ctrl.Rule(
                 last_day_off["distant"]
-                & days_off_relation["medium"]
-                & industrialization["high"]
-                & general_satisfaction["high"],
-                personal_satisfaction["medium"],
-            ),
-            ctrl.Rule(
-                last_day_off["distant"]
                 & days_off_relation["low"]
-                & industrialization["high"]
+                & industrialization["medium"]
                 & general_satisfaction["low"],
                 personal_satisfaction["medium"],
             ),
@@ -134,6 +127,13 @@ class Citizen:
                 & industrialization["medium"]
                 & general_satisfaction["high"],
                 personal_satisfaction["low"],
+            ),
+            ctrl.Rule(
+                last_day_off["moderate"]
+                & days_off_relation["medium"]
+                & industrialization["medium"]
+                & general_satisfaction["medium"],
+                personal_satisfaction["high"],
             ),
 
             # Low personal satisfaction
