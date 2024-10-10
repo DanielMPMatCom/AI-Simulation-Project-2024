@@ -4,9 +4,19 @@ import numpy as np
 
 
 class Citizen:
-    def __init__(self, amount: int) -> None:
+    def __init__(self, amount: int, days_between_opinion: int=7) -> None:
         self.amount = amount
         self.opinion = None
+        self.days_between_opinion = days_between_opinion
+        self.last_opinion_date = days_between_opinion
+
+    def is_opinion_day(self) -> bool:
+        if self.days_between_opinion < self.last_opinion_date:
+            self.last_opinion_date += 1
+            return False
+        else:
+            self.last_opinion_date = 0
+            return True
 
     def set_opinion(
         self,
@@ -14,11 +24,20 @@ class Citizen:
         input_industrialization: float,
         input_days_off_relation: float,
         input_general_satisfaction: float,
-    ):
+        verbose: bool = False,
+    ) -> None:
 
+        # Opinion day verification
+        if not self.is_opinion_day():
+            if verbose:
+                print("Today is not opinion day")
+            return
+
+        # Variables universe
         days = np.arange(0, 24, 1)
         percents = np.arange(0, 11, 1)
 
+        # Antecedents and consequent
         last_day_off = ctrl.Antecedent(np.arange(0, 23, 1), "last_day_off")
         industrialization = ctrl.Antecedent(
             np.arange(0, 11, 1), "industrialization"
@@ -59,31 +78,30 @@ class Citizen:
         )
 
         # Membership functions for general_satisfaction
-        # TODO: Change values to original
         general_satisfaction["low"] = fuzz.trapmf(
-            general_satisfaction.universe, [0, 0, 6, 7]
+            general_satisfaction.universe, [0, 0, 4, 6]
         )
         general_satisfaction["medium"] = fuzz.trimf(
-            general_satisfaction.universe, [7, 8, 9]
+            general_satisfaction.universe, [5, 7, 8]
         )
         general_satisfaction["high"] = fuzz.trapmf(
-            general_satisfaction.universe, [8, 9, 10, 10]
+            general_satisfaction.universe, [7, 9, 10, 10]
         )
 
         # Membership functions for personal_satisfaction
-        # TODO: Change values to original
         personal_satisfaction["low"] = fuzz.trapmf(
-            personal_satisfaction.universe, [0, 0, 6, 7]
+            personal_satisfaction.universe, [0, 0, 4, 6]
         )
         personal_satisfaction["medium"] = fuzz.trimf(
-            personal_satisfaction.universe, [7, 8, 9]
+            personal_satisfaction.universe, [5, 7, 8]
         )
         personal_satisfaction["high"] = fuzz.trapmf(
-            personal_satisfaction.universe, [8, 9, 10, 10]
+            personal_satisfaction.universe, [7, 9, 10, 10]
         )
 
         # Fuzzy rules
         rules = [
+
             # Complex rules
             ctrl.Rule(
                 days_off_relation["medium"]
@@ -171,20 +189,17 @@ class Citizen:
             percents[general_satisfaction_index]
         )
 
-        print(input_last_day_off)
-        print(input_industrialization)
-        print(input_days_off_relation)
-        print(input_general_satisfaction)
-
         # Compute result
-        try:
-            satisfaction_simulation.compute()
-        except Exception as e:
-            print(f"error during simulation {e}")
+        satisfaction_simulation.compute()
 
-        # Testing prints
-        print(satisfaction_simulation.input)
-        print(satisfaction_simulation.output)
+        # Verbose
+        if verbose:
+            print(input_last_day_off)
+            print(input_industrialization)
+            print(input_days_off_relation)
+            print(input_general_satisfaction)
+            print(satisfaction_simulation.input)
+            print(satisfaction_simulation.output)
 
         # Return personal satisfaction
         self.opinion = satisfaction_simulation.output["personal_satisfaction"]
