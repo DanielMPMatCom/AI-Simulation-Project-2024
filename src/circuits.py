@@ -1,5 +1,23 @@
 from src.citizen import Citizen
-from src.simulation_constants import DAYS_OF_MEMORY, K_PREDICT_CONSUMPTION_ITER
+from src.simulation_constants import (
+    DAYS_OF_MEMORY,
+    K_PREDICT_CONSUMPTION_ITER,
+    DEMAND_INDUSTRIALIZATION,
+    DEMAND_PER_PERSON,
+    VARIABILITY_DEMAND_PER_INDUSTRIALIZATION,
+    VARIABILITY_DEMAND_PER_PERSON,
+    PEAK_CONSUMPTION_EVENING,
+    PEAK_CONSUMPTION_MORNING,
+    MAX_DEVIATION_MORNING,
+    MAX_DEVIATION_EVENING,
+    WEIGHT_EVENING,
+    WEIGHT_MORNING,
+    MIN_CITIZEN,
+    MAX_CITIZEN,
+    MAX_DEVIATION_CITIZEN_IN_BLOCK,
+    MIN_BLOCKS_PER_CIRCUIT,
+    MAX_BLOCKS_PER_CIRCUIT,
+)
 from src.utils.gaussianmixture import DailyElectricityConsumptionBimodal
 from itertools import groupby
 from src.simulation_constants import RANDOM
@@ -13,44 +31,44 @@ class Circuit:
     def __init__(
         self,
         id,
-        gaussian_mixture,
-        blocks_range,
-        citizens_range,
-        industrialization,
     ) -> None:
 
         # General Params
         self.id = id
-        self.gaussian_mixture = gaussian_mixture
-        self.blocks_range = blocks_range
-        self.citizens_range = citizens_range
-        self.industrialization = industrialization
+
+        self.blocks_range = (MIN_BLOCKS_PER_CIRCUIT, MAX_BLOCKS_PER_CIRCUIT)
+
+        citizen_count = RANDOM.integers(MIN_CITIZEN, MAX_CITIZEN)
+        self.citizens_range = (
+            max(citizen_count - MAX_DEVIATION_CITIZEN_IN_BLOCK, 0),
+            min(citizen_count + MAX_DEVIATION_CITIZEN_IN_BLOCK, MAX_CITIZEN),
+        )
+
+        self.industrialization = (
+            RANDOM.integers(1, DEMAND_INDUSTRIALIZATION) / DEMAND_INDUSTRIALIZATION
+        )
 
         self.blocks: list["Block"] = self.create_blocks()
         self.circuit_satisfaction = self.set_circuit_satisfaction()
         self.mock_electric_consume = self.get_mock_electric_consume()
 
-        # General Data
-        self.industrialization = industrialization
         self.importance = 0
 
     def get_all_block_population(self):
         return sum([block.citizens.amount for block in self.blocks])
 
-    def update(self, general_satisfaction:float, opinion_day:bool):
+    def update(self, general_satisfaction: float, opinion_day: bool):
         for block in self.blocks:
-            block.update(general_satisfaction=general_satisfaction, opinion_day=opinion_day)
+            block.update(
+                general_satisfaction=general_satisfaction, opinion_day=opinion_day
+            )
         self.set_circuit_satisfaction()
 
     def create_blocks(self):
         blocks = []
         amount_of_blocks = RANDOM.integers(self.blocks_range[0], self.blocks_range[1])
         for _ in range(amount_of_blocks):
-            blocks.append(
-                Block(
-                    self.gaussian_mixture, self.citizens_range, self.industrialization
-                )
-            )
+            blocks.append(Block(self.citizens_range, self.industrialization))
         return blocks
 
     def get_mock_electric_consume(self):
@@ -64,9 +82,7 @@ class Circuit:
         total_people: float = 0
         total_satisfaction: float = 0
         for block in self.blocks:
-            total_satisfaction += (
-                block.citizens.amount * block.get_block_opinion()
-            )  # TODO: Review this sum, changed: mean
+            total_satisfaction += block.citizens.amount * block.get_block_opinion()
             total_people += block.citizens.amount
         return total_satisfaction / total_people
 
@@ -90,7 +106,6 @@ class Block:
 
     def __init__(
         self,
-        gaussian_mixture: "DailyElectricityConsumptionBimodal",
         citizens_range,
         industrialization,
     ) -> None:
@@ -100,10 +115,23 @@ class Block:
         self.history_report: list["BlockReport"] = []
         self.off_hours: list[bool] = [False] * 24
 
-        self.gaussian_mixture = gaussian_mixture
         self.industrialization = industrialization
 
-        self.demand_per_hour: list[float] = []
+        self.gaussian_mixture = DailyElectricityConsumptionBimodal(
+            base_consumption=DEMAND_PER_PERSON * self.citizens.amount
+            + DEMAND_INDUSTRIALIZATION * industrialization,
+            base_variability=VARIABILITY_DEMAND_PER_PERSON * self.citizens.amount
+            + VARIABILITY_DEMAND_PER_INDUSTRIALIZATION * industrialization,
+            mean_morning=PEAK_CONSUMPTION_MORNING,
+            mean_evening=PEAK_CONSUMPTION_EVENING,
+            std_morning=RANDOM.uniform(1.0, MAX_DEVIATION_MORNING),
+            std_evening=RANDOM.uniform(1.0, MAX_DEVIATION_EVENING),
+            weight_morning=WEIGHT_MORNING,
+            weight_evening=WEIGHT_EVENING,
+        )
+
+        self.demand_per_hour: list[float] = self.gaussian_mixture.generate()
+
         self.predicted_demand_per_hour: list[float] = self.predict_demand_per_hour()
         self.predicted_total_demand = sum(self.predicted_demand_per_hour)
         self.importance = 0
@@ -118,7 +146,7 @@ class Block:
                 max(predicted_demand_per_hour[i], new_prediction[i])
                 for i in range(len(new_prediction))
             ]
-        
+
         return predicted_demand_per_hour
 
     def update(self, general_satisfaction: float, opinion_day: bool):

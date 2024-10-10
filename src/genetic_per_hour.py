@@ -95,9 +95,6 @@ def repair_chromosome(
         None: The function modifies the chromosome in place to ensure valid assignments.
     """
 
-    print("*"*20)
-    print(capacities)
-
     current_capacities = capacities[:]
 
     for time in range(24):
@@ -110,9 +107,6 @@ def repair_chromosome(
     waiting = []
 
     for thermoelectric, capacity in enumerate(current_capacities):
-
-        print("============"*5)
-        print(thermoelectric, " ", capacity)
 
         current_capacity = capacity
 
@@ -132,9 +126,6 @@ def repair_chromosome(
                 if current_capacity >= 0:
                     break
 
-                print(">"*10)
-                print(current_capacity)
-
                 current_capacity += get_cost_thermoelectric_to_block(
                     thermoelectric, block, time
                 )
@@ -142,8 +133,6 @@ def repair_chromosome(
                 chromosome[block][time] = -1
 
                 waiting.append((block, time))
-
-        print("============"*5)
 
         current_capacities[thermoelectric] = current_capacity
 

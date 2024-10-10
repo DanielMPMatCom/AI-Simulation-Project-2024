@@ -320,7 +320,7 @@ class Thermoelectric:
     def consume_energy(self, amount):
         if amount > self.current_capacity:
             raise RuntimeError(
-                f"Thermoelectric consume energy must be le than his current capacity {self.current_capacity}, id: {self.id}"
+                f"Thermoelectric consume energy ({amount}) must be le than his current capacity {self.current_capacity}, id: {self.id}"
             )
 
         self.current_capacity -= amount

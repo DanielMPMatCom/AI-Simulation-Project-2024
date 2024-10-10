@@ -143,7 +143,7 @@ class WorldState:
         self.general_deficit = max(self.general_demand - self.general_offer, 0)
         self.general_satisfaction = self.get_general_satisfaction()
 
-    def get_general_satisfaction(self):
+    def get_general_satisfaction(self): # TODO : TOLEDO MUST REVIEW THIS
 
         total_industrialization: float = 0
         total_importance: float = 0
