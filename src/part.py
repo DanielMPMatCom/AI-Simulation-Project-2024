@@ -48,6 +48,13 @@ class Part:
             self.estimated_remaining_life -= 1
 
         if self.is_repairing():
+
+            if self.remaining_repair_days <= -1:
+                raise RuntimeError("Remaining repair days should be greater than 0" + str(self.remaining_repair_days))
+
+            if self.estimated_repair_days <= -1:
+                raise RuntimeError("Estimated repair days should be greater than 0" + str(self.estimated_repair_days))
+
             self.remaining_repair_days -= 1
             self.estimated_repair_days -= 1
 
@@ -136,9 +143,8 @@ class Part:
         self.estimated_remaining_life = 0
         for _ in range(1000):
             count += 1
-            self.estimated_remaining_life += self.weibull.generate_with_params(
-                scale=scale, shape=shape
-            )
+            value = self.weibull.generate_with_params(scale=scale, shape=shape)
+            self.estimated_remaining_life += value
         self.estimated_remaining_life /= count
 
     def set_repairing(self, value: bool):
