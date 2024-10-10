@@ -1,11 +1,11 @@
 # Fdb version 4
-["makeindex build/report.idx"] 1728589729.43334 "build/report.idx" "build/report.ind" "build/report" 1728600363.77605 0
-  "build/report.idx" 1728600359 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+["makeindex build/report.idx"] 1728589729.43334 "build/report.idx" "build/report.ind" "build/report" 1728601565.07173 0
+  "build/report.idx" 1728601560 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
   (generated)
   "build/report.ilg"
   "build/report.ind"
   (rewritten before read)
-["pdflatex"] 1728600357.46755 "d:/Escuela/C. Computación/Tercer Año/Simulación/Proyectos/AI-Simulation-Project-2024/report/report.tex" "build/report.pdf" "report" 1728600363.77721 0
+["pdflatex"] 1728601558.43039 "d:/Escuela/C. Computación/Tercer Año/Simulación/Proyectos/AI-Simulation-Project-2024/report/report.tex" "build/report.pdf" "report" 1728601565.07242 0
   "C:/Users/DanielHP/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1728079315 80909 eab91d9745dd2edfd62a31d53cd5fe15 ""
   "C:/Users/DanielHP/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrm1000.pk" 1728285248 11548 6888604361df6f8e96041c240c702f05 ""
   "C:/Users/DanielHP/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1728078472 11949654 54fa2ad166d6699bbbf2925a9cf70311 ""
@@ -126,20 +126,20 @@
   "C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/tex/latex/wrapfig/wrapfig.sty" 1044403200 26220 3701aebf80ccdef248c0c20dd062fea9 ""
   "C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1700127522 55487 80a65caedd3722f4c20a14a69e785d8f ""
-  "assets/citizenPercircuit.png" 1728592890 66681 d1b75a232b4905aa885040101ac375be ""
-  "assets/consume per circuit.png" 1728592893 72668 2c51d1148efb6c5aa578f8fb3fa819ac ""
-  "assets/demandc0.png" 1728592891 80657 a3959b9d38ba012463b29ebb4af50632 ""
-  "assets/hourlydemandperblock.png" 1728592894 157163 07610e85da1f6b86fcd1236873e6230b ""
-  "assets/importancePerCircuit.png" 1728592894 76382 1f30bf6873ea7f39c9e6ea1f3dd5c25d ""
-  "assets/map_example.png" 1728593195 165839 3b25b5c317b6962759ad32de10b432e5 ""
-  "assets/newplot (2).png" 1728593195 144041 36c7845254f19fe00a76e1680783a79b ""
-  "assets/total_capacities.png" 1728592896 52726 d3dbfe760209a8ebaa7bde62b4d56d69 ""
-  "build/report.aux" 1728600362 5553 4819cc7de7ae1e7e456eee4a7c2e77a3 "pdflatex"
+  "assets/citizenPercircuit.png" 1728601549 66681 d1b75a232b4905aa885040101ac375be ""
+  "assets/consume per circuit.png" 1728601549 72668 2c51d1148efb6c5aa578f8fb3fa819ac ""
+  "assets/demandc0.png" 1728601549 80657 a3959b9d38ba012463b29ebb4af50632 ""
+  "assets/hourlydemandperblock.png" 1728601549 157163 07610e85da1f6b86fcd1236873e6230b ""
+  "assets/importancePerCircuit.png" 1728601549 76382 1f30bf6873ea7f39c9e6ea1f3dd5c25d ""
+  "assets/map_example.png" 1728601549 165839 3b25b5c317b6962759ad32de10b432e5 ""
+  "assets/newplot (2).png" 1728601549 144041 36c7845254f19fe00a76e1680783a79b ""
+  "assets/total_capacities.png" 1728601549 52726 d3dbfe760209a8ebaa7bde62b4d56d69 ""
+  "build/report.aux" 1728601564 5553 4819cc7de7ae1e7e456eee4a7c2e77a3 "pdflatex"
   "build/report.ind" 1728589729 0 d41d8cd98f00b204e9800998ecf8427e "makeindex build/report.idx"
-  "build/report.out" 1728600362 4229 f6094822fee52d7dcaf06340451bd7dc "pdflatex"
-  "build/report.toc" 1728600362 1895 1a0ecafc9b058479326a0593939529b8 "pdflatex"
-  "d:/Escuela/C. Computación/Tercer Año/Simulación/Proyectos/AI-Simulation-Project-2024/report/report.tex" 1728600348 40491 8537f7e307f1dbf5c3d45adf331940cc ""
-  "report.tex" 1728600348 40491 8537f7e307f1dbf5c3d45adf331940cc ""
+  "build/report.out" 1728601564 4229 f6094822fee52d7dcaf06340451bd7dc "pdflatex"
+  "build/report.toc" 1728601564 1895 1a0ecafc9b058479326a0593939529b8 "pdflatex"
+  "d:/Escuela/C. Computación/Tercer Año/Simulación/Proyectos/AI-Simulation-Project-2024/report/report.tex" 1728601549 40491 8537f7e307f1dbf5c3d45adf331940cc ""
+  "report.tex" 1728601549 40491 8537f7e307f1dbf5c3d45adf331940cc ""
   (generated)
   "build/report.aux"
   "build/report.idx"
