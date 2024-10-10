@@ -272,23 +272,23 @@ la pérdida de capacidad de generación ante la rotura de una pieza.\\
 \begin{itemize}
   
   \item \textbf{maintain\_maximum\_power\_output}: Deseo de mantener la máxima producción de energía. (True o False)
-  \item \textbf{prevent\_unexpected\_breakdowns}: Deseo de prevenir fallos inesperados. (True o False)
   \item \textbf{minimize\_downtime}: Deseo de minimizar el tiempo de inactividad. (True o False)
   \item \textbf{meet\_energy\_demand}: Deseo de satisfacer la demanda de energía. (True o False)
   \item \textbf{prioritize\_critical\_part\_repair}: Deseo de priorizar la reparación de partes críticas. (True o False)
-  \item \textbf{repair\_parts}: Deseo de reparar las partes dañadas. Es una lista de tuplas en la que cada tupla contiene una parte de la planta termoeléctrica y un valor booleano que indica si esa parte necesita ser reparada o no.
+  \item \textbf{prevent\_unexpected\_breakdowns}: Deseo de prevenir fallos inesperados. (True o False)
+  \item \textbf{repair\_parts}: Deseo de reparar las partes dañadas. (True o False).
 
 \end{itemize}
 
 \textbf{Intentions}
 
 \begin{itemize}
-  \item \textbf{increase\_power\_output}: Intención de aumentar la producción de energía
-  \item \textbf{operate\_at\_full\_capacity}: Intención de operar a plena capacidad
-  \item \textbf{perform\_maintenance\_on\_parts}: Una lista de tuplas donde el lado izquierdo es la Parte y el lado derecho es True si la Parte necesita mantenimiento y False en caso contrario.
-  \item \textbf{reduce\_downtime}: Intención de reducir el tiempo de inactividad
-  \item \textbf{prioritize\_repair\_of\_critical\_parts}: Intención de priorizar la reparación de partes críticas
-  \item \textbf{repair\_parts}: Una lista de tuplas donde el lado izquierdo es una Parte y el lado derecho es True si hay intención de reparar la parte y False en caso contrario
+  \item \textbf{operate\_at\_full\_capacity}: Intención de operar a plena capacidad.
+  \item \textbf{reduce\_downtime}: Intención de reducir el tiempo de inactividad.
+  \item \textbf{increase\_power\_output}: Intención de aumentar la producción de energía.
+  \item \textbf{prioritize\_repair\_of\_critical\_parts}: Intención de priorizar la reparación de partes críticas.
+  \item \textbf{perform\_maintenance\_on\_parts}: Intención de brindar mantenimiento.
+  \item \textbf{repair\_parts}: Intención de realizar reparaciones.
 
 \end{itemize}
 
@@ -430,13 +430,12 @@ satisfacción personal del ciudadano son los siguientes:
 \end{itemize}
 
 Estas variables se definen de forma difusa en categorías como: reciente, moderado, 
-distante, bajísimo, más bajo, bajo, medio y alto. Luego se 
+distante, bajo, medio y alto. Luego se 
 establecen las reglas difusas que determinan cómo la combinación 
 de factores de la entrada afectan la satisfacción personal. 
-Por ejemplo una regla podría ser que si el último día de 
-descanso fue reciente, los días sin servicio son altos, la 
-industrialización es baja y la satisfacción general es la más 
-baja, entonces la satisfacción personal será baja. Después de 
+Por ejemplo una regla podría ser que si el último día sin corriente fue reciente, 
+la relación de días sin servicio es alta, entonces la satisfacción personal será baja. 
+Después de 
 definir las reglas, se crea un sistema de control difuso que se 
 utiliza para realizar simulaciones. Se proporcionan los valores 
 de entrada al sistema de simulación, que representan las 
