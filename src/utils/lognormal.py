@@ -73,7 +73,6 @@ def get_params_for_mean_deviation(mean, deviation):
 # import matplotlib.pyplot as plt
 # import numpy as np
 
-# # Generate samples
 # lognormal_dist = LogNormal(mu, sigma)
 # samples = [lognormal_dist.generate() for _ in range(1000)]
 

@@ -1,5 +1,6 @@
 from scipy.stats import weibull_min
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Weibull:
@@ -77,30 +78,22 @@ if __name__ == "__main__":
     random_value = weibull_instance.generate()
     print(f"Generated random value from Weibull distribution: {random_value}")
 
-    # import matplotlib.pyplot as plt
+    x = np.linspace(0, 200, 1000)
 
-    # # Generate a range of values
-    # x = np.linspace(0, 200, 1000)
+    pdf = weibull_min.pdf(
+        x, weibull_instance.get_shape(), scale=weibull_instance.get_scale()
+    )
 
-    # # Generate the Weibull probability density function (PDF) for the estimated parameters
-    # pdf = weibull_min.pdf(
-    #     x, weibull_instance.get_shape(), scale=weibull_instance.get_scale()
-    # )
+    plt.plot(x, pdf, label="Weibull PDF")
 
-    # # Plot the PDF
-    # plt.plot(x, pdf, label="Weibull PDF")
+    plt.scatter(data, [0, 0], color="red", label="Data points")
 
-    # # Plot the data points
-    # plt.scatter(data, [0, 0], color="red", label="Data points")
+    plt.xlabel("Value")
+    plt.ylabel("Probability Density")
+    plt.title("Weibull Distribution Fit")
+    plt.legend()
 
-    # # Add labels and legend
-    # plt.xlabel("Value")
-    # plt.ylabel("Probability Density")
-    # plt.title("Weibull Distribution Fit")
-    # plt.legend()
-
-    # # Show the plot
-    # plt.show()
+    plt.show()
 
     cont = 0
     ceil = 0

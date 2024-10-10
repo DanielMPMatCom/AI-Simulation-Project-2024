@@ -1176,10 +1176,6 @@ class ChiefElectricCompanyAgent(Person):
                 intentions_params.append(
                     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT
                 )
-        print(
-            "GENERATION PER THERMOELECTRIC",
-            self.beliefs["generation_per_thermoelectric"].value,
-        )
 
         final_distribution, score = genetic_algorithm(
             get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
@@ -1194,12 +1190,6 @@ class ChiefElectricCompanyAgent(Person):
                 params=intentions_params,
             ),
         )
-
-        print(
-            ">>>>>>>>>>>>>>>>>>>>>>>>>>> FINAL DISTRIBUTION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-        )
-
-        print("it is", final_distribution, " with score ", score)
 
         self.distribute_energy_to_blocks_from_thermoelectrics(
             complete_distribution=final_distribution,
