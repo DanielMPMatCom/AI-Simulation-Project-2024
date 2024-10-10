@@ -118,7 +118,7 @@ class Block:
                 max(predicted_demand_per_hour[i], new_prediction[i])
                 for i in range(len(new_prediction))
             ]
-
+        
         return predicted_demand_per_hour
 
     def update(self, general_satisfaction: float, opinion_day: bool):

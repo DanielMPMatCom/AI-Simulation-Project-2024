@@ -140,7 +140,7 @@ def repair_chromosome(
                 )
 
                 chromosome[block][time] = -1
-                
+
                 waiting.append((block, time))
 
         print("============"*5)
@@ -360,8 +360,8 @@ def genetic_algorithm(
         get_cost_thermoelectric_to_block, capacities, blocks, pop_size
     )
 
-    best_chromosome = None
-    best_fitness = 0
+    best_chromosome = population[0]
+    best_fitness = ft(population[0])
 
     for _ in range(generations):
         fitness_scores = [(chromosome, ft(chromosome)) for chromosome in population]

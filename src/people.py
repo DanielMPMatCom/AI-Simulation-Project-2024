@@ -217,7 +217,7 @@ class ThermoelectricAgent(Person):
             "meet_energy_demand": False,
             "prioritize_critical_part_repair": False,
             "prevent_unexpected_breakdowns": False,
-            "repair_parts": [(part, False) for part in self.thermoelectric.parts],
+            "repair_parts": False,
         }
 
         self.intentions = {
@@ -964,12 +964,18 @@ class ChiefElectricCompanyAgent(Person):
             )
 
         block: "Block" = self.circuits[circuit_index].blocks[block_index]
-
-        demand: float = (
-            block.predicted_demand_per_hour[hour]
-            if predicted
-            else block.demand_per_hour[hour]
-        )
+        try:
+            demand: float = (
+                block.predicted_demand_per_hour[hour]
+                if predicted
+                else block.demand_per_hour[hour]
+            )
+        except Exception as e:
+            print(e, " index ", hour)
+            print("is predicted ", predicted)
+            print("predicted demand per hour", block.demand_per_hour)
+            print("demand per hour", block.predicted_demand_per_hour)
+            raise RuntimeError(e)
 
         return (
             demand + distance_cost * demand if return_sum else (distance_cost, demand)
