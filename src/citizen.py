@@ -4,19 +4,15 @@ import numpy as np
 
 
 class Citizen:
+    """
+    Represents a citizen in the simulation.
+    """
+
     def __init__(self, amount: int, days_between_opinion: int=7) -> None:
         self.amount = amount
         self.opinion = None
         self.days_between_opinion = days_between_opinion
         self.last_opinion_date = days_between_opinion
-
-    def is_opinion_day(self) -> bool:
-        if self.days_between_opinion < self.last_opinion_date:
-            self.last_opinion_date += 1
-            return False
-        else:
-            self.last_opinion_date = 0
-            return True
 
     def set_opinion(
         self,
@@ -26,12 +22,19 @@ class Citizen:
         input_general_satisfaction: float,
         verbose: bool = False,
     ) -> None:
+        """
+        Sets the opinion of the citizens based on various input factors.
 
-        # Opinion day verification
-        if not self.is_opinion_day():
-            if verbose:
-                print("Today is not opinion day")
-            return
+        This method uses fuzzy logic to determine the personal satisfaction of citizens
+        based on the last day off, industrialization level, days off relation, and general satisfaction.
+
+        Args:
+            input_last_day_off (int): The number of days since the last day off.
+            input_industrialization (float): The level of industrialization.
+            input_days_off_relation (float): The ratio of days off to total days.
+            input_general_satisfaction (float): The general satisfaction level.
+            verbose (bool, optional): If True, prints detailed information about the inputs and outputs. Defaults to False.
+        """
 
         # Variables universe
         days = np.arange(0, 24, 1)
