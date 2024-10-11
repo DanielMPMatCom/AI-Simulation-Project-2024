@@ -961,11 +961,16 @@ class ChiefElectricCompanyAgent(Person):
     ):  # make the distribution
 
         for block_key, distribution in enumerate(complete_distribution):
+            
             days_off = []
+
             (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
+            
             for hour, thermoelectric_index in enumerate(distribution):
+            
                 if thermoelectric_index == -1:
                     days_off.append(True)
+            
                 else:
                     days_off.append(False)
 
@@ -975,7 +980,9 @@ class ChiefElectricCompanyAgent(Person):
                         hour=hour,
                         predicted=False,
                     )
+                    
                     thermoelectrics[thermoelectric_index].consume_energy(cost)
+            
             circuits[circuit_index].blocks[block_index].set_days_distribution(days_off)
 
     def max_stored_energy_intention_func(

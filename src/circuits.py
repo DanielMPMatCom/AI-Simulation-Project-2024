@@ -218,10 +218,12 @@ class Block:
         """
 
         total_demand = sum(self.demand_per_hour)
-        self.demand_per_hour = self.gaussian_mixture.generate()
 
         time_off = sum(self.off_hours)
+
         total_consumed = self.get_consumed_energy_today()
+
+        self.demand_per_hour = self.gaussian_mixture.generate()
 
         history_report = self.history_report[:DAYS_OF_MEMORY:-1]
 
@@ -300,6 +302,12 @@ class Block:
         return self.last_day_off
 
     def longest_sequence_of_days_off(self):
+        """
+        Returns the longest sequence of consecutive days off.
+
+        This method iterates through the block's history report and identifies the longest
+        sequence of consecutive days where the block had any off hours.
+        """
         return max(
             (
                 sum(1 for _ in group)
@@ -311,12 +319,7 @@ class Block:
         )
 
     def set_days_distribution(self, off_hours: list[bool]):
-        """
-        Returns the longest sequence of consecutive days off.
 
-        This method iterates through the block's history report and identifies the longest
-        sequence of consecutive days where the block had any off hours.
-        """
         if len(off_hours) != 24:
             raise RuntimeError(
                 f"Off hours must be and array of length 24, and {off_hours} was given"
