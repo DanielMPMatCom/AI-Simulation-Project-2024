@@ -658,6 +658,7 @@ class ChiefElectricCompanyAgent(Person):
         current_rules,
         mapper_key_to_circuit_block,
         learn=False,
+        mutation_rate,
     ):
         Person.__init__(self, name=name)
 
@@ -665,6 +666,7 @@ class ChiefElectricCompanyAgent(Person):
         self.thermoelectrics = thermoelectrics
         self.rules = rules
         self.current_rules = current_rules
+        self.mutation_rate = mutation_rate
 
         self.perception = perception
 
@@ -1184,7 +1186,7 @@ class ChiefElectricCompanyAgent(Person):
             generations=30,
             pop_size=10,
             blocks=len(self.mapper_key_to_circuit_block),
-            mutation_rate=0,
+            mutation_rate=self.mutation_rate,
             ft=lambda distribution: self.generic_objective_function(
                 complete_distribution=distribution,
                 funcs=intentions_func,
