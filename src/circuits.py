@@ -55,9 +55,19 @@ class Circuit:
         self.importance = 0
 
     def get_all_block_population(self):
+        """
+        Returns the total population of all blocks within the circuit.
+        """
         return sum([block.citizens.amount for block in self.blocks])
 
     def update(self, general_satisfaction: float, opinion_day: bool):
+        """
+        Updates the state of each block within the circuit based on general satisfaction and whether it is an opinion day.
+
+        Args:
+            general_satisfaction (float): The general satisfaction level to be used for updating blocks.
+            opinion_day (bool): A flag indicating if it is an opinion day, affecting how citizens' opinions are updated.
+        """
         for block in self.blocks:
             block.update(
                 general_satisfaction=general_satisfaction, opinion_day=opinion_day
@@ -65,6 +75,15 @@ class Circuit:
         self.set_circuit_satisfaction()
 
     def create_blocks(self):
+        """
+        Creates and returns a list of Block objects for the circuit.
+
+        The number of blocks is determined randomly within the range specified by self.blocks_range.
+        Each block is initialized with a range of citizens and an industrialization level.
+
+        Returns:
+            list[Block]: A list of Block objects.
+        """
         blocks = []
         amount_of_blocks = RANDOM.integers(self.blocks_range[0], self.blocks_range[1])
         for _ in range(amount_of_blocks):
@@ -72,6 +91,15 @@ class Circuit:
         return blocks
 
     def get_mock_electric_consume(self):
+        """
+        Calculates the mock electricity consumption for the circuit.
+
+        This method iterates over all blocks in the circuit and sums up their mock electricity consumption.
+
+        Returns:
+            float: The total mock electricity consumption for the circuit.
+        """
+
         mock_value = 0
         for block in self.blocks:
             mock_value += block.mock_electric_consume
@@ -79,6 +107,17 @@ class Circuit:
         return mock_value
 
     def set_circuit_satisfaction(self):
+        """
+        Calculates and sets the overall satisfaction for the circuit.
+
+        This method iterates over all blocks in the circuit, summing up the satisfaction
+        levels of all citizens weighted by their amount. The overall satisfaction is
+        then calculated as the average satisfaction across all citizens.
+
+        Returns:
+            float: The overall satisfaction level of the circuit.
+        """
+
         total_people: float = 0
         total_satisfaction: float = 0
         for block in self.blocks:
@@ -88,6 +127,10 @@ class Circuit:
 
 
 class BlockReport:
+    """
+    Represents a report for a block within a circuit.
+    """
+
     def __init__(
         self,
         time_off: int,
@@ -116,6 +159,7 @@ class Block:
         self.off_hours: list[bool] = [False] * 24
 
         self.industrialization = industrialization
+        self.last_day_off = 20
 
         self.gaussian_mixture = DailyElectricityConsumptionBimodal(
             base_consumption=DEMAND_PER_PERSON * self.citizens.amount
@@ -138,6 +182,16 @@ class Block:
         self.mock_electric_consume = self.get_mock_electric_consume()
 
     def predict_demand_per_hour(self):
+        """
+        Predicts the electricity demand per hour for the block.
+
+        This method generates multiple predictions of hourly demand using a Gaussian mixture model
+        and selects the maximum value for each hour across all predictions.
+
+        Returns:
+            list[float]: A list of predicted electricity demand values for each hour.
+        """
+
         predicted_demand_per_hour = self.gaussian_mixture.generate()
 
         for _ in range(K_PREDICT_CONSUMPTION_ITER - 1):
@@ -150,6 +204,16 @@ class Block:
         return predicted_demand_per_hour
 
     def update(self, general_satisfaction: float, opinion_day: bool):
+        """
+        Updates the block's state based on general satisfaction and whether it is an opinion day.
+
+        This method regenerates the block's hourly demand, updates the citizens' opinions if it is an opinion day,
+        and appends a daily report to the block's history.
+
+        Args:
+            general_satisfaction (float): The general satisfaction level to be used for updating the block.
+            opinion_day (bool): A flag indicating if it is an opinion day, affecting how citizens' opinions are updated.
+        """
 
         self.demand_per_hour = self.gaussian_mixture.generate()
 
@@ -173,6 +237,8 @@ class Block:
         if time_off > 0:
             last_day_off = 0
 
+        self.last_day_off = last_day_off
+
         if opinion_day:
             self.citizens.set_opinion(
                 input_general_satisfaction=general_satisfaction,
@@ -189,9 +255,19 @@ class Block:
         self.history_report.append(daily_report)
 
     def get_block_opinion(self) -> float:
+        """
+        Returns the opinion of the citizens in the block.
+
+        If the citizens' opinion is not set, a default value of 0.8 is returned.
+        """
         return self.citizens.opinion if self.citizens.opinion is not None else 0.8
 
     def get_consumed_energy_today(self) -> float:
+        """
+        Calculates the total energy consumed by the block today.
+
+        This method sums up the hourly demand for each hour that is not marked as an off hour.
+        """
         # real energy consumed in the day
         return sum(
             [
@@ -202,10 +278,22 @@ class Block:
         )
 
     def get_predicted_consume_for_today(self) -> float:
+        """
+        Returns the predicted total electricity consumption for the block for today.
+
+        This method sums up the predicted hourly demand values to get the total predicted consumption.
+        """
         return self.predicted_total_demand
 
     def last_days_off(self):
-        return sum(1 for report in self.history_report if report.time_off > 0)
+        """
+        Returns the number of days since the last day off.
+
+        This method calculates the number of days that have passed since the last day
+        the block had any off hours.
+        """
+
+        return self.last_day_off
 
     def longest_sequence_of_days_off(self):
         return max(
@@ -219,6 +307,12 @@ class Block:
         )
 
     def set_days_distribution(self, off_hours: list[bool]):
+        """
+        Returns the longest sequence of consecutive days off.
+
+        This method iterates through the block's history report and identifies the longest
+        sequence of consecutive days where the block had any off hours.
+        """
         if len(off_hours) != 24:
             raise RuntimeError(
                 f"Off hours must be and array of length 24, and {off_hours} was given"
@@ -227,4 +321,9 @@ class Block:
         self.off_hours = off_hours
 
     def get_mock_electric_consume(self) -> float:
+        """
+        Returns the predicted total electricity consumption for the block.
+
+        This method sums up the predicted hourly demand values to get the total predicted consumption.
+        """
         return sum(self.predicted_demand_per_hour)
