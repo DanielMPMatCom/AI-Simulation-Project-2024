@@ -1182,7 +1182,7 @@ class ChiefElectricCompanyAgent(Person):
 
         final_distribution, score = genetic_algorithm(
             get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
-            capacities=self.beliefs["generation_per_thermoelectric"].value,
+            capacities=self.beliefs["generation_per_thermoelectric"].value[:],
             generations=30,
             pop_size=10,
             blocks=len(self.mapper_key_to_circuit_block),
