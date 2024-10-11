@@ -781,7 +781,7 @@ class ChiefElectricCompanyAgent(Person):
             sum(block.importance for block in circuit.blocks)
             for circuit in self.circuits
         )
-
+        self.last_date_result = ([], 0)
         self.learn = learn
 
     def brf(self) -> None:
@@ -958,32 +958,49 @@ class ChiefElectricCompanyAgent(Person):
         complete_distribution: list[list[int]],
         thermoelectrics: list["Thermoelectric"],
         circuits: list["Circuit"],
-    ):  # make the distribution
+    ) -> list[tuple[int, int]]:  # make the distribution and return a flat distribution
+
+        flat_distribution: list[tuple[int, int]] = (
+            []
+        )  #  block key, thermoelectric index
 
         for block_key, distribution in enumerate(complete_distribution):
-            
+
             days_off = []
 
             (circuit_index, block_index) = self.mapper_key_to_circuit_block[block_key]
-            
+
             for hour, thermoelectric_index in enumerate(distribution):
-            
+
+                flat_distribution.append((block_key, thermoelectric_index))
+
                 if thermoelectric_index == -1:
                     days_off.append(True)
-            
+                    # print('El bloque', block_index, 'del circuito', circuit_index, 'no recibió energía')
+
                 else:
                     days_off.append(False)
-
                     cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
                         hour=hour,
                         predicted=False,
                     )
-                    
+
                     thermoelectrics[thermoelectric_index].consume_energy(cost)
-            
-            circuits[circuit_index].blocks[block_index].set_days_distribution(days_off)
+                    # print(
+                    #     "Termoeléctrica ",
+                    #     thermoelectric_index,
+                    #     "consumió ",
+                    #     cost,
+                    #     " y abasteció al bloque ",
+                    #     block_index,
+                    #     "del circuito ",
+                    #     circuit_index,
+                    # )
+
+        circuits[circuit_index].blocks[block_index].set_days_distribution(days_off)
+        return flat_distribution
 
     def max_stored_energy_intention_func(
         self,
@@ -1065,8 +1082,12 @@ class ChiefElectricCompanyAgent(Person):
                 * self.beliefs["opinion_per_block_in_circuits"].value[block_key][2]
             )
 
-        return total_opinion / (
-            sum(x[2] for x in self.beliefs["opinion_per_block_in_circuits"].value) * 24
+        return total_opinion / max(
+            (
+                sum(x[2] for x in self.beliefs["opinion_per_block_in_circuits"].value)
+                * 24
+            ),
+            1,
         )
 
     def prioritize_consecutive_days_off_intention_func(
@@ -1085,16 +1106,19 @@ class ChiefElectricCompanyAgent(Person):
                 ][2]
             )
 
-        return total_consecutive_days / (
-            sum(
-                [
-                    x[2]
-                    for x in self.beliefs[
-                        "longest_sequence_off_per_block_in_circuits"
-                    ].value
-                ]
-            )
-            * 24
+        return total_consecutive_days / max(
+            (
+                sum(
+                    [
+                        x[2]
+                        for x in self.beliefs[
+                            "longest_sequence_off_per_block_in_circuits"
+                        ].value
+                    ]
+                )
+                * 24
+            ),
+            1,
         )
 
     def prioritize_days_off_intention_func(
@@ -1107,10 +1131,26 @@ class ChiefElectricCompanyAgent(Person):
         for block_key, distribution in enumerate(complete_distribution):
             on_hours = sum(1 for x in distribution if x >= 0)
             total_off_days += (
-                on_hours * self.beliefs["prioritize_days_off"].value[block_key]
+                on_hours
+                * self.beliefs["last_days_off_per_block_in_circuits"].value[block_key][
+                    2
+                ]
             )
 
-        return total_off_days / (sum(self.beliefs["prioritize_days_off"].value) * 24)
+        return total_off_days / max(
+            (
+                sum(
+                    [
+                        x[2]
+                        for x in self.beliefs[
+                            "last_days_off_per_block_in_circuits"
+                        ].value
+                    ]
+                )
+                * 24
+            ),
+            1,
+        )
 
     def execute(self) -> "ChiefElectricCompanyAction":
         intention_executed = []
@@ -1138,11 +1178,11 @@ class ChiefElectricCompanyAgent(Person):
                     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT
                 )
 
-        final_distribution, _ = genetic_algorithm(
+        final_distribution, score = genetic_algorithm(
             get_cost_thermoelectric_to_block=self.get_cost_to_meet_demand_from_thermoelectric_to_block,
             capacities=self.beliefs["generation_per_thermoelectric"].value,
-            generations=50,
-            pop_size=20,
+            generations=30,
+            pop_size=10,
             blocks=len(self.mapper_key_to_circuit_block),
             mutation_rate=0,
             ft=lambda distribution: self.generic_objective_function(
@@ -1152,11 +1192,13 @@ class ChiefElectricCompanyAgent(Person):
             ),
         )
 
-        self.distribute_energy_to_blocks_from_thermoelectrics(
+        flat_distribution = self.distribute_energy_to_blocks_from_thermoelectrics(
             complete_distribution=final_distribution,
             thermoelectrics=self.thermoelectrics,
             circuits=self.circuits,
         )
+
+        self.last_date_result = (flat_distribution, score)
 
         return ChiefElectricCompanyAction(
             meet_demand="meet_demand" in intention_executed,
@@ -1256,25 +1298,23 @@ class ChiefElectricCompanyAgent(Person):
 
         desires = []
         chosen_cond = []
-        description = ""
+        condition_description = []
 
         for item in valid_cond:
             if item[1] in ans:
+                condition_description.append(item[1])
                 chosen_cond.append(item[0])
-                description = description + item[1] + "\n"
-
-        description += " => "
 
         for desire in self.desires.keys():
             if desire in ans:
                 desires.append(desire)
-                description += desire + "\n"
+
         generated_desire = CECAGeneratedDesire(
-            id="generated_desire" + str(len(self.beliefs["all_desires"].value)),
-            description=description,
+            id="generated_desire_" + str(len(self.beliefs["all_desires"].value)),
             weight=1,
             desires=desires,
             conditions=chosen_cond,
+            condition_description=condition_description,
         )
 
         self.beliefs["all_desires"].value[generated_desire.id] = generated_desire

@@ -204,7 +204,9 @@ class Thermoelectric:
         """
         Updates the state of all parts in the thermoelectric.
         """
-        self.stored_energy = max(self.current_capacity, 0)
+        self.stored_energy = min(
+            max(self.current_capacity, 0), self.total_capacity * 2/5
+        )
 
         for part in self.parts:
             part.update()

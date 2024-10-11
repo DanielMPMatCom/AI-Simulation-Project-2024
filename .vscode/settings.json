@@ -4,11 +4,14 @@
         "bordercolor",
         "cmap",
         "colorscale",
+        "dias",
+        "distribucion",
         "facecolor",
         "funcs",
         "gaussianmixture",
         "hoverinfo",
         "hoverlabel",
+        "keepdims",
         "kmeans",
         "lightgreen",
         "linalg",
@@ -20,6 +23,7 @@
         "skfuzzy",
         "splev",
         "splprep",
+        "termoelectricas",
         "textposition",
         "thermoelectrics",
         "TODO",
@@ -31,5 +35,5 @@
         "xaxis",
         "yaxis"
     ],
-    "cSpell.language": "en"
+    "cSpell.language": "en,es-ES"
 }

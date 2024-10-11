@@ -49,7 +49,9 @@ class Circuit:
         )
 
         self.blocks: list["Block"] = self.create_blocks()
+        
         self.circuit_satisfaction = self.set_circuit_satisfaction()
+        
         self.mock_electric_consume = self.get_mock_electric_consume()
 
         self.importance = 0
