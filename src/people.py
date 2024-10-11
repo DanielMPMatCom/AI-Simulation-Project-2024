@@ -622,12 +622,14 @@ class ChiefElectricCompanyAction:
         prioritize_block_opinion,
         prioritize_consecutive_days_off,
         prioritize_days_off,
+        max_stored_energy,
     ) -> None:
         self.meet_demand = meet_demand
         self.prioritize_block_importance = prioritize_block_importance
         self.prioritize_block_opinion = prioritize_block_opinion
         self.prioritize_consecutive_days_off = prioritize_consecutive_days_off
         self.prioritize_days_off = prioritize_days_off
+        self.max_stored_energy = max_stored_energy
 
 
 class ChiefElectricCompanyAgent(Person):
@@ -993,7 +995,7 @@ class ChiefElectricCompanyAgent(Person):
                     assigned_cost[thermoelectric_index] += cost
                     try:
                         thermoelectrics[thermoelectric_index].consume_energy(cost)
-                    except:
+                    except Exception as e:
                         flag = True
 
         if flag:
@@ -1171,11 +1173,15 @@ class ChiefElectricCompanyAgent(Person):
         intentions_params = []
 
         for intention, func in intention_map.items():
-            if self.intentions[intention].value:
+            print("intention", intention, "value", self.intentions[intention].value)
+            if self.intentions[intention].value > 0:
                 self.intentions[intention].value = False
                 intention_executed.append(intention)
                 intentions_func.append(func)
-                intentions_params.append(OBJECTIVE_FUNCTION_INTENTION_PARAMS_WEIGHT)
+                intentions_params.append(
+                    OBJECTIVE_FUNCTION_INTENTION_PARAMS_WEIGHT
+                    + self.intentions[intention].value
+                )
             else:
                 intentions_params.append(
                     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT
@@ -1211,6 +1217,7 @@ class ChiefElectricCompanyAgent(Person):
             in intention_executed,
             prioritize_days_off="prioritize_days_off" in intention_executed,
             prioritize_block_opinion="prioritize_block_opinion" in intention_executed,
+            max_stored_energy="max_stored_energy" in intention_executed,
         )
 
     def action(
@@ -1218,7 +1225,7 @@ class ChiefElectricCompanyAgent(Person):
     ) -> list["ChiefElectricCompanyAction"]:
         self.perception = perception
         self.brf()
-        # self.generate_desires()
+        self.generate_desires()
         self.filter_intentions()
 
         try:
@@ -1231,8 +1238,8 @@ class ChiefElectricCompanyAgent(Person):
                 thermoelectrics=self.thermoelectrics,
                 circuits=self.circuits,
                 perception=perception,
-                rules=self.rules,
-                current_rules=self.current_rules,
+                # rules=self.rules,
+                # current_rules=self.current_rules,
                 mapper_key_to_circuit_block=self.mapper_key_to_circuit_block,
                 learn=self.learn,
                 mutation_rate=self.mutation_rate,
@@ -1349,8 +1356,8 @@ class TestCaseParams:
         thermoelectrics: list["Thermoelectric"],
         circuits: list["Circuit"],
         perception: "ChiefElectricCompanyAgentPerception",
-        rules,
-        current_rules,
+        # rules,
+        # current_rules,
         mapper_key_to_circuit_block,
         learn=False,
         mutation_rate=0,
@@ -1359,8 +1366,8 @@ class TestCaseParams:
         self.thermoelectrics = thermoelectrics
         self.circuits = circuits
         self.perception = perception
-        self.rules = rules
-        self.current_rules = current_rules
+        # self.rules = rules
+        # self.current_rules = current_rules
         self.mapper_key_to_circuit_block = mapper_key_to_circuit_block
         self.learn = learn
         self.mutation_rate = mutation_rate

@@ -200,10 +200,12 @@ class CECAMaxStoredEnergyDesire(Desire):
         self.weight = 5
 
     def evaluate(self, agent):
-        if agent.beliefs["general_demand"].value < agent.beliefs["general_offer"].value:
-            agent.desires["max_stored_energy"] = True
-        else:
-            agent.desires["max_stored_energy"] = False
+        agent.desires["max_stored_energy"] = (
+            self.weight
+            if agent.beliefs["general_demand"].value
+            < agent.beliefs["general_offer"].value
+            else 0
+        )
 
 
 class CECAMeetDemandDesire(Desire):
@@ -220,13 +222,13 @@ class CECAMeetDemandDesire(Desire):
         self.weight = 5
 
     def evaluate(self, agent):
-        if (
-            agent.beliefs["general_demand"].value
+
+        agent.desires["meet_demand"] = (
+            self.weight
+            if agent.beliefs["general_demand"].value
             >= agent.beliefs["general_offer"].value
-        ):
-            agent.desires["meet_demand"] = True
-        else:
-            agent.desires["meet_demand"] = False
+            else 0
+        )
 
 
 class CECAPrioritizeBlockImportance(Desire):
@@ -243,10 +245,12 @@ class CECAPrioritizeBlockImportance(Desire):
         self.weight = 2
 
     def evaluate(self, agent):
-        if agent.beliefs["general_offer"].value < agent.beliefs["general_demand"].value:
-            agent.desires["prioritize_block_importance"] = True
-        else:
-            agent.desires["prioritize_block_importance"] = False
+        agent.desires["prioritize_block_importance"] = (
+            self.weight
+            if agent.beliefs["general_offer"].value
+            < agent.beliefs["general_demand"].value
+            else 0
+        )
 
 
 class CECAPrioritizeBlockOpinion(Desire):
@@ -270,14 +274,13 @@ class CECAPrioritizeBlockOpinion(Desire):
         ]
         exist_bad_opinions = len(bad_opinions) > 0
 
-        if (
-            exist_bad_opinions
+        agent.desires["prioritize_block_opinion"] = (
+            self.weight
+            if exist_bad_opinions
             and agent.beliefs["general_offer"].value
             < agent.beliefs["general_demand"].value
-        ):
-            agent.desires["prioritize_block_opinion"] = True
-        else:
-            agent.desires["prioritize_block_opinion"] = False
+            else 0
+        )
 
 
 class CECAPrioritizeConsecutiveDaysOff(Desire):
@@ -297,14 +300,13 @@ class CECAPrioritizeConsecutiveDaysOff(Desire):
         sequences = agent.beliefs["longest_sequence_off_per_block_in_circuits"].value
         affected_blocks = [days > 3 for cid, bid, days in sequences]
 
-        if (
-            any(affected_blocks)
+        agent.desires["prioritize_consecutive_days_off"] = (
+            self.weight
+            if any(affected_blocks)
             and agent.beliefs["general_offer"].value
             < agent.beliefs["general_demand"].value
-        ):
-            agent.desires["prioritize_consecutive_days_off"] = True
-        else:
-            agent.desires["prioritize_consecutive_days_off"] = False
+            else 0
+        )
 
 
 class CECAPrioritizeDaysOff(Desire):
@@ -324,14 +326,13 @@ class CECAPrioritizeDaysOff(Desire):
         days_off = agent.beliefs["last_days_off_per_block_in_circuits"].value
         affected_blocks = [days > 7 for cid, blockId, days in days_off]
 
-        if (
-            any(affected_blocks)
+        agent.desires["prioritize_days_off"] = (
+            self.weight
+            if any(affected_blocks)
             and agent.beliefs["general_offer"].value
             < agent.beliefs["general_demand"].value
-        ):
-            agent.desires["prioritize_days_off"] = True
-        else:
-            agent.desires["prioritize_days_off"] = False
+            else 0
+        )
 
 
 class CECAGeneratedDesire:
@@ -342,7 +343,10 @@ class CECAGeneratedDesire:
     def __init__(self, id, weight, desires, conditions, condition_description) -> None:
         self.id = id
         self.description = (
-            "IF " + " AND ".join(condition_description) + " THEN " + " AND ".join(desires)
+            "IF "
+            + " AND ".join(condition_description)
+            + " THEN "
+            + " AND ".join(desires)
         )
         self.weight = weight
         self.desires = desires
@@ -362,7 +366,7 @@ class CECAGeneratedDesire:
             if not condition(agent.beliefs):
                 return
         for desire in self.desires:
-            agent.desires[desire] = True
+            agent.desires[desire] = self.weight
 
 
 class DesireGenerator:
