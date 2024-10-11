@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.10.4)  11 OCT 2024 06:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.10.4)  11 OCT 2024 07:15
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -594,7 +594,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 214--219
 
  []
 
-<assets/map_example.png, id=140, 1471.4975pt x 803.0pt>
+<assets/map_example.png, id=145, 1471.4975pt x 803.0pt>
 File: assets/map_example.png Graphic file (type png)
 <use assets/map_example.png>
 Package pdftex.def Info: assets/map_example.png  used on input line 231.
@@ -726,12 +726,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 470--474
 
  []
 
-<assets/citizenPercircuit.png, id=165, 1471.4975pt x 803.0pt>
+<assets/citizenPercircuit.png, id=170, 1471.4975pt x 803.0pt>
 File: assets/citizenPercircuit.png Graphic file (type png)
 <use assets/citizenPercircuit.png>
 Package pdftex.def Info: assets/citizenPercircuit.png  used on input line 477.
 (pdftex.def)             Requested size: 251.55872pt x 137.26787pt.
-<assets/importancePerCircuit.png, id=166, 1471.4975pt x 803.0pt>
+<assets/importancePerCircuit.png, id=171, 1471.4975pt x 803.0pt>
 File: assets/importancePerCircuit.png Graphic file (type png)
 <use assets/importancePerCircuit.png>
 Package pdftex.def Info: assets/importancePerCircuit.png  used on input line 484.
@@ -766,7 +766,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 505--510
 
  []
 
-<assets/hourlydemandperblock.png, id=176, 1471.4975pt x 803.0pt>
+<assets/hourlydemandperblock.png, id=181, 1471.4975pt x 803.0pt>
 File: assets/hourlydemandperblock.png Graphic file (type png)
 <use assets/hourlydemandperblock.png>
 Package pdftex.def Info: assets/hourlydemandperblock.png  used on input line 514.
@@ -776,12 +776,12 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-<assets/demandc0.png, id=177, 1471.4975pt x 803.0pt>
+<assets/demandc0.png, id=182, 1471.4975pt x 803.0pt>
 File: assets/demandc0.png Graphic file (type png)
 <use assets/demandc0.png>
 Package pdftex.def Info: assets/demandc0.png  used on input line 521.
 (pdftex.def)             Requested size: 251.55872pt x 137.26787pt.
-<assets/consume per circuit.png, id=178, 1471.4975pt x 803.0pt>
+<assets/consume per circuit.png, id=183, 1471.4975pt x 803.0pt>
 File: assets/consume per circuit.png Graphic file (type png)
 <use assets/consume per circuit.png>
 Package pdftex.def Info: assets/consume per circuit.png  used on input line 528.
@@ -791,7 +791,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 534--538
 
  []
 
-<assets/newplot (2).png, id=180, 1471.4975pt x 803.0pt>
+<assets/newplot (2).png, id=185, 1471.4975pt x 803.0pt>
 File: assets/newplot (2).png Graphic file (type png)
 <use assets/newplot (2).png>
 Package pdftex.def Info: assets/newplot (2).png  used on input line 541.
@@ -806,7 +806,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 546--552
 
  []
 
-<assets/total_capacities.png, id=196, 1471.4975pt x 803.0pt>
+<assets/total_capacities.png, id=201, 1471.4975pt x 803.0pt>
 File: assets/total_capacities.png Graphic file (type png)
 <use assets/total_capacities.png>
 Package pdftex.def Info: assets/total_capacities.png  used on input line 555.
@@ -885,12 +885,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 629--632
 
  []
 
-<assets/goodscenario.png, id=206, 1228.59pt x 803.0pt>
+<assets/goodscenario.png, id=211, 1228.59pt x 803.0pt>
 File: assets/goodscenario.png Graphic file (type png)
 <use assets/goodscenario.png>
 Package pdftex.def Info: assets/goodscenario.png  used on input line 648.
 (pdftex.def)             Requested size: 251.55872pt x 164.40776pt.
-<assets/workingperday.png, id=207, 1228.59pt x 803.0pt>
+<assets/workingperday.png, id=212, 1228.59pt x 803.0pt>
 File: assets/workingperday.png Graphic file (type png)
 <use assets/workingperday.png>
 Package pdftex.def Info: assets/workingperday.png  used on input line 655.
@@ -901,29 +901,29 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 [9 <./assets/goodscenario.png>]
-<assets/maintenancevsnomaintenance.png, id=216, 635.2533pt x 397.485pt>
+<assets/maintenancevsnomaintenance.png, id=221, 635.2533pt x 397.485pt>
 File: assets/maintenancevsnomaintenance.png Graphic file (type png)
 <use assets/maintenancevsnomaintenance.png>
 Package pdftex.def Info: assets/maintenancevsnomaintenance.png  used on input line 671.
 (pdftex.def)             Requested size: 251.55872pt x 157.40211pt.
-<assets/daily_offer.png, id=218, 1228.59pt x 803.0pt>
+<assets/daily_offer.png, id=223, 1228.59pt x 803.0pt>
 File: assets/daily_offer.png Graphic file (type png)
 <use assets/daily_offer.png>
 Package pdftex.def Info: assets/daily_offer.png  used on input line 685.
 (pdftex.def)             Requested size: 251.55872pt x 164.40776pt.
 
 
-<assets/table.png, id=220, 564.4287pt x 167.6664pt>
+<assets/table.png, id=225, 564.4287pt x 167.6664pt>
 File: assets/table.png Graphic file (type png)
 <use assets/table.png>
 Package pdftex.def Info: assets/table.png  used on input line 698.
 (pdftex.def)             Requested size: 251.55872pt x 74.72514pt.
-<assets/dailygenone.png, id=223, 1228.59pt x 803.0pt>
+<assets/dailygenone.png, id=228, 1228.59pt x 803.0pt>
 File: assets/dailygenone.png Graphic file (type png)
 <use assets/dailygenone.png>
 Package pdftex.def Info: assets/dailygenone.png  used on input line 707.
 (pdftex.def)             Requested size: 251.55872pt x 164.40776pt.
-<assets/dailygenall.png, id=224, 1228.59pt x 803.0pt>
+<assets/dailygenall.png, id=229, 1228.59pt x 803.0pt>
 File: assets/dailygenall.png Graphic file (type png)
 <use assets/dailygenall.png>
 Package pdftex.def Info: assets/dailygenall.png  used on input line 714.
@@ -938,12 +938,12 @@ Underfull \hbox (badness 10000) in paragraph at lines 721--727
 
  []
 
-<assets/mutation rate boxplot.png, id=240, 620.7993pt x 395.3169pt>
+<assets/mutation rate boxplot.png, id=245, 620.7993pt x 395.3169pt>
 File: assets/mutation rate boxplot.png Graphic file (type png)
 <use assets/mutation rate boxplot.png>
 Package pdftex.def Info: assets/mutation rate boxplot.png  used on input line 730.
 (pdftex.def)             Requested size: 251.55872pt x 160.1869pt.
-<assets/mutation rate fitness.png, id=242, 620.7993pt x 395.3169pt>
+<assets/mutation rate fitness.png, id=247, 620.7993pt x 395.3169pt>
 File: assets/mutation rate fitness.png Graphic file (type png)
 <use assets/mutation rate fitness.png>
 Package pdftex.def Info: assets/mutation rate fitness.png  used on input line 740.
@@ -954,33 +954,42 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 754--755
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+[11 <./assets/dailygenall.png> <./assets/mutation rate boxplot.png> <./assets/mutation rate fitness.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 803--804
 []\OT1/cmr/m/n/10 Fundaci^^Son En-desa. (s.f.). Cen-tral
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 754--755
+Underfull \hbox (badness 10000) in paragraph at lines 803--804
 \OT1/cmr/m/n/10 t^^Sermica con-ven-cional. Fun-daci^^Son En-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 754--755
+Underfull \hbox (badness 10000) in paragraph at lines 803--804
 \OT1/cmr/m/n/10 desa. [][]$\OT1/cmtt/m/n/10 https : / / www . fundacionendesa . org /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 754--755
+Underfull \hbox (badness 10000) in paragraph at lines 803--804
 \OT1/cmtt/m/n/10 es / educacion / endesa-[]educa / recursos /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 754--755
+Underfull \hbox (badness 10000) in paragraph at lines 803--804
 \OT1/cmtt/m/n/10 centrales-[]electricas-[]convencionales /
  []
 
 
 
-[11 <./assets/dailygenall.png> <./assets/mutation rate boxplot.png> <./assets/mutation rate fitness.png>] (d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.aux)
+
+
+[12
+
+] (d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.aux)
  ***********
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-08-30>
@@ -990,20 +999,20 @@ L3 programming layer <2024-08-30>
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: D2AE992F936736BE6AB645605CE47A16;4381.
+(rerunfilecheck)             Checksum: 2DAB980BF7F8D7AC5FF2FC0979395014;4570.
  ) 
 Here is how much of TeX's memory you used:
- 14554 strings out of 473898
- 244512 string characters out of 5725063
+ 14557 strings out of 473898
+ 244549 string characters out of 5725063
  773842 words of memory out of 5000000
- 37160 multiletter control sequences out of 15000+600000
+ 37161 multiletter control sequences out of 15000+600000
  563402 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  79i,12n,93p,1180b,573s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\DanielHP\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx9.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbxti10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cmextra/cmex7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/DanielHP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on "d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.pdf" (11 pages, 1696114 bytes).
+Output written on "d:\Escuela\C. Computación\Tercer Año\Simulación\Proyectos\AI-Simulation-Project-2024\report\build\report.pdf" (12 pages, 1700250 bytes).
 PDF statistics:
- 354 PDF objects out of 1000 (max. 8388607)
- 54 named destinations out of 1000 (max. 500000)
- 254 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 364 PDF objects out of 1000 (max. 8388607)
+ 56 named destinations out of 1000 (max. 500000)
+ 262 words of extra memory for PDF output out of 10000 (max. 10000000)
 

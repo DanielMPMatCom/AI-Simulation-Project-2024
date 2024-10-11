@@ -20,3 +20,4 @@
 \contentsline {section}{\numberline {8}Resultados y Estadísticas}{9}{section.8}%
 \contentsline {subsection}{\numberline {8.1}Test de Hipótesis}{10}{subsection.8.1}%
 \contentsline {section}{\numberline {9}Conclusiones}{11}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Recomendaciones y Mejoras}{12}{subsection.9.1}%

@@ -745,6 +745,55 @@ Es visible que comienza a tener un comportamiento variado a medida que avanza el
 
 \section{Conclusiones}
 
+El presente proyecto demostró la viabilidad de utilizar una 
+arquitectura de agentes BDI para la planificación y 
+distribución eficiente de energía en un sistema eléctrico 
+basado en plantas termoeléctricas. A través de la simulación, 
+se comprobó que el sistema puede ajustarse a diferentes 
+escenarios geográficos y condiciones operativas, mostrando una 
+capacidad de adaptación significativa en la toma de decisiones 
+relacionadas con la distribución de energía, el mantenimiento 
+preventivo de las plantas y la gestión de cortes en los 
+circuitos.
+
+Se validó que la implementación del algoritmo genético para 
+optimizar la distribución energética en situaciones de déficit 
+permitió obtener soluciones eficientes, minimizando los 
+impactos negativos en el suministro de energía a los bloques 
+más críticos. Asimismo, el uso de la lógica difusa proporcionó 
+un marco adecuado para modelar la opinión ciudadana en función 
+de la calidad del servicio eléctrico, lo que permitió priorizar 
+la restauración del suministro en las áreas más afectadas.
+
+En cuanto a las hipótesis planteadas, los resultados de las 
+simulaciones confirmaron que realizar mantenimientos 
+preventivos reporta un rendimiento general similar a no realizarlos, a pesar de
+reducir el tiempo de inactividad y las pérdidas de 
+generación. Por otro lado, se observó que la variación en la 
+tasa de mutación del algoritmo genético no produjo efectos 
+significativos en la eficiencia del sistema, sugiriendo que el 
+valor de este parámetro puede ser considerado menos crítico en 
+la planificación. También se evidenció la diferencia entre el comportamiento
+de la generación media general que se mantiene con poca variación y los comportamientos de las
+generaciones medias individuales de las termoeléctricas, que varían significativamente.
+Otro aspecto destacado fue el dinamismo logrado en la ejecución de uno de los 
+agentes a través del uso de un LLM.
+
+\subsection{Recomendaciones y Mejoras}
+
+Aunque el sistema mostró un comportamiento eficiente en la mayoría de los escenarios simulados, se identificaron varias áreas que podrían beneficiarse de mejoras y expansión en futuras investigaciones:
+
+\begin{itemize}
+  \item  Mejora en la predicción de fallos: Incluir modelos más avanzados para predecir fallos en las piezas de las plantas termoeléctricas, como técnicas de machine learning, podría aumentar la precisión y permitir una planificación de mantenimiento más efectiva.
+     
+  
+  \item  Expansión del modelo económico: El sistema actual asume un costo de transmisión basado únicamente en la distancia. Incluir factores adicionales como la variabilidad del precio de la energía o las condiciones del mercado podría generar un sistema más realista y adaptable a fluctuaciones económicas.
+  
+  \item  Optimización multiobjetivo: El uso de un algoritmo genético multiobjetivo podría mejorar el balance entre diferentes criterios, como minimizar el costo operativo y maximizar la satisfacción de los ciudadanos.
+  
+  \item  Mayor interacción entre agentes: Incrementar la capacidad de los agentes para negociar entre sí, tanto en términos de reparto de energía como de recursos de mantenimiento, podría generar una mayor eficiencia en el sistema a largo plazo.
+  
+\end{itemize}
 
 \renewcommand\refname{Referencias}
 
