@@ -205,7 +205,7 @@ class Thermoelectric:
         Updates the state of all parts in the thermoelectric.
         """
         self.stored_energy = min(
-            max(self.current_capacity, 0), self.total_capacity * 2/5
+            max(self.current_capacity, 0), self.total_capacity * 1/20
         )
 
         for part in self.parts:

@@ -8,6 +8,7 @@
         "distribucion",
         "facecolor",
         "funcs",
+        "gaussian",
         "gaussianmixture",
         "hoverinfo",
         "hoverlabel",

@@ -173,70 +173,73 @@
 #         print(f"Bloque {i + 1}: Rechazamos la hipótesis nula. Hay evidencia de que las asignaciones no son aleatorias.")
 #     else:
 #         print(f"Bloque {i + 1}: No podemos rechazar la hipótesis nula. Las asignaciones parecen ser aleatorias.")
-import numpy as np
-from scipy.spatial.distance import jensenshannon
 
-# Ejemplo de distribuciones diarias (cada día tiene 3 bloques, 24 horas por bloque)
-distribuciones_dias = [
-    [
-        [2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3],  # Bloque 1, Día 1
-        [3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0],  # Bloque 2, Día 1
-        [4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0]   # Bloque 3, Día 1
-    ],
-    [
-        [2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3],  # Bloque 1, Día 2
-        [3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0],  # Bloque 2, Día 2
-        [4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0]   # Bloque 3, Día 2
-    ]
-]
 
-# Extraer los IDs de termoeléctricas (excluyendo el -1)
-termoelectricas = sorted(list(set(t for distribucion_dia in distribuciones_dias for bloque in distribucion_dia for t in bloque if t != -1)))
 
-# Para cada bloque (misma posición en cada día)
-num_bloques = len(distribuciones_dias[0])  # Número de bloques por día
-num_horas = len(distribuciones_dias[0][0])  # Número de horas por bloque
+# import numpy as np
+# from scipy.spatial.distance import jensenshannon
 
-# Crear una lista de distribuciones por bloque y hora
-distribuciones_por_hora = {i: [[] for _ in range(num_horas)] for i in range(num_bloques)}
+# # Ejemplo de distribuciones diarias (cada día tiene 3 bloques, 24 horas por bloque)
+# distribuciones_dias = [
+#     [
+#         [2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3],  # Bloque 1, Día 1
+#         [3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0],  # Bloque 2, Día 1
+#         [4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0]   # Bloque 3, Día 1
+#     ],
+#     [
+#         [2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3],  # Bloque 1, Día 2
+#         [3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0, 3, 2, 0],  # Bloque 2, Día 2
+#         [4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0, 4, 3, 2, 0]   # Bloque 3, Día 2
+#     ]
+# ]
 
-for distribucion_dia in distribuciones_dias:
-    for bloque_idx, bloque in enumerate(distribucion_dia):
-        for hora_idx, termoelec in enumerate(bloque):
-            distribuciones_por_hora[bloque_idx][hora_idx].append(termoelec)
+# # Extraer los IDs de termoeléctricas (excluyendo el -1)
+# termoelectricas = sorted(list(set(t for distribucion_dia in distribuciones_dias for bloque in distribucion_dia for t in bloque if t != -1)))
 
-# Calcular la similitud entre distribuciones hora por hora para cada bloque
-for bloque_idx, distribuciones_horarias in distribuciones_por_hora.items():
-    print(f"\nBloque {bloque_idx + 1}")
+# # Para cada bloque (misma posición en cada día)
+# num_bloques = len(distribuciones_dias[0])  # Número de bloques por día
+# num_horas = len(distribuciones_dias[0][0])  # Número de horas por bloque
+
+# # Crear una lista de distribuciones por bloque y hora
+# distribuciones_por_hora = {i: [[] for _ in range(num_horas)] for i in range(num_bloques)}
+
+# for distribucion_dia in distribuciones_dias:
+#     for bloque_idx, bloque in enumerate(distribucion_dia):
+#         for hora_idx, termoelec in enumerate(bloque):
+#             distribuciones_por_hora[bloque_idx][hora_idx].append(termoelec)
+
+# # Calcular la similitud entre distribuciones hora por hora para cada bloque
+# for bloque_idx, distribuciones_horarias in distribuciones_por_hora.items():
+#     print(f"\nBloque {bloque_idx + 1}")
     
-    for hora_idx, distribuciones_hora in enumerate(distribuciones_horarias):
-        # Contar las frecuencias de cada termoeléctrica en la hora actual
-        conteo_por_dia = [[1 if termoelec == t else 0 for t in termoelectricas] for termoelec in distribuciones_hora]
+#     for hora_idx, distribuciones_hora in enumerate(distribuciones_horarias):
+#         # Contar las frecuencias de cada termoeléctrica en la hora actual
+#         conteo_por_dia = [[1 if termoelec == t else 0 for t in termoelectricas] for termoelec in distribuciones_hora]
 
-        # Convertir a numpy array para normalizar y calcular la distancia
-        conteo_por_dia = np.array(conteo_por_dia, dtype=float)
+#         # Convertir a numpy array para normalizar y calcular la distancia
+#         conteo_por_dia = np.array(conteo_por_dia, dtype=float)
 
-        # Normalizar las distribuciones para que sumen 1 (frecuencias de termoeléctricas)
-        if conteo_por_dia.sum(axis=1).all():  # Evitar la división por 0
-            conteo_por_dia /= conteo_por_dia.sum(axis=1, keepdims=True)
+#         # Normalizar las distribuciones para que sumen 1 (frecuencias de termoeléctricas)
+#         if conteo_por_dia.sum(axis=1).all():  # Evitar la división por 0
+#             conteo_por_dia /= conteo_por_dia.sum(axis=1, keepdims=True)
 
-        # Calcular la matriz de similitud usando JS para las distribuciones en esta hora
-        num_dias = conteo_por_dia.shape[0]
-        similitudes = []
+#         # Calcular la matriz de similitud usando JS para las distribuciones en esta hora
+#         num_dias = conteo_por_dia.shape[0]
+#         similitudes = []
         
-        for i in range(num_dias):
-            for j in range(i + 1, num_dias):
-                js_distance = jensenshannon(conteo_por_dia[i], conteo_por_dia[j])
-                similitudes.append(js_distance)
+#         for i in range(num_dias):
+#             for j in range(i + 1, num_dias):
+#                 js_distance = jensenshannon(conteo_por_dia[i], conteo_por_dia[j])
+#                 similitudes.append(js_distance)
         
-        # Promedio de similitudes
-        promedio_js = np.mean(similitudes) if similitudes else 0
+#         # Promedio de similitudes
+#         promedio_js = np.mean(similitudes) if similitudes else 0
         
-        print(f"Hora {hora_idx + 1}: Distancia promedio de Jensen-Shannon: {promedio_js:.4f}")
+#         print(f"Hora {hora_idx + 1}: Distancia promedio de Jensen-Shannon: {promedio_js:.4f}")
         
-        # Definir un umbral para determinar si las distribuciones son similares
-        umbral = 0.1  # Por ejemplo
-        if promedio_js < umbral:
-            print(f"Hora {hora_idx + 1}: Las distribuciones horarias son muy similares. No es aleatorio.")
-        else:
-            print(f"Hora {hora_idx + 1}: Las distribuciones horarias no son similares. Podría ser aleatorio.")
+#         # Definir un umbral para determinar si las distribuciones son similares
+#         umbral = 0.1  # Por ejemplo
+#         if promedio_js < umbral:
+#             print(f"Hora {hora_idx + 1}: Las distribuciones horarias son muy similares. No es aleatorio.")
+#         else:
+#             print(f"Hora {hora_idx + 1}: Las distribuciones horarias no son similares. Podría ser aleatorio.")

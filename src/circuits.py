@@ -49,9 +49,9 @@ class Circuit:
         )
 
         self.blocks: list["Block"] = self.create_blocks()
-        
+
         self.circuit_satisfaction = self.set_circuit_satisfaction()
-        
+
         self.mock_electric_consume = self.get_mock_electric_consume()
 
         self.importance = 0
@@ -195,6 +195,7 @@ class Block:
         Returns:
             list[float]: A list of predicted electricity demand values for each hour.
         """
+        return self.predict_demand_per_hour_soft()
 
         predicted_demand_per_hour = self.gaussian_mixture.generate()
 
@@ -204,6 +205,26 @@ class Block:
                 max(predicted_demand_per_hour[i], new_prediction[i])
                 for i in range(len(new_prediction))
             ]
+
+        return predicted_demand_per_hour
+
+    def predict_demand_per_hour_soft(self):
+        predicted_demand_per_hour = self.gaussian_mixture.generate()
+
+        for _ in range(K_PREDICT_CONSUMPTION_ITER - 1):
+            new_prediction = self.gaussian_mixture.generate()
+            predicted_demand_per_hour = [
+                (
+                    predicted_demand_per_hour[i]
+                    + max(new_prediction[i], self.demand_per_hour[i])
+                )
+                / 2
+                for i in range(len(new_prediction))
+            ]
+
+        for i in range(len(predicted_demand_per_hour)):
+            if predicted_demand_per_hour[i] < self.demand_per_hour[i]:
+                predicted_demand_per_hour[i] = self.demand_per_hour[i] + 0.1
 
         return predicted_demand_per_hour
 
