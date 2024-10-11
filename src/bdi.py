@@ -348,7 +348,7 @@ class CECAGeneratedDesire:
         self.desires = desires
         self.conditions = conditions
         self.condition_description = condition_description
-        print("Impriendo GENERATED DESIRE", self)
+        print("Imprimiendo GENERATED DESIRE", self)
 
     def __str__(self):
         return f"""
