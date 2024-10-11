@@ -145,13 +145,13 @@ class WorldState:
 
     def get_general_satisfaction(self): # TODO : TOLEDO MUST REVIEW THIS
 
-        total_industrialization: float = 0
         total_importance: float = 0
+        total_satisfaction: float = 0
         for circuit in self.circuits:
-            total_importance += circuit.industrialization * circuit.circuit_satisfaction
-            total_industrialization += circuit.industrialization
+            total_satisfaction += circuit.importance * circuit.circuit_satisfaction
+            total_importance += circuit.importance
 
-        return total_importance / total_industrialization
+        return total_satisfaction / total_importance
 
     def get_block_satisfaction(self):
 
