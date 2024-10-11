@@ -66,10 +66,13 @@ class WorldState:
         return representation
 
     def update_only_thermoelectric_stats(self, thermoelectric_index):
+        
         old_generation = self.generation_per_thermoelectric[thermoelectric_index]
+        
         self.generation_per_thermoelectric[thermoelectric_index] = self.thermoelectrics[
             thermoelectric_index
         ].current_capacity
+        
         self.general_offer += (
             self.generation_per_thermoelectric[thermoelectric_index] - old_generation
         )
