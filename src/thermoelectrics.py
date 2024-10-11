@@ -67,6 +67,10 @@ class Thermoelectric:
         return properties
 
     def create_parts(self):
+        """
+        Creates and initializes the parts of the thermoelectric plant.
+        This includes Boilers, Coils, SteamTurbine, and Generator.
+        """
         boiler_amount = boiler_amount_for_capacity(self.total_capacity)
 
         created_parts = []
@@ -81,16 +85,33 @@ class Thermoelectric:
 
     def create_lognormal_and_weibull(
         self,
-        mean_min,
-        mean_max,
-        deviation_min,
-        deviation_max,
-        scale_min,
-        scale_max,
-        shape_min,
-        shape_max,
+        mean_min: float,
+        mean_max: float,
+        deviation_min: float,
+        deviation_max: float,
+        scale_min: float,
+        scale_max: float,
+        shape_min: float,
+        shape_max: float,
     ) -> tuple["LogNormal", "Weibull"]:
-        lognormal = LogNormal(
+        """
+        Creates LogNormal and Weibull distributions with the given parameters.
+
+        Parameters:
+        mean_min (float): Minimum mean value for the LogNormal distribution.
+        mean_max (float): Maximum mean value for the LogNormal distribution.
+        deviation_min (float): Minimum deviation value for the LogNormal distribution.
+        deviation_max (float): Maximum deviation value for the LogNormal distribution.
+        scale_min (float): Minimum scale value for the Weibull distribution.
+        scale_max (float): Maximum scale value for the Weibull distribution.
+        shape_min (float): Minimum shape value for the Weibull distribution.
+        shape_max (float): Maximum shape value for the Weibull distribution.
+
+        Returns:
+        tuple[LogNormal, Weibull]: A tuple containing the created LogNormal and Weibull distributions.
+        """
+
+        log_normal = LogNormal(
             mu=RANDOM.uniform(mean_min, mean_max),
             sigma=RANDOM.uniform(deviation_min, deviation_max),
         )
@@ -99,10 +120,16 @@ class Thermoelectric:
             scale=RANDOM.uniform(scale_min, scale_max),
             shape=RANDOM.uniform(shape_min, shape_max),
         )
-        return lognormal, weibull
+        return log_normal, weibull
 
     def create_steam_turbine(self) -> "SteamTurbine":
-        lognormal, weibull = self.create_lognormal_and_weibull(
+        """
+        Creates a SteamTurbine part for the thermoelectric plant.
+
+        Returns:
+            SteamTurbine: The created SteamTurbine part.
+        """
+        log_normal, weibull = self.create_lognormal_and_weibull(
             STEAM_TURBINE_PART_LOGNORMAL_MEAN_MIN,
             STEAM_TURBINE_PART_LOGNORMAL_MEAN_MAX,
             STEAM_TURBINE_PART_LOGNORMAL_DEVIATION_MIN,
@@ -112,10 +139,16 @@ class Thermoelectric:
             STEAM_TURBINE_PART_WEIBULL_SHAPE_MIN,
             STEAM_TURBINE_PART_WEIBULL_SHAPE_MAX,
         )
-        return SteamTurbine(lognormal, weibull)
+        return SteamTurbine(log_normal, weibull)
 
     def create_generator(self) -> "Generator":
-        lognormal, weibull = self.create_lognormal_and_weibull(
+        """
+        Creates a Generator part for the thermoelectric plant.
+
+        Returns:
+            Generator: The created Generator part.
+        """
+        log_normal, weibull = self.create_lognormal_and_weibull(
             GENERATOR_PART_LOGNORMAL_MEAN_MIN,
             GENERATOR_PART_LOGNORMAL_MEAN_MAX,
             GENERATOR_PART_LOGNORMAL_DEVIATION_MIN,
@@ -125,13 +158,16 @@ class Thermoelectric:
             GENERATOR_PART_WEIBULL_SHAPE_MIN,
             GENERATOR_PART_WEIBULL_SHAPE_MAX,
         )
-        return Generator(lognormal, weibull)
+        return Generator(log_normal, weibull)
 
     def create_coils(self) -> "Coils":
         """
-        Create Coils part for the thermoelectric
+        Creates a Coils part for the thermoelectric plant.
+
+        Returns:
+            Coils: The created Generator part.
         """
-        lognormal, weibull = self.create_lognormal_and_weibull(
+        log_normal, weibull = self.create_lognormal_and_weibull(
             COILS_PART_LOGNORMAL_MEAN_MIN,
             COILS_PART_LOGNORMAL_MEAN_MAX,
             COILS_PART_LOGNORMAL_DEVIATION_MIN,
@@ -142,13 +178,16 @@ class Thermoelectric:
             COILS_PART_WEIBULL_SHAPE_MAX,
         )
 
-        return Coils(lognormal, weibull)
+        return Coils(log_normal, weibull)
 
     def create_boiler(self) -> "Boiler":
         """
-        Create a Boiler part for the thermoelectric.
+        Creates a Boiler part for the thermoelectric plant.
+
+        Returns:
+            Boiler: The created Generator part.
         """
-        lognormal, weibull = self.create_lognormal_and_weibull(
+        log_normal, weibull = self.create_lognormal_and_weibull(
             BOILER_PART_LOGNORMAL_MEAN_MIN,
             BOILER_PART_LOGNORMAL_MEAN_MAX,
             BOILER_PART_LOGNORMAL_DEVIATION_MIN,
@@ -159,7 +198,7 @@ class Thermoelectric:
             BOILER_PART_WEIBULL_SHAPE_MAX,
         )
 
-        return Boiler(lognormal, weibull)
+        return Boiler(log_normal, weibull)
 
     def update(self):
         """
@@ -175,6 +214,15 @@ class Thermoelectric:
         self.current_capacity += self.stored_energy
 
     def get_total_broken_boilers(self) -> int:
+        """
+        Returns the total number of broken boilers in the thermoelectric plant.
+
+        A boiler is considered broken if it is an instance of the Boiler class and its
+        `is_working` method returns False.
+
+        Returns:
+            int: The number of broken boilers.
+        """
         broken_boilers = 0
 
         for part in self.parts:
@@ -184,6 +232,15 @@ class Thermoelectric:
         return broken_boilers
 
     def is_default_critical_part(self, part: "Part") -> bool:
+        """
+        Determines if a given part is a default critical part of the thermoelectric plant.
+
+        Parameters:
+        part (Part): The part to check.
+
+        Returns:
+        bool: True if the part is a default critical part (Coils, SteamTurbine, Generator), False otherwise.
+        """
         return isinstance(part, (Coils, SteamTurbine, Generator))
 
     def is_working(self) -> bool:
@@ -318,6 +375,18 @@ class Thermoelectric:
         return critical_part_map
 
     def consume_energy(self, amount):
+        """
+        Consumes a specified amount of energy from the thermoelectric plant's current capacity.
+
+        Parameters:
+            amount (float): The amount of energy to consume.
+
+        Raises:
+            RuntimeError: If the amount to consume is greater than the current capacity.
+
+        Returns:
+            float: The amount of energy consumed.
+        """
         if amount > self.current_capacity:
             raise RuntimeError(
                 f"Thermoelectric consume energy ({amount}) must be le than his current capacity {self.current_capacity}, id: {self.id}"

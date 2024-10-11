@@ -1,6 +1,21 @@
 from numpy import random
 
 class RandomGenerator:
+    """
+    A class used to generate random numbers using random module of numpy.
+
+    Attributes
+    ----------
+    seed : int
+        The seed for the random number generator.
+    map_generator_seed : int
+        The seed for the map generator's random state.
+    random : numpy.random.Generator
+        The random number generator instance.
+    state : numpy.random.RandomState
+        The random state for the map generator.
+    """
+
     def __init__(self, seed, map_generator_seed = 42):
         self.seed = seed
         self.random = random.default_rng(seed)
