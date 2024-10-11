@@ -599,16 +599,149 @@ Finalmente se pasa de día y se repite el ciclo hasta el fin de la simulación.
 
 Teniendo en cuenta que cuando un agente de una termoeléctrica planifica un mantenimiento a una pieza, lo hace basándose en la predicción que tiene del
 tiempo de rotura de dicha pieza y en comparación con una reparación un mantenimiento demora menos tiempo y prolonga el tiempo de vida de la pieza después
-de ser suministrado se plantearon las siguientes hipótesis.
+de ser suministrado se plantearon las siguientes hipótesis.\\
+
+\textbf{Hipótesis sobre diferencia entre brindar o no mantenimientos en el rendimiento del sistema}
+\begin{itemize}
+  \item \textbf{$H_0$}: Es significativa la diferencia entre las generaciones generales de energía al efectuar y no efectuar mantenimientos.
+  \item \textbf{$H_1$}: No es significativa la diferencia entre las generaciones generales de energía al efectuar y no efectuar mantenimientos.
+\end{itemize}
+
+Además dado que se estudia el rendimiento del sistema se hace pertinente analizar el
+comportamiento de la capacidad de las termoeléctricas, tanto de manera general como individual,
+lo que conduce a las siguientes hipótesis:\\
+
+\textbf{Hipótesis sobre la capacidad general de las termoeléctricas}
 
 \begin{itemize}
-  \item En un escenario positivo, donde se satisface cómodamente la demanda, el sistema muestra un mejor rendimiento cuando se aplican mantenimientos a las piezas que según la predicción están a punto de romperse.
-  \item En un escenario negativo, donde difícilmente se satisface la demanda, el sistema muestra un mejor rendimiento cuando no se aplican mantenimientos y siempre se espera a que una pieza se rompa para llevar a cabo una reparación.
+  \item \textbf{$H_0$}: La capacidad general media del sistema cambia significativamente a lo largo del tiempo.
+  \item \textbf{$H_1$}: La capacidad general media del sistema no cambia significativamente a lo largo del tiempo.
+\end{itemize}
+
+\textbf{Hipótesis sobre la capacidad individual de las termoeléctricas}
+
+
+\begin{itemize}
+  \item \textbf{$H_0$}: La capacidad media de cada termoeléctrica cambia significativamente a lo largo del tiempo.
+  \item \textbf{$H_1$}: La capacidad media de cada termoeléctrica no cambia significativamente a lo largo del tiempo.
+\end{itemize}
+
+También es imprescindible cuestionarse el comportamiento del algoritmo genético. En particular 
+se quiso analizar la relación de la variación de la tasa de mutación con la eficiencia del algoritmo y por tanto
+de la distribución de electricidad generada.\\
+
+\textbf{Hipótesis sobre la tasa de mutación}
+\begin{itemize}
+  \item \textbf{$H_0$}: La tasa de mutación no tiene un efecto significativo en la eficiencia del algoritmo genético.
+  \item \textbf{$H_1$}: La tasa de mutación tiene un efecto significativo en la eficiencia del algoritmo genético.
 \end{itemize}
 
 
-
 \section{Resultados y Estadísticas}
+
+Las simulaciones que comenzaron en escenarios positivos mostraron buenos rendimientos y mantuvieron el sistema en un buen estado general.
+En la figura \ref{fig:good} se muestra el comportamiento de algunas estadísticas del sistema. En la figura \ref{fig:working} se puede ver la distribución obtenida de la cantidad de termoeléctricas funcionando por día.
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/goodscenario.png}
+  \caption{Déficit diario, consumo, demanda y energía almacenada durante la simulación de un escenario positivo.}
+  \label{fig:good}
+  \end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/workingperday.png}
+    \caption{Cantidad de termoeléctricas en funcionamiento por día.}
+    \label{fig:working}
+    \end{figure}
+
+\subsection{Test de Hipótesis}
+
+\textbf{Hipótesis sobre diferencia entre brindar o no mantenimientos en el rendimiento del sistema}
+
+Se realizaron 2 simulaciones, una con mantenimientos y otra sin los mismos, cada una de 80 días de duración.
+Para comprobar esta hipótesis se llevó a cabo un test de T-Student entre la generación general de energía en un escenario y otro. El resultado
+del \textit{p-value} fue de 7.86e-05, por lo que se rechaza la hipótesis nula de que la diferencia es significativa. En la figura \ref{fig:maintenancevsnomaintenance}
+se pueden observar los comportamientos similares de la generación general de energía para ambos casos.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/maintenancevsnomaintenance.png}
+  \caption{Generación general diaria en ambos escenarios de Mantenimiento y No Mantenimiento.}
+  \label{fig:maintenancevsnomaintenance}
+  \end{figure}
+
+\textbf{Hipótesis sobre la capacidad general de las termoeléctricas}
+
+Se llevó a cabo una simulación de 80 días donde desde el inicio existían piezas rotas en la mitad de las termoeléctricas.
+Se utilizó un test T-Student, que arrojó un \textit{p-value} de 1.11e-08, por 
+lo que se rechaza la hipótesis nula de que la capacidad general media del sistema cambia significativamente a lo largo del tiempo.
+En la figura \ref{fig:daily_offer} se observa la genración general obtenida en el experimento.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/daily_offer.png}
+  \caption{Generación general diaria.}
+  \label{fig:daily_offer}
+  \end{figure}
+
+
+\textbf{Hipótesis sobre la capacidad individual de las termoeléctricas}
+
+Sin embargo cuando se hace un análisis similar pero para cada una de las generaciones individuales de una termoeléctrica se obtienen los resultados que se muestran en la tabla de la figura \ref{fig:table}.
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/table.png}
+  \caption{T-Student para cada generación de cada termoeléctrica.}
+  \label{fig:table}
+  \end{figure}
+
+La generación diaria de una y de todas las termoeléctricas se muestran en la figura \ref{fig:dailygenone} y \ref{fig:dailygenall} respectivamente. Se puede observar la variación.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/dailygenone.png}
+  \caption{Generación diaria de una termoeléctrica.}
+  \label{fig:dailygenone}
+  \end{figure}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/dailygenall.png}
+    \caption{Generación diaria de todas las termoeléctricas.}
+    \label{fig:dailygenall}
+    \end{figure}
+
+\textbf{Hipótesis sobre la tasa de mutación}
+
+Para comprobar la validez de la hipótesis se utilizó un test de ANOVA de una vía. Se procedió a comparar 
+las evaluaciones en la función de \textit{fitness} de los cromosomas generados por el algoritmo genético con diferentes tasas de mutación.
+Para ello se simularon 10 días con cada tasa y se recopilaron dichos datos. Se obtuvo un \textit{p-value} de 0.11 por lo que se concluyó 
+que no se puede rechazar la hipótesis nula de que no hay una diferencia significativa en los resultados obtenidos con las distintas tasas de mutación. 
+En la figura \ref{fig:mutation} se muestra un gráfico de cajas y bigotes que ayuda a visualizar la  poca variación
+del rendimiento para diferentes valores de la tasa de mutación.\\
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{assets/mutation rate boxplot.png}
+  \caption{Gráfica de cajas y bigotes de los valores de \textit{fitness} para cada tasa de mutación.}
+  \label{fig:mutation}
+  \end{figure}
+
+En la figura \ref{fig:mutation2} se puede ver cómo varía el \textit{fitness} en el tiempo para cada tasa de mutación. 
+Es visible que comienza a tener un comportamiento variado a medida que avanza el tiempo.
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=\columnwidth]{assets/mutation rate fitness.png}
+    \caption{Gráfica de variación del \textit{fitness} en el tiempo para cada tasa de mutación.}
+    \label{fig:mutation2}
+    \end{figure}
+
 
 \section{Conclusiones}
 
