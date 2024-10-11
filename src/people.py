@@ -658,7 +658,7 @@ class ChiefElectricCompanyAgent(Person):
         current_rules,
         mapper_key_to_circuit_block,
         learn=False,
-        mutation_rate,
+        mutation_rate=0,
     ):
         Person.__init__(self, name=name)
 
