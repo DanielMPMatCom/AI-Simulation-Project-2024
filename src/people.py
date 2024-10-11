@@ -1,20 +1,8 @@
 from src.bdi import (
     Belief,
-    Desire,
     Intention,
-    CECAPrioritizeBlockImportance,
-    CECAMeetDemandDesire,
-    CECAPrioritizeBlockOpinion,
-    CECAPrioritizeConsecutiveDaysOff,
-    CECAPrioritizeDaysOff,
     CECAGeneratedDesire,
     DesireGenerator,
-    TAMaxPowerOutputDesire,
-    TAMeetEnergyDemandDesire,
-    TAMinimizeDowntimeDesire,
-    TAPreventUnexpectedBreakdownDesire,
-    TAPrioritizeCriticalPartsRepairDesire,
-    TARepairPartsDesire,
 )
 from src.thermoelectrics import Thermoelectric
 from src.circuits import Circuit, Block
@@ -26,6 +14,7 @@ from src.simulation_constants import (
     OBJECTIVE_FUNCTION_INTENTION_PARAMS_DEFAULT_WEIGHT,
     MIN_DAYS_TO_NEED_REPAIR,
 )
+import pickle
 
 
 class Person:
@@ -966,6 +955,10 @@ class ChiefElectricCompanyAgent(Person):
             []
         )  #  block key, thermoelectric index
 
+        assigned_cost = [0] * len(self.thermoelectrics)
+        plan_cost = [0] * len(self.thermoelectrics)
+        flag = False
+
         for block_key, distribution in enumerate(complete_distribution):
 
             days_off = []
@@ -978,10 +971,10 @@ class ChiefElectricCompanyAgent(Person):
 
                 if thermoelectric_index == -1:
                     days_off.append(True)
-                    # print('El bloque', block_index, 'del circuito', circuit_index, 'no recibió energía')
 
                 else:
                     days_off.append(False)
+
                     cost = self.get_cost_to_meet_demand_from_thermoelectric_to_block(
                         thermoelectric_index=thermoelectric_index,
                         block_key=block_key,
@@ -989,17 +982,25 @@ class ChiefElectricCompanyAgent(Person):
                         predicted=False,
                     )
 
-                    thermoelectrics[thermoelectric_index].consume_energy(cost)
-                    # print(
-                    #     "Termoeléctrica ",
-                    #     thermoelectric_index,
-                    #     "consumió ",
-                    #     cost,
-                    #     " y abasteció al bloque ",
-                    #     block_index,
-                    #     "del circuito ",
-                    #     circuit_index,
-                    # )
+                    plan_cost[
+                        thermoelectric_index
+                    ] += self.get_cost_to_meet_demand_from_thermoelectric_to_block(
+                        thermoelectric_index=thermoelectric_index,
+                        block_key=block_key,
+                        hour=hour,
+                    )
+
+                    assigned_cost[thermoelectric_index] += cost
+                    try:
+                        thermoelectrics[thermoelectric_index].consume_energy(cost)
+                    except:
+                        flag = True
+
+        if flag:
+            print("generación", self.beliefs["generation_per_thermoelectric"].value)
+            print("asignado", assigned_cost)
+            print("planificado", plan_cost)
+            raise RuntimeError("CASO DE PRUEBA GENERADO...")
 
         circuits[circuit_index].blocks[block_index].set_days_distribution(days_off)
         return flat_distribution
@@ -1217,9 +1218,27 @@ class ChiefElectricCompanyAgent(Person):
     ) -> list["ChiefElectricCompanyAction"]:
         self.perception = perception
         self.brf()
-        self.generate_desires()
+        # self.generate_desires()
         self.filter_intentions()
-        return self.execute()
+
+        try:
+            action = self.execute()
+            return action
+        except Exception as e:
+
+            TestCaseParams(
+                name="ErrorOnDistribution",
+                thermoelectrics=self.thermoelectrics,
+                circuits=self.circuits,
+                perception=perception,
+                rules=self.rules,
+                current_rules=self.current_rules,
+                mapper_key_to_circuit_block=self.mapper_key_to_circuit_block,
+                learn=self.learn,
+                mutation_rate=self.mutation_rate,
+            ).save()
+
+            raise e
 
     def learn_new_desires(self):
         conditions = [
@@ -1321,3 +1340,34 @@ class ChiefElectricCompanyAgent(Person):
 
         self.beliefs["all_desires"].value[generated_desire.id] = generated_desire
         self.beliefs["current_desires"].value.append(generated_desire.id)
+
+
+class TestCaseParams:
+    def __init__(
+        self,
+        name: str,
+        thermoelectrics: list["Thermoelectric"],
+        circuits: list["Circuit"],
+        perception: "ChiefElectricCompanyAgentPerception",
+        rules,
+        current_rules,
+        mapper_key_to_circuit_block,
+        learn=False,
+        mutation_rate=0,
+    ):
+        self.name = name
+        self.thermoelectrics = thermoelectrics
+        self.circuits = circuits
+        self.perception = perception
+        self.rules = rules
+        self.current_rules = current_rules
+        self.mapper_key_to_circuit_block = mapper_key_to_circuit_block
+        self.learn = learn
+        self.mutation_rate = mutation_rate
+
+    def save(self):
+        with open(f"{self.name}.pkl", "wb") as file:
+            pickle.dump(self, file)
+
+    def __str__(self):
+        return "CASO DE PRUEBA"
